@@ -1,12 +1,25 @@
 # DroPS
 Deriving r from Power Spectra (DroPS) of CMB
 
-key dependence:
+please install all dependences:
+healpy
+astropy
 pymaster
 pysm3
 camb
+matplotlib
+numpy
+ast
+emcee (this is actually not used by default)
 
-To simulate sky maps, you need to hack pysm3 by replacing path_to_pysm3/models/cmb.py (where pyth_to_pysm3 is the local path where pysm3 is installed) with cmb.py in this repository.
+To simulate sky maps, you need to
+
+1. hack pysm3 by replacing path_to_pysm3/models/cmb.py (where pyth_to_pysm3 is the local path where pysm3 is installed) with cmb.py in this repository.
+
+2. generate a TOD filtering model by running
+
+python mock_filtering.py
+
 
 
 Example of simulating CMB-S4 sky maps:
