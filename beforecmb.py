@@ -1652,17 +1652,22 @@ class  sky_analyser:
                 fvec[fld + ipower * self.num_fields: self.fullsize : self.blocksize] = self.filters[fld].project(vec[fld + ipower * self.num_fields: self.fullsize : self.blocksize])
         return fvec
 
-    def get_lens_weights(self, overwrite = False):
+    def get_lens_weights(self):
         if(self.lens_weights_computed):
             return
         if(self.data_product_path is not None):
-            self.lens_weights_computed = True
+            self.lens_weights_computed = path.exists(path.join(self.data_product_path, r'lens_res.npy'))
+            if(self.lens_weights_computed and self.do_r1):
+                self.lens_weights_computed = path.exists(path.join(self.data_product_path, r'lens1_res.npy'))
             for field in self.fields:
-                if(path.exists(path.join(self.data_product_path, r"lens_weights_"+field+r".npy"))):
+                if(self.lens_weights_computed and path.exists(path.join(self.data_product_path, r"lens_weights_"+field+r".npy"))):
                     self.lens_weights[field] = np.load(path.join(self.data_product_path, r"lens_weights_"+field+r".npy"))
                 else:
                     self.lens_weights_computed = False
         if(self.lens_weights_computed):
+            self.lens_res = np.load(path.join(self.data_product_path, r'lens_res.npy'))
+            if(self.do_r1):
+                self.lens1_res = np.load(path.join(self.data_product_path, r'lens1_res.npy'))                
             return
         if(self.do_delensing):
             if(self.verbose):
@@ -1672,7 +1677,7 @@ class  sky_analyser:
                 power_arrays[field] = np.empty((self.num_ells, self.nmaps, self.num_freqs))
             for i in range(self.nmaps):
                 for ifreq in range(self.num_freqs):
-                    bp = self.power_calc.band_power( [self.cmbf_root + self.freqnames[ifreq] + '_' + str(i) + self.mapform, self.noisef_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.fgf_root + self.freqnames[ifreq] +  self.mapform ], [ self.cmb_root + 'lenstemp_' + str(i) +  self.mapform ], overwrite = overwrite )
+                    bp = self.power_calc.band_power( [self.cmbf_root + self.freqnames[ifreq] + '_' + str(i) + self.mapform, self.noisef_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.fgf_root + self.freqnames[ifreq] +  self.mapform ], [ self.cmb_root + 'lenstemp_' + str(i) +  self.mapform ])
                     for field in self.fields:
                         power_arrays[field][:, i, ifreq] = bp[field]/self.beam_filter_freq(ifreq)
             for field in self.fields:
@@ -1696,13 +1701,15 @@ class  sky_analyser:
             else:
                 self.lens_res += self.cmb_powers[i, :]
         self.lens_res /= self.nmaps
-        self.lens_weights_computed = True
+        if(self.data_product_path is not None):
+            np.save(path.join(self.data_product_path, r'lens_res.npy'), self.lens_res)
+        self.lens_weights_computed = True            
         if(not self.do_r1):
             return
         if(self.do_delensing):
             for i in range(self.nmaps):
                 for ifreq in range(self.num_freqs):
-                    bp = self.power_calc.band_power( [self.cmb1f_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.noisef_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.fgf_root + self.freqnames[ifreq] +  self.mapform], [ self.cmb1_root + 'lenstemp_' + str(i) +  self.mapform ], overwrite = overwrite )
+                    bp = self.power_calc.band_power( [self.cmb1f_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.noisef_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.fgf_root + self.freqnames[ifreq] +  self.mapform], [ self.cmb1_root + 'lenstemp_' + str(i) +  self.mapform ])
                     for field in self.fields:
                         power_arrays[field][:, i, ifreq] = bp[field]/self.beam_filter_freq(ifreq)
             for field in self.fields:
@@ -1722,6 +1729,8 @@ class  sky_analyser:
             else:
                 self.lens1_res += self.cmb1_powers[i, :]
         self.lens1_res /= self.nmaps
+        if(self.data_product_path is not None):
+            np.save(path.join(self.data_product_path, r'lens1_res.npy'), self.lens1_res)
         
 
     def get_data_vector(self, overwrite = False):
@@ -1730,7 +1739,7 @@ class  sky_analyser:
         if(self.verbose):
             print('computing data vector')
         if(not self.lens_weights_computed):
-            self.get_lens_weights(overwrite = overwrite)
+            self.get_lens_weights()
         self.power_calc.verbose = self.verbose
         self.data_vec = self.full_vector(prefix = self.root, do_seasons = [True], overwrite = overwrite)
         self.power_calc.verbose = False        
@@ -1852,24 +1861,25 @@ class  sky_analyser:
             
     #get mean and covariance for (total Cl  - noise Cl - signal Cl)
     def get_covmat(self):
-        if(self.data_product_path is not None and path.exists( path.join(self.data_product_path, r'covmat.npy')) ):  #try load from saved 
-            self.lens_res = np.load(path.join(self.data_product_path, r'lens_res.npy'))
+        if(not self.lens_weights_computed):
+            self.get_lens_weights()        
+        if(self.data_product_path is not None and path.exists( path.join(self.data_product_path, r'filters.pickle'))   ):  #try load from saved 
             self.mean = np.load(path.join(self.data_product_path, r'mean.npy'))
             self.covmat = np.load(path.join(self.data_product_path, r'covmat.npy'))
             self.invcov = np.load(path.join(self.data_product_path, r'invcov.npy'))
             with open(path.join(self.data_product_path, r'filters.pickle'), 'rb') as f:
-                self.filters = pickle.load(f)    
+                self.filters = pickle.load(f)
+            self.invcov_computed = True                                
             if(self.do_r1):
-                self.lens1_res = np.load(path.join(self.data_product_path, r'lens1_res.npy'))
-                self.mean1 = np.load(path.join(self.data_product_path, r'mean1.npy'))
-                self.covmat1 =np.load( path.join(self.data_product_path, r'covmat1.npy'))
-                self.set_invcov_interp()
-            self.invcov_computed = True                
+                if(path.exists(path.join(self.data_product_path, r'covmat1.npy'))):
+                    self.mean1 = np.load(path.join(self.data_product_path, r'mean1.npy'))
+                    self.covmat1 =np.load( path.join(self.data_product_path, r'covmat1.npy'))
+                    self.set_invcov_interp()
+                else:
+                    self.invcov_computed = False                                    
         if(self.invcov_computed):
             return
         self.get_noise_cov()        
-        if(not self.lens_weights_computed):
-            self.get_lens_weights()
         self.get_signal_cov()
         if(self.verbose):
             print(r'computing total covmat')            
@@ -1925,7 +1935,6 @@ class  sky_analyser:
             self.invcov = np.linalg.inv(self.covmat)
         self.invcov_computed = True
         if(self.data_product_path is not None):
-            np.save(path.join(self.data_product_path, r'lens_res.npy'), self.lens_res)
             np.save(path.join(self.data_product_path, r'mean.npy'), self.mean)
             np.save(path.join(self.data_product_path, r'covmat.npy'), self.covmat)
             np.save(path.join(self.data_product_path, r'invcov.npy'), self.invcov)                        
@@ -1979,7 +1988,6 @@ class  sky_analyser:
             for i in range(self.fullsize):  #approximately take into account uncertainties of lensing residual
                 self.covmat1[i, i] += self.lens_res[i]**2*2./self.dofs[i // self.blocksize ]        
         if(self.data_product_path is not None):
-            np.save(path.join(self.data_product_path, r'lens1_res.npy'), self.lens1_res)
             np.save(path.join(self.data_product_path, r'mean1.npy'), self.mean1)
             np.save(path.join(self.data_product_path, r'covmat1.npy'), self.covmat1)
         self.set_invcov_interp()
