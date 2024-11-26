@@ -6,13 +6,13 @@
 "band_delta_ell" : 20,
 "data_mask" : None, 
 "path" : r"AliCPT/",
-"root" : r"maps/AliCPT2_d0s0_s0_r230E-4_"
-"noise_root" : "noise/noise_",
-"cmb_root" : "cmb/cmb_",
-"foreground_root" : "fg/fg_",
-"filtered_noise_root" : "noisef/noisef_",
-"filtered_cmb_root" : "cmbf/cmbf_",
-"filtered_foreground_root" : "fgf/fgf_",
+"root" : r"maps/AliCPT2_d0s0_s0_r230E-4_",
+"noise_root" : r"noise/noise_",
+"cmb_root" : r"cmb/cmb_",
+"foreground_root" : r"fg/fg_",
+"filtered_noise_root" : r"noisef/noisef_",
+"filtered_cmb_root" : r"cmbf/cmbf_",
+"filtered_foreground_root" : r"fgf/fgf_",
 "nmaps" : 200,
 "nside" : 256,
 "num_seasons" : 2, 
@@ -29,7 +29,7 @@
 "cosmo_logA" : 3.047,
 "cosmo_ns" :  0.966,
 "verbose" : True,
-"output_dir" : "AliCPT/output2",
+"output_dir" : r"AliCPT/output2",
 "ell_cross_range" : 0,
 "do_delensing" : True,
 "analytic_fg" : True,
@@ -42,5 +42,5 @@
 "assume_parity" : True,
 "clean_noise_cov" : True,
 "model_sxn_cov" : False,
-"data_product_path" : "product_l0"
+"data_product_path" : r"product_l0"
 }
