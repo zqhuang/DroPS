@@ -572,6 +572,7 @@ class sky_simulator:
         self.noisef_root  = path.join(self.path, config.get('filtered_noise_root', r'noisef/noisef_'))
         self.fg_root = path.join(self.path, config.get('foreground_root', r'fg/fg_'))
         self.fgf_root = path.join(self.path, config.get('filtered_foreground_root', r'fgf/fgf_'))
+        mkdir_for_file(self.root)
         mkdir_for_file(self.cmb_root_raw)
         mkdir_for_file(self.cmbf_root_raw)
         mkdir_for_file(self.fg_root)

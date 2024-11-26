@@ -1,7 +1,7 @@
 {
 "path" : r"AliCPT",
 "mask_file" : r"alimask_G_256.fits",
-"root" : r"AliCPT2_d0s0_s0_",
+"root" : r"maps/AliCPT2_d0s0_s0_",
 "noise_root" : "noise/noise_",
 "cmb_root" : "cmb/cmb_",
 "foreground_root" : "fg/fg_",
