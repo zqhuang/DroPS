@@ -41,5 +41,7 @@
 "assume_parity" : True,
 "clean_noise_cov" : True,
 "model_sxn_cov" : False,
-"data_product_path" : "product_l0"
+"data_product_path" : "product_l0",
+"beta_d_prior" : [ 1.55, 0.15 ],
+"beta_s_prior" : [-3., 0.15 ]
 }
