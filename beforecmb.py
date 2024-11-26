@@ -49,16 +49,18 @@ def float2intstr(x,  shift = 0):
 
 def compress_str(s, length = 8, clib="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"):
     """compress a string to a string with length up to 16; this is not one-to-one mapping of course, but practically you may ignore the probability of coincidence"""
-    primes = np.array([ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67 ])    
+    primes = [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307]
     assert(length <= len(primes))
     lenlib = len(clib)
     ils = np.zeros(length, dtype=np.int32)
     k = 999
+    lastic = 0
     for c in s:
         ic = ord(c)
         for i in range(length):
-            ils[i] += ic * (k % primes[i]) 
+            ils[i] += ic * (k  % primes[i] )  + ( ic + 255) % (lastic + 1)
         k += 1
+        lastic = ic
     compressed_str = ""
     for i in range(length):
         compressed_str += clib[ils[i] % lenlib]
@@ -67,6 +69,7 @@ def compress_str(s, length = 8, clib="0123456789abcdefghijklmnopqrstuvwxyzABCDEF
 
 def path23ints(mypath):
     primes = [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307]
+    lenp = len(primes)
     rpath = path.realpath(mypath)
     headtail = path.split(rpath)
     lenhead = len(headtail[0])
@@ -80,21 +83,29 @@ def path23ints(mypath):
     for c in rpath:
         k += 1
         ordc = ord(c)
-        ints[0] += ((ordc - 31)*last_ordc)*k
+        seed1 = primes[ordc % lenp ]
+        seed2 = (ordc * k + 255 ) % (last_ordc + 1)
+        seed3 = (k**2) % (ordc + 1)        
+        seed4 = (last_ordc * k + 255 ) % (ordc  + 1)
+        seed5 = (ordc * (ordc + 1)) % 255
         if(ordc > 47 and ordc < 58):
             r = ordc - 47
-            ints[2] += ((r*k) % 10)
         elif(ordc > 64 and ordc < 91):
             r = ordc - 54
-            ints[1] += (r-64)*k
         elif(ordc > 96 and ordc < 123):
             r = ordc - 60
-            ints[0] += (r-96)*k
         else:
             r = 0
-        ints[1] += ( (k**2 + (ordc ** 2) % last_ordc) % 997 + 1 ) * primes[r] 
+        seed6 = (primes[r] * k + ordc) % 397
+        seed7 = (primes[62-r] * k + last_ordc) % 299
         if(k >= lenhead):
-            ints[2] += (((last_ordc**2) % ordc + primes[62-r]*k)*((k**2 + k) % 31 + 1)) % 997
+            ints[0] += (seed1 * seed2 * seed3 + seed4*seed5*seed6+ordc*last_ordc*seed7+ordc*k)
+            ints[1] += (seed1+seed2+seed3+seed5+seed6+ordc)
+            ints[2] += (seed4+seed5+seed6+seed7+last_ordc)
+        else:
+            ints[0] += (seed1 * seed2  +  seed3 * seed4 + seed5 * seed6 + seed7 * ordc + last_ordc )
+            ints[1] += (seed1 + seed2 + seed3)
+            ints[2] += (seed4 + seed5 + seed6)
         last_ordc = ordc
     return ints
 
@@ -1088,7 +1099,7 @@ class band_power_calculator:
                 sumints2 = path23ints(mapfiles2[0])                
             for imap in range(1, nmap2):
                 sumints2 += path23ints(mapfiles2[imap])
-        prefix = path.join(self.powerbank_path, compress_str(str(sumints1[0]+sumints2[0]) + '_' + str(sumints1[1]+sumints2[1])+'_'+ str(sumints1[2]*sumints2[2]), length = 18))
+        prefix = path.join(self.powerbank_path, compress_str(str(sumints1[0]+sumints2[0]) + '_' + str(sumints1[1]+sumints2[1])+'_'+ str(sumints1[2]*sumints2[2]), length = 20))
         saved = True        
         if(overwrite):
             saved = False
@@ -1652,22 +1663,17 @@ class  sky_analyser:
                 fvec[fld + ipower * self.num_fields: self.fullsize : self.blocksize] = self.filters[fld].project(vec[fld + ipower * self.num_fields: self.fullsize : self.blocksize])
         return fvec
 
-    def get_lens_weights(self):
+    def get_lens_weights(self, overwrite = False):
         if(self.lens_weights_computed):
             return
         if(self.data_product_path is not None):
-            self.lens_weights_computed = path.exists(path.join(self.data_product_path, r'lens_res.npy'))
-            if(self.lens_weights_computed and self.do_r1):
-                self.lens_weights_computed = path.exists(path.join(self.data_product_path, r'lens1_res.npy'))
+            self.lens_weights_computed = True
             for field in self.fields:
-                if(self.lens_weights_computed and path.exists(path.join(self.data_product_path, r"lens_weights_"+field+r".npy"))):
+                if(path.exists(path.join(self.data_product_path, r"lens_weights_"+field+r".npy")) and path.exists(path.join(self.data_product_path, r'lens_res.npy')) and (path.exists(path.join(self.data_product_path, r'lens1_res.npy')) or not self.do_r1) ):
                     self.lens_weights[field] = np.load(path.join(self.data_product_path, r"lens_weights_"+field+r".npy"))
                 else:
                     self.lens_weights_computed = False
         if(self.lens_weights_computed):
-            self.lens_res = np.load(path.join(self.data_product_path, r'lens_res.npy'))
-            if(self.do_r1):
-                self.lens1_res = np.load(path.join(self.data_product_path, r'lens1_res.npy'))                
             return
         if(self.do_delensing):
             if(self.verbose):
@@ -1677,7 +1683,7 @@ class  sky_analyser:
                 power_arrays[field] = np.empty((self.num_ells, self.nmaps, self.num_freqs))
             for i in range(self.nmaps):
                 for ifreq in range(self.num_freqs):
-                    bp = self.power_calc.band_power( [self.cmbf_root + self.freqnames[ifreq] + '_' + str(i) + self.mapform, self.noisef_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.fgf_root + self.freqnames[ifreq] +  self.mapform ], [ self.cmb_root + 'lenstemp_' + str(i) +  self.mapform ])
+                    bp = self.power_calc.band_power( [self.cmbf_root + self.freqnames[ifreq] + '_' + str(i) + self.mapform, self.noisef_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.fgf_root + self.freqnames[ifreq] +  self.mapform ], [ self.cmb_root + 'lenstemp_' + str(i) +  self.mapform ], overwrite = overwrite )
                     for field in self.fields:
                         power_arrays[field][:, i, ifreq] = bp[field]/self.beam_filter_freq(ifreq)
             for field in self.fields:
@@ -1701,15 +1707,13 @@ class  sky_analyser:
             else:
                 self.lens_res += self.cmb_powers[i, :]
         self.lens_res /= self.nmaps
-        if(self.data_product_path is not None):
-            np.save(path.join(self.data_product_path, r'lens_res.npy'), self.lens_res)
-        self.lens_weights_computed = True            
+        self.lens_weights_computed = True
         if(not self.do_r1):
             return
         if(self.do_delensing):
             for i in range(self.nmaps):
                 for ifreq in range(self.num_freqs):
-                    bp = self.power_calc.band_power( [self.cmb1f_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.noisef_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.fgf_root + self.freqnames[ifreq] +  self.mapform], [ self.cmb1_root + 'lenstemp_' + str(i) +  self.mapform ])
+                    bp = self.power_calc.band_power( [self.cmb1f_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.noisef_root + self.freqnames[ifreq] + '_' + str(i) +  self.mapform, self.fgf_root + self.freqnames[ifreq] +  self.mapform], [ self.cmb1_root + 'lenstemp_' + str(i) +  self.mapform ], overwrite = overwrite )
                     for field in self.fields:
                         power_arrays[field][:, i, ifreq] = bp[field]/self.beam_filter_freq(ifreq)
             for field in self.fields:
@@ -1729,8 +1733,6 @@ class  sky_analyser:
             else:
                 self.lens1_res += self.cmb1_powers[i, :]
         self.lens1_res /= self.nmaps
-        if(self.data_product_path is not None):
-            np.save(path.join(self.data_product_path, r'lens1_res.npy'), self.lens1_res)
         
 
     def get_data_vector(self, overwrite = False):
@@ -1739,7 +1741,7 @@ class  sky_analyser:
         if(self.verbose):
             print('computing data vector')
         if(not self.lens_weights_computed):
-            self.get_lens_weights()
+            self.get_lens_weights(overwrite = overwrite)
         self.power_calc.verbose = self.verbose
         self.data_vec = self.full_vector(prefix = self.root, do_seasons = [True], overwrite = overwrite)
         self.power_calc.verbose = False        
@@ -1861,25 +1863,24 @@ class  sky_analyser:
             
     #get mean and covariance for (total Cl  - noise Cl - signal Cl)
     def get_covmat(self):
-        if(not self.lens_weights_computed):
-            self.get_lens_weights()        
-        if(self.data_product_path is not None and path.exists( path.join(self.data_product_path, r'filters.pickle'))   ):  #try load from saved 
+        if(self.data_product_path is not None and path.exists( path.join(self.data_product_path, r'covmat.npy')) ):  #try load from saved 
+            self.lens_res = np.load(path.join(self.data_product_path, r'lens_res.npy'))
             self.mean = np.load(path.join(self.data_product_path, r'mean.npy'))
             self.covmat = np.load(path.join(self.data_product_path, r'covmat.npy'))
             self.invcov = np.load(path.join(self.data_product_path, r'invcov.npy'))
             with open(path.join(self.data_product_path, r'filters.pickle'), 'rb') as f:
-                self.filters = pickle.load(f)
-            self.invcov_computed = True                                
+                self.filters = pickle.load(f)    
             if(self.do_r1):
-                if(path.exists(path.join(self.data_product_path, r'covmat1.npy'))):
-                    self.mean1 = np.load(path.join(self.data_product_path, r'mean1.npy'))
-                    self.covmat1 =np.load( path.join(self.data_product_path, r'covmat1.npy'))
-                    self.set_invcov_interp()
-                else:
-                    self.invcov_computed = False                                    
+                self.lens1_res = np.load(path.join(self.data_product_path, r'lens1_res.npy'))
+                self.mean1 = np.load(path.join(self.data_product_path, r'mean1.npy'))
+                self.covmat1 =np.load( path.join(self.data_product_path, r'covmat1.npy'))
+                self.set_invcov_interp()
+            self.invcov_computed = True                
         if(self.invcov_computed):
             return
         self.get_noise_cov()        
+        if(not self.lens_weights_computed):
+            self.get_lens_weights()
         self.get_signal_cov()
         if(self.verbose):
             print(r'computing total covmat')            
@@ -1935,6 +1936,7 @@ class  sky_analyser:
             self.invcov = np.linalg.inv(self.covmat)
         self.invcov_computed = True
         if(self.data_product_path is not None):
+            np.save(path.join(self.data_product_path, r'lens_res.npy'), self.lens_res)
             np.save(path.join(self.data_product_path, r'mean.npy'), self.mean)
             np.save(path.join(self.data_product_path, r'covmat.npy'), self.covmat)
             np.save(path.join(self.data_product_path, r'invcov.npy'), self.invcov)                        
@@ -1988,6 +1990,7 @@ class  sky_analyser:
             for i in range(self.fullsize):  #approximately take into account uncertainties of lensing residual
                 self.covmat1[i, i] += self.lens_res[i]**2*2./self.dofs[i // self.blocksize ]        
         if(self.data_product_path is not None):
+            np.save(path.join(self.data_product_path, r'lens1_res.npy'), self.lens1_res)
             np.save(path.join(self.data_product_path, r'mean1.npy'), self.mean1)
             np.save(path.join(self.data_product_path, r'covmat1.npy'), self.covmat1)
         self.set_invcov_interp()
