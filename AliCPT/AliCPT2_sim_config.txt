@@ -27,7 +27,7 @@
 "cosmo_tau" : 0.0561,
 "cosmo_logA" : 3.047,
 "cosmo_ns" :  0.966,
-"fg_models": [ "d0", "s0" ],
+"fg_models": [ "d1", "s1" ],
 "verbose" : True,
 "save_disk" : True
 }

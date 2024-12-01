@@ -1212,6 +1212,7 @@ class  sky_analyser:
         self.ME_is_positive = config.get(r"ME_is_positive", True)
         self.ME_upperbound = config.get(r"ME_upperbound", 0.05)
         self.eps_upperbound = config.get(r"eps_upperbound", 0.3)
+        self.r_lowerbound = config.get(r'r_lowerbound', 0.)
         self.beta_d_prior = config.get(r"beta_d_prior", None)
         self.beta_s_prior = config.get(r"beta_s_prior", None)
         self.lcdm_params = np.array( [ self.cosmo_ombh2, self.cosmo_omch2, self.cosmo_theta, self.cosmo_tau, self.cosmo_logA, self.cosmo_ns, self.cosmo_r ] )
@@ -2000,7 +2001,7 @@ class  sky_analyser:
         fg_vec = self.fg_model_vector(fgs)  
         cmb_unlensed, cmb_lensed = self.cmb_vector_approx(lcdm_params = lcdm_params)
         if(self.do_r1 ):
-            fac = min(1., lcdm_params[cosmology_num_params-1]/self.cosmo_r1)
+            fac = max(min(1., lcdm_params[cosmology_num_params-1]/self.cosmo_r1), -1.)
             if(self.do_delensing):  
                 if(self.analytic_fg):
                     vec = self.apply_filters(cmb_unlensed - (self.cmb_unlensed_base*(1.-fac)+self.cmb1_unlensed_base*fac) + fg_vec)  + (self.lens_res*(1.-fac)+self.lens1_res*fac)
@@ -2025,6 +2026,43 @@ class  sky_analyser:
         return vec
             
 
-
     
                     
+    def chisq_of_vec(self, vec, r):
+        if(self.do_r1):
+            r_pos =  (abs(r)/self.cosmo_r1)**self.r_interp_index*(self.num_r_interp-1) 
+            ind_r_pos =  int(r_pos)
+            if(ind_r_pos >= self.num_r_interp-1):
+                if(self.do_data_mask):
+                    return np.dot(np.dot(vec[self.used_indices], self.invcov_interp[self.num_r_interp-1, :, :]), vec[self.used_indices]) - self.invcov_lndet[self.num_r_interp-1]
+                elif(self.ell_cross_range == 0):
+                    chisq = - self.invcov_lndet[self.num_r_interp-1]                    
+                    for i in range(self.num_ells):
+                        chisq += np.dot(np.dot(vec[i*self.blocksize:(i+1)*self.blocksize], self.invcov_interp[self.num_r_interp-1, i*self.blocksize:(i+1)*self.blocksize, i*self.blocksize:(i+1)*self.blocksize]), vec[i*self.blocksize:(i+1)*self.blocksize])                         
+                    return np.dot(np.dot(vec, self.invcov_interp[self.num_r_interp-1, :, :]), vec) - self.invcov_lndet[self.num_r_interp-1]                    
+                else:
+                    return np.dot(np.dot(vec, self.invcov_interp[self.num_r_interp-1, :, :]), vec) - self.invcov_lndet[self.num_r_interp-1]
+            else:
+                r_pos = r_pos - ind_r_pos
+                if(self.do_data_mask):
+                    return np.dot(np.dot(vec[self.used_indices], self.invcov_interp[ind_r_pos, :, :]*(1.-r_pos)+self.invcov_interp[ind_r_pos+1, :, :]*r_pos), vec[self.used_indices]) - (self.invcov_lndet[ind_r_pos]*(1.-r_pos) + self.invcov_lndet[ind_r_pos +1]*r_pos)
+                elif(self.ell_cross_range == 0):
+                    chisq =  - (self.invcov_lndet[ind_r_pos]*(1.-r_pos) + self.invcov_lndet[ind_r_pos +1]*r_pos)
+                    for i in range(self.num_ells):
+                        chisq += np.dot(np.dot(vec[i*self.blocksize:(i+1)*self.blocksize], self.invcov_interp[ind_r_pos, i*self.blocksize:(i+1)*self.blocksize, i*self.blocksize:(i+1)*self.blocksize]*(1.-r_pos)+self.invcov_interp[ind_r_pos+1, i*self.blocksize:(i+1)*self.blocksize, i*self.blocksize:(i+1)*self.blocksize]*r_pos ), vec[i*self.blocksize:(i+1)*self.blocksize])                        
+                    return chisq
+                else:
+                    return np.dot(np.dot(vec, self.invcov_interp[ind_r_pos, :, :]*(1.-r_pos)+self.invcov_interp[ind_r_pos+1, :, :]*r_pos ), vec) - (self.invcov_lndet[ind_r_pos]*(1.-r_pos) + self.invcov_lndet[ind_r_pos +1]*r_pos)
+        else:
+            if(self.do_data_mask):
+                return np.dot(np.dot(vec[self.used_indices], self.invcov), vec[self.used_indices])
+            elif(self.ell_cross_range == 0):
+                chisq = 0.
+                for i in range(self.num_ells):
+                    chisq += np.dot(np.dot(vec[i*self.blocksize:(i+1)*self.blocksize], self.invcov[i*self.blocksize:(i+1)*self.blocksize, i*self.blocksize:(i+1)*self.blocksize]), vec[i*self.blocksize:(i+1)*self.blocksize])                         
+                return chisq
+            else:
+                return np.dot(np.dot(vec, self.invcov), vec)        
+        
+
+

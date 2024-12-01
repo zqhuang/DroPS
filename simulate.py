@@ -12,7 +12,7 @@ else:
     print("root = ", sim.root)
     if(len(argv)<4):
         sim.simulate_map()        
-    else:
+    elif(len(argv) < 5):
         sim.simulate_map(r=float(argv[3]))
-    
-
+    else:
+        sim.simulate_map(r=float(argv[3]), seed = int(argv[4]))

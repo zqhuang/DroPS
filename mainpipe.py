@@ -16,9 +16,13 @@ debug = False
 
 Planck_BAO_covmat = np.loadtxt('base_plikHM_TTTEEE_lowl_lowE_lensing_post_BAO.covmat')[0:6, 0:6]
 Planck_BAO_invcov = np.linalg.inv(Planck_BAO_covmat)
+data_overwrite = False
 
 if(len(argv) > 2):
-    if(argv[2] != "None"):
+    if(argv[2] == 'OVERWRITE'):
+        data_overwrite = True
+        ana = sky_analyser(argv[1])                
+    elif(argv[2] != "NONE"):
         ana = sky_analyser(argv[1], root_overwrite = argv[2])
     else:
         ana = sky_analyser(argv[1])        
@@ -26,7 +30,7 @@ else:
     ana = sky_analyser(argv[1])
 
 
-ana.get_data_vector()
+ana.get_data_vector(overwrite = data_overwrite)
 ana.get_covmat()
 data_chisq = np.dot(ana.data_vec - ana.mean, np.dot(ana.invcov, ana.data_vec - ana.mean))/ana.fullsize
 
@@ -60,7 +64,7 @@ params = {}
 
 #cosmological parameters
 if(ana.BB_loc >= 0):
-    params['r'] = [ r'$r$', 0., 0.2, 0.008, 0.004 ]
+    params['r'] = [ r'$r$', ana.r_lowerbound, 0.2, 0.008, 0.004 ]
 else:
     params['r'] = [ r'$r$', 0., 0. ]
 if(ana.vary_cosmology):
@@ -135,13 +139,13 @@ if(ana.analytic_fg):
     for field in ana.fields:
         params[r'A_d_'+field] = [r'$A_{d, ' + field + r'}$', 0., 500., 50., 5.]
         params[r'alpha_d_'+field] = [r'$\alpha_{d, ' + field + r'}$', -4., 0., -1., 0.2]
-        params[r'alpha_prime_d_'+field] = [r'$\alpha^\prime_{d, ' + field + r'}$', -4., 4., 0., 0.1]                
+        params[r'alpha_prime_d_'+field] = [r'$\alpha^\prime_{d, ' + field + r'}$', -1., 1., 0.]                
         params[r'A_s_'+field] = [r'$A_{s, ' + field + r'}$', 0., 50., 10., 2.]
         params[r'alpha_s_'+field] = [r'$\alpha_{s, ' + field + r'}$', -4., 0., -0.5, 0.1]
-        params[r'alpha_prime_s_'+field] = [r'$\alpha^\prime_{s, ' + field + r'}$', -4., 4., 0., 0.1]
+        params[r'alpha_prime_s_'+field] = [r'$\alpha^\prime_{s, ' + field + r'}$', -1., 1., 0.]
         for field in  ana.fields:
-            params[r'eps2_' + field] = [r'\varepsilon_{2,' + field + r'}$', -1., 1., 0., 0.05]
-            params[r'alpha_eps_' + field] = [r'\alpha_{\varepsilon,' + field + r'}$', 0., 6., 0.5, 0.2]            
+            params[r'eps2_' + field] = [r'\varepsilon_{2,' + field + r'}$', -ana.eps_upperbound, ana.eps_upperbound, 0.]
+            params[r'alpha_eps_' + field] = [r'\alpha_{\varepsilon,' + field + r'}$', 0., 4., 0.5]            
 else:
     fgm = foreground_model(ells = ana.power_calc.ells, freq_sync_ref = ana.freq_lowest, freq_dust_ref = ana.freq_highest, ell_ref = 80.)
     if(ana.verbose):
@@ -214,25 +218,7 @@ def cmb_loglike(x, s):
     lcdm_params =  params_to_lcdm_params(x, s)
     r_value = lcdm_params[6]
     vec =  ana.model_vector(lcdm_params = lcdm_params, fgs = fgs)  - ana.data_vec
-    if(ana.do_r1):
-        r_pos =  (r_value/ana.cosmo_r1)**ana.r_interp_index*(ana.num_r_interp-1) 
-        ind_r_pos =  int(r_pos)
-        if(ind_r_pos >= ana.num_r_interp-1):
-            if(ana.do_data_mask):
-                chisq = np.dot(np.dot(vec[ana.used_indices], ana.invcov_interp[ana.num_r_interp-1, :, :]), vec[ana.used_indices]) - ana.invcov_lndet[ana.num_r_interp-1]
-            else:
-                chisq = np.dot(np.dot(vec, ana.invcov_interp[ana.num_r_interp-1, :, :]), vec) - ana.invcov_lndet[ana.num_r_interp-1]
-        else:
-            r_pos = r_pos - ind_r_pos
-            if(ana.do_data_mask):
-                chisq = np.dot(np.dot(vec[ana.used_indices], ana.invcov_interp[ind_r_pos, :, :]*(1.-r_pos)+ana.invcov_interp[ind_r_pos+1, :, :]*r_pos), vec[ana.used_indices]) - (ana.invcov_lndet[ind_r_pos]*(1.-r_pos) + ana.invcov_lndet[ind_r_pos +1]*r_pos)
-            else:
-                chisq = np.dot(np.dot(vec, ana.invcov_interp[ind_r_pos, :, :]*(1.-r_pos)+ana.invcov_interp[ind_r_pos+1, :, :]*r_pos ), vec) - (ana.invcov_lndet[ind_r_pos]*(1.-r_pos) + ana.invcov_lndet[ind_r_pos +1]*r_pos)
-    else:
-        if(ana.do_data_mask):
-            chisq = np.dot(np.dot(vec[ana.used_indices], ana.invcov), vec[ana.used_indices])
-        else:
-            chisq = np.dot(np.dot(vec, ana.invcov), vec)        
+    chisq = ana.chisq_of_vec(vec, r_value)
     if(ana.vary_cosmology and use_Planck_BAO_prior):
         d_lcdm = lcdm_params[0:6] - cosmology_base_mean[0:6]
         chisq +=  np.dot(np.dot(d_lcdm, Planck_BAO_invcov), d_lcdm)  #add Planck+BAO prior
