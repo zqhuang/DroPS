@@ -238,7 +238,7 @@ class mcmc_settings:
             if(self.verbose):
                 print(r'trial accept ratio: ', np.round(accept/self.burn_steps, 4), r', best loglike:', np.round(self.bestlike, 5))
         self.like_mode = 2  #after initial trial set like_mode to 2, start serious running
-        while(try_propose and accept*2.8 < self.burn_steps):  
+        while(try_propose and accept*3. < self.burn_steps):  
             accept = 0
             for i in range(self.burn_steps):
                 p_save[1-ind_now, self.slow_indices] =  np.random.multivariate_normal(p_save[ind_now, self.slow_indices], self.slow_propose)
@@ -287,9 +287,12 @@ class mcmc_settings:
                 print(r'burned in, now accept ratio: ', np.round(accept/(self.burn_steps*3.), 4), r';best loglike: ', np.round(self.bestlike, 5), '; fast_scale: ', np.round(fast_scale, 5))
             self.fast_propose = self.fast_std  / np.sqrt((1.+self.num_fast))/2.
         accept = 0
-        for i in range(self.burn_steps):  #burn in when propose matrix is fixed
+        for i in range(self.burn_steps*3):  #burn in when propose matrix is fixed
             p_save[1-ind_now, self.slow_indices] =  np.random.multivariate_normal(p_save[ind_now, self.slow_indices], self.slow_propose)
-            p_save[1-ind_now, self.fast_indices] = p_save[ind_now, self.fast_indices] + self.fast_propose*np.random.normal(size=self.num_fast)
+            if(i%7 == 0): #in case locked in local minimum
+                p_save[1-ind_now, self.fast_indices] = p_save[ind_now, self.fast_indices] + self.fast_propose*np.random.normal(scale=4., size=self.num_fast)                
+            else:
+                p_save[1-ind_now, self.fast_indices] = p_save[ind_now, self.fast_indices] + self.fast_propose*np.random.normal(scale=1., size=self.num_fast)
             like_save[1-ind_now] = loglike(p_save[1-ind_now, :], self)
             if(like_save[1-ind_now] - like_save[ind_now] >= np.log(1.-np.random.rand())  and like_save[1-ind_now] > self.logzero):
                 ind_now = 1- ind_now
@@ -309,7 +312,10 @@ class mcmc_settings:
             if(self.verbose and (i % 1000 == 999)):
                 print(r'MCstep #', i+1, '/', self.mc_steps, r'; accept: ', np.round(accept/i, 4), r'; bestlike: ', np.round(self.bestlike, 5), r'; now like:', np.round(like_save[ind_now], 5))
             p_save[1-ind_now, self.slow_indices] =  np.random.multivariate_normal(p_save[ind_now, self.slow_indices], self.slow_propose)
-            p_save[1-ind_now, self.fast_indices] = p_save[ind_now, self.fast_indices] + self.fast_propose*np.random.normal(size=self.num_fast)
+            if(i%7 == 0): #in case locked in local minimum
+                p_save[1-ind_now, self.fast_indices] = p_save[ind_now, self.fast_indices] + self.fast_propose*np.random.normal(scale=4., size=self.num_fast)                
+            else:
+                p_save[1-ind_now, self.fast_indices] = p_save[ind_now, self.fast_indices] + self.fast_propose*np.random.normal(scale=1., size=self.num_fast)
             like_save[1-ind_now] = loglike(p_save[1-ind_now, :], self)
             if(like_save[1-ind_now] - like_save[ind_now] >= np.log(1.-np.random.rand()) and like_save[1-ind_now] > self.logzero):
                 ind_now = 1- ind_now

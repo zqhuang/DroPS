@@ -13,7 +13,7 @@
 "filtered_noise_root" : r"noisef/noisef_",
 "filtered_cmb_root" : r"cmbf/cmbf_",
 "filtered_foreground_root" : r"fgf/fgf_",
-"nmaps" : 50,
+"nmaps" : 350,
 "nside" : 256,
 "num_seasons" : 2, 
 "lmax" : 768,
@@ -29,7 +29,7 @@
 "cosmo_logA" : 3.047,
 "cosmo_ns" :  0.966,
 "verbose" : True,
-"output_dir" : "AliCPT/output1_50",
+"output_dir" : "AliCPT/output1_350_l0",
 "ell_cross_range" : 0,
 "do_delensing" : True,
 "analytic_fg" : True,
@@ -44,7 +44,7 @@
 "assume_parity" : True,
 "clean_noise_cov" : True,
 "model_sxn_cov" : False,
-"data_product_path" : "AliCPT/product50_ali1_l0",
+"data_product_path" : "AliCPT/product350_ali1_l0",
 "beta_d_prior" : [ 1.54, 0.1 ],
 "beta_s_prior" : [-3., 0.1 ]
 }
