@@ -209,7 +209,7 @@ class mcmc_settings:
         self.like_mode = 1
         accept = 0
         if(try_propose):  
-            fac = 1.5 + 0.5 * np.sqrt(self.num_params-0.99)
+            fac = 2. + np.sqrt(self.num_params-0.99)
             self.slow_propose = self.slow_covmat/(fac-1.)   #initial guess
         miansi = 5
         while(try_propose and accept*30. < self.burn_steps):
@@ -287,7 +287,7 @@ class mcmc_settings:
                 print(r'burned in, now accept ratio: ', np.round(accept/(self.burn_steps*3.), 4), r';best loglike: ', np.round(self.bestlike, 5), '; fast_scale: ', np.round(fast_scale, 5))
             self.fast_propose = self.fast_std  / np.sqrt((1.+self.num_fast))/2.
         accept = 0
-        for i in range(self.burn_steps*3):  #burn in when propose matrix is fixed
+        for i in range(self.mc_steps // 5):  #throw away 20% samples (when propose matrix is fixed)
             p_save[1-ind_now, self.slow_indices] =  np.random.multivariate_normal(p_save[ind_now, self.slow_indices], self.slow_propose)
             if(i%7 == 0): #in case locked in local minimum
                 p_save[1-ind_now, self.fast_indices] = p_save[ind_now, self.fast_indices] + self.fast_propose*np.random.normal(scale=4., size=self.num_fast)                
@@ -309,7 +309,7 @@ class mcmc_settings:
         self.bestlike = like_save[ind_now]
         print('current loglike:', np.round(self.bestlike, 5), '; global best loglike:', np.round(self.global_bestlike, 5) )
         for i in range(self.mc_steps):  #key ingredient here is that I am forcing the run to have like >= global_bestlike
-            if(self.verbose and (i % 1000 == 999)):
+            if(self.verbose and (i % 2000 == 1999)):
                 print(r'MCstep #', i+1, '/', self.mc_steps, r'; accept: ', np.round(accept/i, 4), r'; bestlike: ', np.round(self.bestlike, 5), r'; now like:', np.round(like_save[ind_now], 5))
             p_save[1-ind_now, self.slow_indices] =  np.random.multivariate_normal(p_save[ind_now, self.slow_indices], self.slow_propose)
             if(i%7 == 0): #in case locked in local minimum

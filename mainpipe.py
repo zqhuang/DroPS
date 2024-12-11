@@ -10,7 +10,8 @@ import pickle
 print('-----------------------------------')
 print(argv)
 print('-----------------------------------')
-mc_steps = 50000
+mc_steps = 60000
+burn_steps = 2800
 use_Planck_BAO_prior = True
 debug = False
 
@@ -148,28 +149,27 @@ if(ana.analytic_fg):
             params[r'alpha_eps_' + field] = [r'\alpha_{\varepsilon,' + field + r'}$', 0., 4., 0.5]            
 else:
     fgm = foreground_model(ells = ana.power_calc.ells, freq_sync_ref = ana.freq_lowest, freq_dust_ref = ana.freq_highest, ell_ref = 80.)
-    if(ana.verbose):
-        print('using freq = ', ana.freq_lowest, 'GHz map to estimate sync power')
-        print('using freq = ', ana.freq_highest, 'GHz map to estimate dust power')        
     for field in ana.fields:
         sync_approx = ana.select_spectrum(vec = ana.data_vec - ana.lens_res, ifreq1 = ana.ifreq_lowest, ifreq2 = ana.ifreq_lowest, field = field) / ana.beam_filter2(ifreq1 = ana.ifreq_lowest, ifreq2 = ana.ifreq_lowest) / fgm.sync_freq_weight(ana.freq_lowest)**2       
         dust_approx = ana.select_spectrum(vec = ana.data_vec  - ana.lens_res, ifreq1 = ana.ifreq_highest, ifreq2 = ana.ifreq_highest, field = field) / ana.beam_filter2(ifreq1 = ana.ifreq_highest, ifreq2 = ana.ifreq_highest) / fgm.dust_freq_weight(ana.freq_highest)**2
+        eps_approx = ana.select_spectrum(vec = ana.data_vec- ana.lens_res, ifreq1 = ana.ifreq_lowest, ifreq2 = ana.ifreq_highest, field = field) / ana.beam_filter2(ifreq1 = ana.ifreq_lowest, ifreq2 = ana.ifreq_highest) / np.sqrt(abs(sync_approx * dust_approx)) / (fgm.sync_freq_weight(ana.freq_lowest) * fgm.dust_freq_weight(ana.freq_highest)+fgm.sync_freq_weight(ana.freq_highest) * fgm.dust_freq_weight(ana.freq_lowest))
         for i in range(ana.num_ells):
             dust_approx[i] = max(0.01, dust_approx[i])                
             sync_approx[i] = max(0.05, sync_approx[i])
+            eps_approx[i] = max(min(eps_approx[i], ana.eps_upperbound*0.8), -ana.eps_upperbound*0.8)
             if(ana.ell_used_indices[i]):
                 params[r'A_s_' + field  + str(i)] = [ r'$A_{s, ' + field + r',' + str(i) + r'}$',  0., sync_approx[i]*4.+5., sync_approx[i], (sync_approx[i]*4.+5.)/50. ]
                 params[r'A_d_' + field  + str(i)] = [ r'$A_{d, ' + field + r',' + str(i) + r'}$',  0., dust_approx[i]*4.+20.,  dust_approx[i], (dust_approx[i]*4.+20.)/50. ]
-                params[r'eps2_' + field  + str(i)] = [ r'$\varepsilon_{2, ' + field + r',' + str(i) + r'}$',  -ana.eps_upperbound, ana.eps_upperbound,  0. ] #fast parameter
+                params[r'eps2_' + field  + str(i)] = [ r'$\varepsilon_{2, ' + field + r',' + str(i) + r'}$',  -ana.eps_upperbound, ana.eps_upperbound,  eps_approx[i] ] #fast parameter
             else:
                 params[r'A_s_' + field  + str(i)] = [ r'$A_{s, ' + field + r',' + str(i) + r'}$',   sync_approx[i],  sync_approx[i] ]
                 params[r'A_d_' + field  + str(i)] = [ r'$A_{d, ' + field + r',' + str(i) + r'}$',  dust_approx[i], dust_approx[i] ]
                 params[r'eps2_' + field  + str(i)] = [ r'$\varepsilon_{2, ' + field + r',' + str(i) + r'}$',  0., 0. ]
 
 if(len(argv) == 4):
-    settings = mcmc_settings(burn_steps = 1500, mc_steps = mc_steps, verbose = True, covmat=argv[3])        
+    settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = True, covmat=argv[3])        
 else:
-    settings = mcmc_settings(burn_steps = 1500, mc_steps = mc_steps, verbose = True)    
+    settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = True)    
 settings.add_parameters(params)
 
 
@@ -248,16 +248,15 @@ np.save(slow_propose_file, settings.slow_propose)
 np.save(fast_propose_file, settings.fast_propose)
 
 print("-----------mean +/- standard deviation---------")    
-for i in range(settings.num_params):
+for i in range(3):
     print(settings.names[i], r'=', settings.mean[i], r'\pm ', settings.std[i], r', best: ', settings.global_bestfit[i])
-
-print('current min chi^2 = : ', -2.*settings.global_bestlike) 
-print('refining bestfit searching steps...')    
-settings.search_bestfit(cmb_loglike)
-for i in range(settings.num_params):
-    print(r'best ', settings.names[i], r' = ', settings.global_bestfit[i])
-print('now best like =  ', settings.global_bestlike)                         
-print('   min chi^2 = ', -2.*settings.global_bestlike)
+print('min chi^2 = : ', np.round(-2.*settings.global_bestlike, 2), ", per dof: ", np.round(-2.*settings.global_bestlike/(ana.fullsize - settings.num_params), 3)) 
+#print('refining bestfit searching steps...')    
+#settings.search_bestfit(cmb_loglike)
+#for i in range(settings.num_params):
+#    print(r'best ', settings.names[i], r' = ', settings.global_bestfit[i])
+#print('now best like =  ', settings.global_bestlike)                         
+#print('   min chi^2 = ', -2.*settings.global_bestlike)
     
 
 with open(ana.output_root + r'margestat.txt', 'w') as f:

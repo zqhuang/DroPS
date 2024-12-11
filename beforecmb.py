@@ -1110,8 +1110,8 @@ class band_power_calculator:
                     saved = False
                     break
         if(saved):
-            if(self.verbose):
-                print('loading saved power spectra for ', mapfiles1, mapfiles2)
+#            if(self.verbose):
+#                print('loading saved power spectra for ', mapfiles1, mapfiles2)
             bp = {}
             for field in self.like_fields:
                 bp[field] = np.load(prefix + field + r'.npy')
@@ -1161,7 +1161,7 @@ class  sky_analyser:
         self.do_r1 = (self.cosmo_r1 is not None)
         if(self.do_r1):
             assert(self.cosmo_r == 0. and self.cosmo_r1 > 0. )
-            self.num_r_interp = 11
+            self.num_r_interp = 31
         self.verbose = config.get("verbose", True)
         self.mask_file = config["mask_file"]
         self.path = config["path"]
@@ -1218,7 +1218,8 @@ class  sky_analyser:
         self.lcdm_params = np.array( [ self.cosmo_ombh2, self.cosmo_omch2, self.cosmo_theta, self.cosmo_tau, self.cosmo_logA, self.cosmo_ns, self.cosmo_r ] )
         if(self.do_r1):
             self.lcdm1_params = np.array( [ self.cosmo_ombh2, self.cosmo_omch2, self.cosmo_theta, self.cosmo_tau, self.cosmo_logA, self.cosmo_ns, self.cosmo_r1 ] )
-            self.r_interp_index = config.get("r_interp_index", 2.)            
+            self.r_interp_index = config.get("r_interp_index", 2.)
+            self.r_lndet_fac = config.get("r_lndet_fac", 1.)  #likelihood = exp(-chi^2/2 -ln det(C)*fac/2)
         self.camb_approx_prepared = False
         self.num_freqs = len(self.freqs)
         assert(self.num_freqs > 0)        
@@ -1415,7 +1416,6 @@ class  sky_analyser:
         self.noise_cov_computed = False
         self.signal_cov_computed = False        
         self.invcov_computed = False
-        self.data_vec_computed = False
         self.filters_computed = False
         self.filters = None  #this is not known at initialization
         self.lens_weights = {}
@@ -1449,6 +1449,33 @@ class  sky_analyser:
                 print('used data size', self.used_size)
 
 
+    def matrix_inv(self, mat):
+        if(self.do_data_mask):
+            return np.linalg.inv(mat[self.used_indices][:, self.used_indices])            
+        if(self.ell_cross_range > 0):
+            return np.linalg.inv(mat)
+        matinv = np.zeros((self.fullsize, self.fullsize))
+        for i in range(self.num_ells):
+            base = i*self.blocksize
+            matinv[base : base+self.blocksize, base : base+self.blocksize] = np.linalg.inv(mat[base : base+self.blocksize, base : base+self.blocksize])
+        return matinv
+
+    def matrix_logdet(self, mat):
+        if(self.do_data_mask or self.ell_cross_range > 0):
+            s, logdet = np.linalg.slogdet(mat)
+            if(s <= 0.):
+                print('Error: covmat is not positive definite')
+                exit()
+            return logdet
+        logdet = 0.
+        for i in range(self.num_ells):
+            base = i*self.blocksize            
+            s, this_logdet = np.linalg.slogdet(mat[base : base+self.blocksize, base : base+self.blocksize])
+            if(s <= 0.):
+                print('Error: covmat is not positive definite')
+                exit()
+            logdet += this_logdet
+        return logdet
         
     def files_exist(self, prefix, postfix):
         for ifreq in range(self.num_freqs):
@@ -1738,15 +1765,11 @@ class  sky_analyser:
         
 
     def get_data_vector(self, overwrite = False):
-        if(self.data_vec_computed):
-            return
         if(self.verbose):
             print('computing data vector')
         if(not self.lens_weights_computed):
             self.get_lens_weights(overwrite = overwrite)
-        self.power_calc.verbose = self.verbose
         self.data_vec = self.full_vector(prefix = self.root, do_seasons = [True], overwrite = overwrite)
-        self.power_calc.verbose = False        
         if(not self.do_delensing):
             return
         power_arrays = {}
@@ -1838,25 +1861,16 @@ class  sky_analyser:
         if(not self.do_r1):
             return
         self.invcov_interp = np.empty( (self.num_r_interp, self.used_size, self.used_size) )
-        self.invcov_lndet = np.empty(self.num_r_interp)
+        self.invcov_lndet = np.zeros(self.num_r_interp)
         self.invcov_interp[0, :, :] = self.invcov
-        sig, self.invcov_lndet_base =   np.linalg.slogdet(self.invcov)
-        self.invcov_lndet[0] = 0.
-        assert(sig > 0.)
-        if(self.do_data_mask):
-            self.invcov_interp[self.num_r_interp-1, :, :] = np.linalg.inv(self.covmat1[self.used_indices][:, self.used_indices])                                        
-            for i in range(1, self.num_r_interp-1):
-                fac = i/(self.num_r_interp-1.)
-                self.invcov_interp[i, :, :]  = np.linalg.inv(self.covmat1[self.used_indices][:, self.used_indices] * fac + self.covmat[self.used_indices][:, self.used_indices] * (1.-fac))
-        else:
-            self.invcov_interp[self.num_r_interp-1, :, :] = np.linalg.inv(self.covmat1)                            
-            for i in range(1, self.num_r_interp-1):
-                fac = i/(self.num_r_interp-1.)            
-                self.invcov_interp[i, :, :] = np.linalg.inv(self.covmat1 * fac + self.covmat * (1.-fac))
-        for i in range(1, self.num_r_interp):
-            sig, self.invcov_lndet[i] = np.linalg.slogdet(self.invcov_interp[i, :, :])
-            assert(sig > 0.)
-            self.invcov_lndet[i] -= self.invcov_lndet_base
+        self.invcov_lndet_base = self.matrix_logdet(self.invcov)
+        self.invcov_interp[self.num_r_interp-1, :, :] = self.matrix_inv(self.covmat1)                            
+        for i in range(1, self.num_r_interp-1):
+            fac = i/(self.num_r_interp-1.)            
+            self.invcov_interp[i, :, :] = self.matrix_inv(self.covmat1 * fac + self.covmat * (1.-fac))
+        if(self.r_lndet_fac > 0.):
+            for i in range(1, self.num_r_interp):
+                self.invcov_lndet[i] = (self.matrix_logdet(self.invcov_interp[i, :, :]) - self.invcov_lndet_base)*self.r_lndet_fac
         if(self.verbose):
             print("log det(Cov) corrections:")
             print(self.invcov_lndet)
@@ -1932,10 +1946,7 @@ class  sky_analyser:
             for i in range(self.fullsize):  #deapproximately take into account uncertainties of lensing residual
                 self.covmat[i, i] += self.lens_res[i]**2*2./self.dofs[i // self.blocksize ]
         self.get_filters(prefix_no_filter = self.noise_root, prefix_with_filter = self.noisef_root)
-        if(self.do_data_mask):
-            self.invcov = np.linalg.inv(self.covmat[self.used_indices][:, self.used_indices])
-        else:
-            self.invcov = np.linalg.inv(self.covmat)
+        self.invcov = self.matrix_inv(self.covmat)
         self.invcov_computed = True
         if(self.data_product_path is not None):
             np.save(path.join(self.data_product_path, r'lens_res.npy'), self.lens_res)
@@ -2039,7 +2050,7 @@ class  sky_analyser:
                     chisq = - self.invcov_lndet[self.num_r_interp-1]                    
                     for i in range(self.num_ells):
                         chisq += np.dot(np.dot(vec[i*self.blocksize:(i+1)*self.blocksize], self.invcov_interp[self.num_r_interp-1, i*self.blocksize:(i+1)*self.blocksize, i*self.blocksize:(i+1)*self.blocksize]), vec[i*self.blocksize:(i+1)*self.blocksize])                         
-                    return np.dot(np.dot(vec, self.invcov_interp[self.num_r_interp-1, :, :]), vec) - self.invcov_lndet[self.num_r_interp-1]                    
+                    return chisq
                 else:
                     return np.dot(np.dot(vec, self.invcov_interp[self.num_r_interp-1, :, :]), vec) - self.invcov_lndet[self.num_r_interp-1]
             else:
