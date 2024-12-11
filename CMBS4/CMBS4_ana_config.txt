@@ -13,7 +13,7 @@
 "filtered_noise_root" : r"noisef/noisef_",
 "filtered_cmb_root" : r"cmbf/cmbf_",
 "filtered_foreground_root" : r"fgf/fgf_",
-"nmaps" : 200,
+"nmaps" : 500,
 "nside" : 256,
 "num_seasons" : 2, 
 "lmax" : 768,
@@ -30,7 +30,7 @@
 "cosmo_ns" :  0.966,
 "verbose" : True,
 "r_interp_index" : 2., 
-"output_dir" : r"CMBS4/output",
+"output_dir" : r"CMBS4/output500",
 "ell_cross_range" : 0,
 "do_delensing" : True,
 "analytic_fg" : False,
@@ -45,5 +45,5 @@
 "assume_parity" : True,
 "clean_noise_cov" : True,
 "model_sxn_cov" : False,
-"data_product_path" : "product_l0"
+"data_product_path" : "CMBS4/product500_l0"
 }

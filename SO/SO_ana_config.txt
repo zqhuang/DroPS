@@ -13,7 +13,7 @@
 "filtered_cmb_root" : r"cmbf/cmbf_",
 "filtered_foreground_root" : r"fgf/fgf_",
 "root" : r"maps/SO_d0s0_s0_r100E-4_",
-"nmaps" : 200,
+"nmaps" : 500,
 "nside" : 256,
 "num_seasons" : 2, 
 "lmax" : 768,
@@ -29,7 +29,7 @@
 "cosmo_logA" : 3.047,
 "cosmo_ns" :  0.966,
 "verbose" : True,
-"output_dir" : r"SO/output",
+"output_dir" : r"SO/output500",
 "ell_cross_range" : 0,
 "do_delensing" : True,
 "analytic_fg" : False,
@@ -44,5 +44,5 @@
 "assume_parity" : True,
 "clean_noise_cov" : True,
 "model_sxn_cov" : False,
-"data_product_path" : r"SO/product_l0"
+"data_product_path" : r"SO/product500_l0"
 }
