@@ -186,19 +186,21 @@ for isim in range(1000):
     system('rm -f ' + ana.root + r'*.npy')    
     dev = (r_output-r_input)/r_std
     superchisq = dev**2
-    last_fd = ana.r_lndet_fac
-    last_alpha = ana.r_interp_index
+    print("result: ", ana.r_interp_index, ana.r_lndet_fac, r_input, r_output, r_std, super_chisq)
+    tmp_fd = ana.r_lndet_fac
+    tmp_alpha = ana.r_interp_index
     if(superchisq > last_superchisq): #getting worse, need to go back a bit
-        ana.r_interp_index = (ana.r_interp_index + 3.*last_alpha)/4.
-        ana.r_lndet_fac += (dev * (fd_max - fd_min)*np.random.rand()/10. + (last_fd -  ana.r_lndet_fac)/2.)
-    else:
-        ana.r_interp_index +=  np.random.normal(scale = (alpha_max - alpha_min)/40.)
-        ana.r_lndet_fac += dev * (fd_max - fd_min)*np.random.rand()/20. 
-    ana.r_interp_index  = max(min(alpha_max, ana.r_interp_index), alpha_min)        
+        ana.r_interp_index += ((alpha_max-alpha_min)/20.*np.random.normal() + (last_alpha - ana.r_interp_index)*np.random.rand())
+        ana.r_lndet_fac += (dev * (fd_max - fd_min)*np.random.rand()/10. + (last_fd -  ana.r_lndet_fac)*np.random.rand())
+    else: #getting better, move away
+        ana.r_interp_index +=  ((alpha_max-alpha_min)/20.*np.random.normal() - (last_alpha - ana.r_interp_index)*np.random.rand())
+        ana.r_lndet_fac += (dev * (fd_max - fd_min)*np.random.rand()/10. - (last_fd -  ana.r_lndet_fac)*np.random.rand())
+    ana.r_interp_index  = max(min(alpha_max, ana.r_interp_index), alpha_min)
     ana.r_lndet_fac = max(min(fd_max, ana.r_lndet_fac), fd_min)
     sum_alpha += ana.r_interp_index
     sum_fd += ana.r_lndet_fac
     last_superchisq = superchisq
-
+    last_fd = tmp_fd
+    last_alpha = tmp_alpha
                             
                             
