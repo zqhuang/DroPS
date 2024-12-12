@@ -14,7 +14,7 @@ r_max = 0.025
 fd_min = 0.
 fd_max = 1.
 alpha_min = 1.
-alpha_max = 2.
+alpha_max = 2.2
 
 
 mc_steps = 50000
@@ -186,7 +186,7 @@ for isim in range(1000):
     system('rm -f ' + ana.root + r'*.npy')    
     dev = (r_output-r_input)/r_std
     superchisq = dev**2
-    print("result: ", ana.r_interp_index, ana.r_lndet_fac, r_input, r_output, r_std, super_chisq)
+    print("result: ", ana.r_interp_index, ana.r_lndet_fac, r_input, r_output, r_std, superchisq)
     tmp_fd = ana.r_lndet_fac
     tmp_alpha = ana.r_interp_index
     if(superchisq > last_superchisq): #getting worse, need to go back a bit
