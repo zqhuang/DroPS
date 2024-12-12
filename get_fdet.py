@@ -19,8 +19,8 @@ Planck_BAO_invcov = np.linalg.inv(Planck_BAO_covmat)
 r_min = 0.01
 r_max = 0.015
 sim_root = r'fdet_workdir/fdet_map_'
-mkdir_for_file(sim_root)
 sim = sky_simulator(config_file=argv[1], root_overwrite=sim_root)
+mkdir_for_file(sim.root)
 ana = sky_analyser(config_file = argv[2])
 ME_ubd = ana.ME_upperbound
 if(ana.ME_is_positive):
