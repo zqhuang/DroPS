@@ -23,14 +23,14 @@ for i in range(n1):
     for j in range(n2):
         for k in range(ns):
             thisw = np.exp(- ((alpha[k]-x_alpha[i])/d_alpha)**2 - ((fd[k]-x_fd[j])/d_fd)**2)
-            x_dev[i, j] += dev[k] * thisw
-            w[i, j] += thisw
-        if(w[i, j] > 1.):
-            x_dev[i, j] /= w[i, j]
+            x_dev[j, i] += dev[k] * thisw
+            w[j, i] += thisw
+        if(w[j, i] > 1.):
+            x_dev[j, i] /= w[j, i]
         else:
-            x_dev[i, j] = 2.
+            x_dev[j, i] = np.Infinity
 plt.imshow(x_dev, origin = 'lower', extent = (alpha_min, alpha_max, fd_min, fd_max) , cmap='rainbow', vmax = 1., vmin=-1.)
 plt.plot(x[:, 0], x[:, 1])
-plt.scatter(x = x[:, 0], y = x[:, 1], c=((x[:, 2] - x[:,3])/x[:, 4])**2/4., cmap='rainbow', vmin = 0., vmax = 1.)
+plt.scatter(x = x[:, 0], y = x[:, 1], c=(x[:, 2] - x[:,3])/x[:, 4], cmap='rainbow', vmin = -2., vmax = 2.)
 plt.savefig(r'biasrun.png')
 plt.show()
