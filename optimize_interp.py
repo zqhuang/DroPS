@@ -138,14 +138,34 @@ def cmb_loglike(x, s):
         chisq += ((s.getp("beta_s", x) - ana.beta_s_prior[0])/ana.beta_s_prior[1])**2
     return -chisq/2. 
 
-ana.r_lndet_fac =  np.random.rand()*(fd_max - fd_min)+fd_min
-ana.r_interp_index = np.random.rand()*(alpha_max-alpha_min)+alpha_min
-sum_alpha = ana.r_interp_index
-sum_fd = ana.r_lndet_fac
-last_alpha = ana.r_interp_index
-last_fd = ana.r_lndet_fac
-last_superchisq = 1.e30
-for isim in range(1000):
+isim = 0
+if(path.exists(sim.root+'OPTIMIZE.txt')):
+    x = np.loadtxt(sim.root+'OPTIMIZE.txt')
+    isim += x.shape[0]
+    ana.r_interp_index = x[isim-1, 0] + np.random.normal()*(fd_max - fd_min)/20.
+    ana.r_lndet_fac = x[isim-1,1] + np.random.normal()*(alpha_max - alpha_min)/20.
+    if(ana.r_interp_index > alpha_max):
+        ana.r_interp_index = alpha_max - (alpha_max-alpha_min)*np.random.rand()/10. 
+    if(ana.r_interp_index < alpha_min):
+        ana.r_interp_index = alpha_min + (alpha_max-alpha_min)*np.random.rand()/10. 
+    if(ana.r_lndet_fac > fd_max):
+        ana.r_lndet_fac = fd_max - (fd_max - fd_min)*np.random.rand()/10.
+    if(ana.r_lndet_fac < fd_min):
+        ana.r_lndet_fac = fd_min + (fd_max - fd_min)*np.random.rand()/10.    
+    sum_alpha = np.sum(x[:, 0])
+    sum_fd = np.sum(x[:, 1])
+    last_alpha = x[isim-1, 0]
+    last_fd = x[isim-1, 1]
+    last_superchisq = ((x[isim-1, 3]-x[isim-1,2])/x[isim-1,4])**2
+else:
+    ana.r_lndet_fac =  np.random.rand()*(fd_max - fd_min)+fd_min
+    ana.r_interp_index = np.random.rand()*(alpha_max-alpha_min)+alpha_min
+    sum_alpha = ana.r_interp_index
+    sum_fd = ana.r_lndet_fac
+    last_alpha = ana.r_interp_index
+    last_fd = ana.r_lndet_fac
+    last_superchisq = 1.e30
+while(isim < 10000):
     r_input = r_min + np.random.rand()*(r_max - r_min)
     print("\n########## simulation ", isim, '; r = ', r_input)
     print('f_d = ', ana.r_lndet_fac, ', mean f_d = ', sum_fd/(isim+1))
@@ -195,12 +215,18 @@ for isim in range(1000):
     else: #getting better, move away
         ana.r_interp_index +=  ((alpha_max-alpha_min)/20.*np.random.normal() - (last_alpha - ana.r_interp_index)*np.random.rand())
         ana.r_lndet_fac += (dev * (fd_max - fd_min)*np.random.rand()/10. - (last_fd -  ana.r_lndet_fac)*np.random.rand())
-    ana.r_interp_index  = max(min(alpha_max, ana.r_interp_index), alpha_min)
-    ana.r_lndet_fac = max(min(fd_max, ana.r_lndet_fac), fd_min)
+    if(ana.r_interp_index > alpha_max):
+        ana.r_interp_index = alpha_max - (alpha_max-alpha_min)*np.random.rand()/10.  #this is close enough to represent alpha_max        
+    if(ana.r_interp_index < alpha_min):
+        ana.r_interp_index = alpha_min + (alpha_max-alpha_min)*np.random.rand()/10.  #this is close enough to represent alpha_min
+    if(ana.r_lndet_fac > fd_max):
+        ana.r_lndet_fac = fd_max - (fd_max - fd_min)*np.random.rand()/10.
+    if(ana.r_lndet_fac < fd_min):
+        ana.r_lndet_fac = fd_min + (fd_max - fd_min)*np.random.rand()/10.
     sum_alpha += ana.r_interp_index
     sum_fd += ana.r_lndet_fac
     last_superchisq = superchisq
     last_fd = tmp_fd
     last_alpha = tmp_alpha
-                            
+    isim += 1
                             
