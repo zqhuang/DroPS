@@ -6,7 +6,7 @@ plt.ylabel(r'$f_d$')
 ns = x.shape[0]
 alpha = x[:, 0]
 fd = x[:, 1]
-dev = (x[:, 2] - x[:,3])/x[:, 4]
+dev = (x[:, 3] - x[:,2])/x[:, 4]
 alpha_min = np.min(alpha)
 alpha_max = np.max(alpha)
 fd_min = np.min(fd)
@@ -29,8 +29,8 @@ for i in range(n1):
             x_dev[j, i] /= w[j, i]
         else:
             x_dev[j, i] = np.Infinity
-plt.imshow(x_dev, origin = 'lower', extent = (alpha_min, alpha_max, fd_min, fd_max) , cmap='rainbow', vmax = 1., vmin=-1.)
+plt.imshow(x_dev, origin = 'lower', extent = (alpha_min, alpha_max, fd_min, fd_max) , cmap='bwr', vmax = 1., vmin=-1.)
 plt.plot(x[:, 0], x[:, 1])
-plt.scatter(x = x[:, 0], y = x[:, 1], c=(x[:, 2] - x[:,3])/x[:, 4], cmap='rainbow', vmin = -2., vmax = 2.)
+plt.scatter(x = x[:, 0], y = x[:, 1], c=(x[:, 3] - x[:,2])/x[:, 4], cmap='bwr', vmin = -2., vmax = 2.)
 plt.savefig(r'biasrun.png')
 plt.show()
