@@ -5,24 +5,59 @@ from os import path, system
 from mcmc import *
 
 ##Usage##
-##python optimize_interp.py sim_config_file ana_config_file
-r_min = 0.
-r_max = 0.028
-fd_min = 0.
-fd_max = 1.
+##python subl.py sim_config_file ana_config_file
+
+##this defines the parameter space you want to search
 alpha_min = 1.
 alpha_max = 2.2
-
+fd_min = 0.
+fd_max = 1.
+r_min = 0.  #well r is always marginalized so it is not really counted as a dimension
+r_max = 0.028
+lower_bounds = np.array([alpha_min, fd_min, r_min])  #r must be the last one
+upper_bounds = np.array([alpha_max, fd_max, r_max])
+unit_vector = upper_bounds - lower_bounds
+#----------------------------------------
+subl_root = r'subl_workdir/subl_map_'
+logfile = argv[3]
+num_sims = 3000  #the number of simulations wanted
+num_likeparams = 3  #alpha, fd, r
+sim_data = np.zeros((num_sims, num_likeparams+2 ))  #..., r, r_output, r_std
+isim = 0
 
 mc_steps = 50000
 burn_steps = 2500
+
 use_Planck_BAO_prior = True
 Planck_BAO_covmat = np.loadtxt('base_plikHM_TTTEEE_lowl_lowE_lensing_post_BAO.covmat')[0:6, 0:6]
 Planck_BAO_invcov = np.linalg.inv(Planck_BAO_covmat)
 
 
-sim_root = r'opt_workdir/opt_map_'
-sim = sky_simulator(config_file=argv[1], root_overwrite=sim_root)
+if(path.exists(logfile)):
+    done_data = np.loadtxt(logfile)
+    isim += done_data.shape[0]
+    sim_data[0:isim, :] = done_data
+#-----------------------------------------
+
+def force(isim, pos_vec):
+    f =  np.random.normal( scale = 0.1, size = num_likeparams )*unit_vector #small noise to avoid lock-in
+    for i in range(isim):
+        f += (((sim_data[i, num_likeparams] - sim_data[i, num_likeparams-1])/sim_data[i, num_likeparams+1])**2/(np.sum((pos_vec - sim_data[i, 0:num_likeparams])**2) + 1.e-4 )) * (pos_vec - sim_data[i, 0:num_likeparams])
+    return f
+
+def move_step(isim, pos_vec, vel_vec, dt = 0.01):
+    pos_vec += vel_vec * dt
+    vel_vec +=  force(isim, pos_vec) * dt - vel_vec * 0.1
+    for i in range(num_likeparams):
+        while(pos_vec[i] > upper_bounds[i] or pos_vec[i] < lower_bounds[i]):
+            if(pos_vec[i] < lower_bounds[i]):
+                pos_vec[i] = 2*lower_bounds[i] - pos_vec[i]
+            else:
+                pos_vec[i] = 2*upper_bounds[i] - pos_vec[i]                
+
+
+
+sim = sky_simulator(config_file=argv[1], root_overwrite=subl_root)
 mkdir_for_file(sim.root)
 ana = sky_analyser(config_file = argv[2])
 ME_ubd = ana.ME_upperbound
@@ -135,45 +170,23 @@ def cmb_loglike(x, s):
         chisq += ((s.getp("beta_s", x) - ana.beta_s_prior[0])/ana.beta_s_prior[1])**2
     return -chisq/2. 
 
-isim = 0
-if(path.exists(sim.root+'OPTIMIZE.txt')):
-    x = np.loadtxt(sim.root+'OPTIMIZE.txt')
-    isim += x.shape[0]    
-    if(len(argv) == 5):
-        ana.r_interp_index = float(argv[3]) + np.random.normal()*(alpha_max - alpha_min)/50.
-        ana.r_lndet_fac = float(argv[4]) + np.random.normal()*(fd_max - fd_min)/50.    
-    else:
-        ana.r_interp_index = x[isim-1, 0] + np.random.normal()*(alpha_max - alpha_min)/10.
-        ana.r_lndet_fac = x[isim-1,1] + np.random.normal()*(fd_max - fd_min)/10.
-    if(ana.r_interp_index > alpha_max):
-        ana.r_interp_index = alpha_max - (alpha_max-alpha_min)*np.random.rand()/6. 
-    if(ana.r_interp_index < alpha_min):
-        ana.r_interp_index = alpha_min + (alpha_max-alpha_min)*np.random.rand()/6. 
-    if(ana.r_lndet_fac > fd_max):
-        ana.r_lndet_fac = fd_max - (fd_max - fd_min)*np.random.rand()/6.
-    if(ana.r_lndet_fac < fd_min):
-        ana.r_lndet_fac = fd_min + (fd_max - fd_min)*np.random.rand()/6.    
-    sum_alpha = np.sum(x[:, 0])
-    sum_fd = np.sum(x[:, 1])
-    last_alpha = x[isim-1, 0]
-    last_fd = x[isim-1, 1]
-    last_superchisq = ((x[isim-1, 3]-x[isim-1,2])/x[isim-1,4])**2
+if(isim == 0):
+    pos_vec = (lower_bounds + upper_bounds)/2.
+    vel_vec = np.random.normal(size = num_likeparams) * unit_vector
 else:
-    ana.r_lndet_fac =  np.random.rand()*(fd_max - fd_min)+fd_min
-    ana.r_interp_index = np.random.rand()*(alpha_max-alpha_min)+alpha_min
-    sum_alpha = ana.r_interp_index
-    sum_fd = ana.r_lndet_fac
-    last_alpha = ana.r_interp_index
-    last_fd = ana.r_lndet_fac
-    last_superchisq = 1.e30
-while(isim < 10000):
-    r_input = r_min + np.random.rand()*(r_max - r_min)
-    print("\n########## simulation ", isim, '; r = ', r_input)
-    print('f_d = ', ana.r_lndet_fac, ', mean f_d = ', sum_fd/(isim+1))
-    print('alpha = ', ana.r_interp_index,  ', mean alpha = ', sum_alpha/(isim+1) )    
-    sim.simulate_map(r=r_input)  
-    ana.root = sim.root + cmb_postfix_for_r(r_input)
-    ana.get_data_vector(overwrite = True) 
+    pos_vec = sim_data[isim-1, 0:num_likeparams]
+    vel_vec = np.random.normal(size = num_likeparams) * unit_vector
+    move_step(isim, pos_vec, vel_vec)
+    
+while(isim < num_sims):
+    print("\n########## simulation ", isim)
+    print('position: ', pos_vec)
+    print('velocity: ', vel_vec)
+    sim.simulate_map(r=pos_vec[num_likeparams-1])  
+    ana.root = sim.root + cmb_postfix_for_r(pos_vec[num_likeparams-1])
+    ana.get_data_vector(overwrite = True)
+    ana.r_interp_index = pos_vec[0]
+    ana.r_lndet_fac = pos_vec[1]
     data_chisq = np.dot(ana.data_vec - ana.mean, np.dot(ana.invcov, ana.data_vec - ana.mean))/ana.fullsize
     print('data chi^2 = ', data_chisq)
     if(not ana.analytic_fg):
@@ -187,8 +200,8 @@ while(isim < 10000):
                 sync_approx[i] = max(0.05, sync_approx[i])
                 eps_approx[i] = max(min(eps_approx[i], ana.eps_upperbound*0.8), -ana.eps_upperbound*0.8)
                 if(ana.ell_used_indices[i]):
-                    params[r'A_s_' + field  + str(i)] = [ r'$A_{s, ' + field + r',' + str(i) + r'}$',  0., sync_approx[i]*4.+5., sync_approx[i], (sync_approx[i]*4.+5.)/300. ]
-                    params[r'A_d_' + field  + str(i)] = [ r'$A_{d, ' + field + r',' + str(i) + r'}$',  0., dust_approx[i]*4.+20.,  dust_approx[i], (dust_approx[i]*4.+20.)/300. ]
+                    params[r'A_s_' + field  + str(i)] = [ r'$A_{s, ' + field + r',' + str(i) + r'}$',  0., sync_approx[i]*4.+5., sync_approx[i], (sync_approx[i]*4.+5.)/320. ]
+                    params[r'A_d_' + field  + str(i)] = [ r'$A_{d, ' + field + r',' + str(i) + r'}$',  0., dust_approx[i]*4.+20.,  dust_approx[i], (dust_approx[i]*4.+20.)/320. ]
                     params[r'eps2_' + field  + str(i)] = [ r'$\varepsilon_{2, ' + field + r',' + str(i) + r'}$',  -ana.eps_upperbound, ana.eps_upperbound,  eps_approx[i] ] #fast parameter
                 else:
                     params[r'A_s_' + field  + str(i)] = [ r'$A_{s, ' + field + r',' + str(i) + r'}$',   sync_approx[i],  sync_approx[i] ]
@@ -197,37 +210,21 @@ while(isim < 10000):
     settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = True)    
     settings.add_parameters(params)
     samples, loglikes = settings.run_mcmc(cmb_loglike)
-    settings.postprocess(samples = samples, loglikes = loglikes)
+    settings.postprocess(samples = samples, loglikes = loglikes)    
     r_output = settings.mean[0]
     r_std = settings.std[0]
-    f =  open(sim.root+'OPTIMIZE.txt', 'a') 
-    f.write(str(ana.r_interp_index) +' ' + str(ana.r_lndet_fac) + ' ' + str(r_input) + ' ' + str(r_output) +  ' ' + str(r_std) + "\n")
+    write_str = ''
+    for i in range(num_likeparams):
+        write_str += (str(pos_vec[i]) + ' ')
+    write_str += str(r_output) + ' ' + str(r_std) + "\n"
+    f =  open(logfile, 'a') 
+    f.write(write_str)
     f.close()
     del settings
-    system('rm -f ' + ana.root + r'*.npy')    
-    dev = (r_output-r_input)/r_std
-    superchisq = dev**2
-    print("result: ", ana.r_interp_index, ana.r_lndet_fac, r_input, r_output, r_std, superchisq)
-    tmp_fd = ana.r_lndet_fac
-    tmp_alpha = ana.r_interp_index
-    if(superchisq > last_superchisq): #getting worse, need to go back a bit
-        ana.r_interp_index += ((alpha_max-alpha_min)/10.*np.random.normal() + (last_alpha - ana.r_interp_index)*np.random.rand())
-        ana.r_lndet_fac += (dev * (fd_max - fd_min)*np.random.rand()/8. + (last_fd -  ana.r_lndet_fac)*np.random.rand())
-    else: #getting better, move away
-        ana.r_interp_index +=  ((alpha_max-alpha_min)/10.*np.random.normal() - (last_alpha - ana.r_interp_index)*np.random.rand())
-        ana.r_lndet_fac += (dev * (fd_max - fd_min)*np.random.rand()/8. - (last_fd -  ana.r_lndet_fac)*np.random.rand())
-    if(ana.r_interp_index > alpha_max):
-        ana.r_interp_index = alpha_max - (alpha_max-alpha_min)*np.random.rand()/6.  #this is close enough to represent alpha_max        
-    if(ana.r_interp_index < alpha_min):
-        ana.r_interp_index = alpha_min + (alpha_max-alpha_min)*np.random.rand()/6.  #this is close enough to represent alpha_min
-    if(ana.r_lndet_fac > fd_max):
-        ana.r_lndet_fac = fd_max - (fd_max - fd_min)*np.random.rand()/6.
-    if(ana.r_lndet_fac < fd_min):
-        ana.r_lndet_fac = fd_min + (fd_max - fd_min)*np.random.rand()/6.
-    sum_alpha += ana.r_interp_index
-    sum_fd += ana.r_lndet_fac
-    last_superchisq = superchisq
-    last_fd = tmp_fd
-    last_alpha = tmp_alpha
+    system('rm -f ' + ana.root + r'*.npy')
+    sim_data[isim, 0:num_likeparams] = pos_vec
+    sim_data[isim, num_likeparams] = r_output
+    sim_data[isim, num_likeparams+1] = r_std
+    move_step(isim, pos_vec, vel_vec)    
     isim += 1
                             
