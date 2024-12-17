@@ -20,7 +20,7 @@ unit_vector = upper_bounds - lower_bounds
 #----------------------------------------
 subl_root = r'subl_workdir/subl_map_'
 logfile = argv[3]
-num_sims = 3000  #the number of simulations wanted
+num_sims = 5000  #the number of simulations wanted
 num_likeparams = 3  #alpha, fd, r
 sim_data = np.zeros((num_sims, num_likeparams+2 ))  #..., r, r_output, r_std
 isim = 0
@@ -40,21 +40,21 @@ if(path.exists(logfile)):
 #-----------------------------------------
 
 def force(isim, pos_vec):
-    f =  np.random.normal( scale = 0.1, size = num_likeparams )*unit_vector #small noise to avoid lock-in
+    f =  np.random.normal( scale = 0.2, size = num_likeparams )*unit_vector #small noise to avoid lock-in
     for i in range(isim):
-        f += (((sim_data[i, num_likeparams] - sim_data[i, num_likeparams-1])/sim_data[i, num_likeparams+1])**2/(np.sum((pos_vec - sim_data[i, 0:num_likeparams])**2) + 1.e-4 )) * (pos_vec - sim_data[i, 0:num_likeparams])
+        f += (((sim_data[i, num_likeparams] - sim_data[i, num_likeparams-1])/sim_data[i, num_likeparams+1])**2/(1.e2*np.sum(((pos_vec - sim_data[i, 0:num_likeparams])/unit_vector)**2) + 1.e-2))**1.5 * (pos_vec - sim_data[i, 0:num_likeparams])
     return f
 
-def move_step(isim, pos_vec, vel_vec, dt = 0.01):
+def move_step(isim, pos_vec, vel_vec, dt = 1.):
+    vel_vec = vel_vec*np.random.rand() + force(isim, pos_vec) * dt 
     pos_vec += vel_vec * dt
-    vel_vec +=  force(isim, pos_vec) * dt - vel_vec * 0.1
     for i in range(num_likeparams):
         while(pos_vec[i] > upper_bounds[i] or pos_vec[i] < lower_bounds[i]):
             if(pos_vec[i] < lower_bounds[i]):
                 pos_vec[i] = 2*lower_bounds[i] - pos_vec[i]
             else:
-                pos_vec[i] = 2*upper_bounds[i] - pos_vec[i]                
-
+                pos_vec[i] = 2*upper_bounds[i] - pos_vec[i]
+    return pos_vec, vel_vec
 
 
 sim = sky_simulator(config_file=argv[1], root_overwrite=subl_root)
@@ -176,7 +176,7 @@ if(isim == 0):
 else:
     pos_vec = sim_data[isim-1, 0:num_likeparams]
     vel_vec = np.random.normal(size = num_likeparams) * unit_vector
-    move_step(isim, pos_vec, vel_vec)
+pos_vec, vel_vec = move_step(isim, pos_vec, vel_vec, 1.)
     
 while(isim < num_sims):
     print("\n########## simulation ", isim)
@@ -225,6 +225,6 @@ while(isim < num_sims):
     sim_data[isim, 0:num_likeparams] = pos_vec
     sim_data[isim, num_likeparams] = r_output
     sim_data[isim, num_likeparams+1] = r_std
-    move_step(isim, pos_vec, vel_vec)    
+    pos_vec, vel_vec = move_step(isim, pos_vec, vel_vec, 0.2)    
     isim += 1
                             
