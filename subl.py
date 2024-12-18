@@ -5,7 +5,7 @@ from os import path, system
 from mcmc import *
 
 ##Usage##
-##python subl.py sim_config_file ana_config_file
+##python subl.py sim_config_file ana_config_file log_file [initial_alpha initial_fd initial_r]
 
 ##this defines the parameter space you want to search
 alpha_min = 1.
@@ -17,6 +17,12 @@ r_max = 0.028
 lower_bounds = np.array([alpha_min, fd_min, r_min])  #r must be the last one
 upper_bounds = np.array([alpha_max, fd_max, r_max])
 unit_vector = upper_bounds - lower_bounds
+density_n = 20
+density_field = np.random.rand(density_n, density_n, density_n)/100.
+void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)        
+grid_size = unit_vector/density_n #make it slightly larger to avoid overflow due to round-off error
+grid_size_in = grid_size * (1.-1.e-9)
+grid_size_out = grid_size * (1.+1.e-9)
 #----------------------------------------
 subl_root = r'subl_workdir/subl_map_'
 logfile = argv[3]
@@ -33,30 +39,24 @@ Planck_BAO_covmat = np.loadtxt('base_plikHM_TTTEEE_lowl_lowE_lensing_post_BAO.co
 Planck_BAO_invcov = np.linalg.inv(Planck_BAO_covmat)
 
 
+def update_density( line):
+    shifts = (line[0:3]-lower_bounds)/grid_size_out
+    inds = np.floor(shifts).astype(int)
+    chisq = ((line[num_likeparams]-line[num_likeparams-1])/line[num_likeparams+1])**2
+    for i0 in range(max(0, inds[0]-2), min(inds[0]+3, density_n)):
+        for i1 in range(max(0, inds[1]-2), min(inds[1]+3, density_n)):
+            for i2 in range(max(0, inds[2]-2), min(inds[2]+3, density_n)):     
+                density_field[i0, i1, i2] += chisq * np.exp(-(i0+0.5-shifts[0])**2-(i1+0.5-shifts[1])**2-(i2+0.5-shifts[2])**2)
+
+    
 if(path.exists(logfile)):
     done_data = np.loadtxt(logfile)
     isim += done_data.shape[0]
     sim_data[0:isim, :] = done_data
-#-----------------------------------------
-
-def force(isim, pos_vec):
-    f =  np.random.normal( scale = 0.2, size = num_likeparams )*unit_vector #small noise to avoid lock-in
     for i in range(isim):
-        f += (((sim_data[i, num_likeparams] - sim_data[i, num_likeparams-1])/sim_data[i, num_likeparams+1])**2/(1.e2*np.sum(((pos_vec - sim_data[i, 0:num_likeparams])/unit_vector)**2) + 1.e-2))**1.5 * (pos_vec - sim_data[i, 0:num_likeparams])
-    return f
-
-def move_step(isim, pos_vec, vel_vec, dt = 1.):
-    vel_vec = vel_vec*np.random.rand() + force(isim, pos_vec) * dt 
-    pos_vec += vel_vec * dt
-    for i in range(num_likeparams):
-        while(pos_vec[i] > upper_bounds[i] or pos_vec[i] < lower_bounds[i]):
-            if(pos_vec[i] < lower_bounds[i]):
-                pos_vec[i] = 2*lower_bounds[i] - pos_vec[i]
-            else:
-                pos_vec[i] = 2*upper_bounds[i] - pos_vec[i]
-    return pos_vec, vel_vec
-
-
+        update_density(sim_data[i, :])
+    void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)
+    
 sim = sky_simulator(config_file=argv[1], root_overwrite=subl_root)
 mkdir_for_file(sim.root)
 ana = sky_analyser(config_file = argv[2])
@@ -170,18 +170,16 @@ def cmb_loglike(x, s):
         chisq += ((s.getp("beta_s", x) - ana.beta_s_prior[0])/ana.beta_s_prior[1])**2
     return -chisq/2. 
 
-if(isim == 0):
-    pos_vec = (lower_bounds + upper_bounds)/2.
-    vel_vec = np.random.normal(size = num_likeparams) * unit_vector
+if(len(argv) == 7):
+    pos_vec = np.array([float(argv[4]), float(argv[5]), float(argv[6])])
 else:
-    pos_vec = sim_data[isim-1, 0:num_likeparams]
-    vel_vec = np.random.normal(size = num_likeparams) * unit_vector
-pos_vec, vel_vec = move_step(isim, pos_vec, vel_vec, 1.)
+    pos_vec = lower_bounds + (np.array(void_ind)+ np.random.rand(3))  * grid_size_in 
+
     
 while(isim < num_sims):
     print("\n########## simulation ", isim)
     print('position: ', pos_vec)
-    print('velocity: ', vel_vec)
+    print('total density:', np.sum(density_field))
     sim.simulate_map(r=pos_vec[num_likeparams-1])  
     ana.root = sim.root + cmb_postfix_for_r(pos_vec[num_likeparams-1])
     ana.get_data_vector(overwrite = True)
@@ -225,6 +223,8 @@ while(isim < num_sims):
     sim_data[isim, 0:num_likeparams] = pos_vec
     sim_data[isim, num_likeparams] = r_output
     sim_data[isim, num_likeparams+1] = r_std
-    pos_vec, vel_vec = move_step(isim, pos_vec, vel_vec, 0.2)    
+    update_density(sim_data[isim, :])
+    void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)            
+    pos_vec = lower_bounds + (np.array(void_ind)+ np.random.rand(3))  * grid_size_in 
     isim += 1
                             
