@@ -17,12 +17,14 @@ r_max = 0.028
 lower_bounds = np.array([alpha_min, fd_min, r_min])  #r must be the last one
 upper_bounds = np.array([alpha_max, fd_max, r_max])
 unit_vector = upper_bounds - lower_bounds
-density_n = 20
+density_n = 30
 density_field = np.random.rand(density_n, density_n, density_n)/100.
-void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)        
+
 grid_size = unit_vector/density_n #make it slightly larger to avoid overflow due to round-off error
 grid_size_in = grid_size * (1.-1.e-9)
 grid_size_out = grid_size * (1.+1.e-9)
+
+smooth_scale = (grid_size/0.1)**2
 #----------------------------------------
 subl_root = r'subl_workdir/subl_map_'
 logfile = argv[3]
@@ -38,24 +40,24 @@ use_Planck_BAO_prior = True
 Planck_BAO_covmat = np.loadtxt('base_plikHM_TTTEEE_lowl_lowE_lensing_post_BAO.covmat')[0:6, 0:6]
 Planck_BAO_invcov = np.linalg.inv(Planck_BAO_covmat)
 
-
-def update_density( line):
+def update_density(line):
     shifts = (line[0:3]-lower_bounds)/grid_size_out
     inds = np.floor(shifts).astype(int)
-    chisq = ((line[num_likeparams]-line[num_likeparams-1])/line[num_likeparams+1])**2
+    chisq = ((line[num_likeparams]-line[num_likeparams-1])/line[num_likeparams+1])**2 + 0.25
     for i0 in range(max(0, inds[0]-2), min(inds[0]+3, density_n)):
         for i1 in range(max(0, inds[1]-2), min(inds[1]+3, density_n)):
             for i2 in range(max(0, inds[2]-2), min(inds[2]+3, density_n)):     
-                density_field[i0, i1, i2] += chisq * np.exp(-(i0+0.5-shifts[0])**2-(i1+0.5-shifts[1])**2-(i2+0.5-shifts[2])**2)
-
-    
+                density_field[i0, i1, i2] += chisq * np.exp(-smooth_scale[0]*(i0+0.5-shifts[0])**2 - smooth_scale[1]*(i1+0.5-shifts[1])**2- smooth_scale[2]*(i2+0.5-shifts[2])**2)
+                    
 if(path.exists(logfile)):
     done_data = np.loadtxt(logfile)
     isim += done_data.shape[0]
     sim_data[0:isim, :] = done_data
     for i in range(isim):
         update_density(sim_data[i, :])
-    void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)
+
+
+void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)
     
 sim = sky_simulator(config_file=argv[1], root_overwrite=subl_root)
 mkdir_for_file(sim.root)
@@ -179,7 +181,10 @@ else:
 while(isim < num_sims):
     print("\n########## simulation ", isim)
     print('position: ', pos_vec)
-    print('total density:', np.sum(density_field))
+    print('void indices: ', void_ind, ", density = ", density_field[void_ind])
+    aveden = np.sum(density_field)/density_n**3
+    rmsden = np.sqrt(np.sum((density_field-aveden)**2)/density_n**3)
+    print("average density:", aveden, ", rms density:", rmsden, ", # of low density grids:", np.sum(density_field < 2.), np.sum(density_field < 2.25), np.sum(density_field < 2.5))
     sim.simulate_map(r=pos_vec[num_likeparams-1])  
     ana.root = sim.root + cmb_postfix_for_r(pos_vec[num_likeparams-1])
     ana.get_data_vector(overwrite = True)
@@ -224,6 +229,7 @@ while(isim < num_sims):
     sim_data[isim, num_likeparams] = r_output
     sim_data[isim, num_likeparams+1] = r_std
     update_density(sim_data[isim, :])
+    print(r"r output = "+str(np.round(r_output,4)) + r"+/-" + str(np.round(r_std,4)) + r"; density at the void is updated to " + str(np.round(density_field[void_ind], 3)))
     void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)            
     pos_vec = lower_bounds + (np.array(void_ind)+ np.random.rand(3))  * grid_size_in 
     isim += 1
