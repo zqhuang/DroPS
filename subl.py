@@ -184,7 +184,7 @@ while(isim < num_sims):
     print('void indices: ', void_ind, ", density = ", density_field[void_ind])
     aveden = np.sum(density_field)/density_n**3
     rmsden = np.sqrt(np.sum((density_field-aveden)**2)/density_n**3)
-    print("average density:", aveden, ", rms density:", rmsden, ", # of low density grids:", np.sum(density_field < 2.), np.sum(density_field < 2.25), np.sum(density_field < 2.5))
+    print("average density:", aveden, ", rms density:", rmsden, ", # of low density grids:", np.sum(density_field < 3.), np.sum(density_field < 10.))
     sim.simulate_map(r=pos_vec[num_likeparams-1])  
     ana.root = sim.root + cmb_postfix_for_r(pos_vec[num_likeparams-1])
     ana.get_data_vector(overwrite = True)
