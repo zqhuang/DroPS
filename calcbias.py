@@ -5,32 +5,26 @@ from os import path, system
 from mcmc import *
 
 ##Usage##
-##python subl.py sim_config_file ana_config_file log_file [initial_alpha initial_fd initial_r]
+##python subl.py sim_config_file ana_config_file log_file initial_alpha initial_fd r_min r_max
 
 ##this defines the parameter space you want to search
-alpha_min = 1.
-alpha_max = 2.2
-fd_min = 0.
-fd_max = 1.
-r_min = 0.  #well r is always marginalized so it is not really counted as a dimension
-r_max = 0.028
-lower_bounds = np.array([alpha_min, fd_min, r_min])  #r must be the last one
-upper_bounds = np.array([alpha_max, fd_max, r_max])
-unit_vector = upper_bounds - lower_bounds
-density_n = 30
-density_field = np.random.rand(density_n, density_n, density_n)/100.
-
-grid_size = unit_vector/density_n #make it slightly larger to avoid overflow due to round-off error
-grid_size_in = grid_size * (1.-1.e-9)
-grid_size_out = grid_size * (1.+1.e-9)
-
-smooth_scale = (grid_size/0.08)**2
 #----------------------------------------
 subl_root = r'subl_workdir/subl_map_'
+if(len(argv) > 5):
+    alpha_fixed = float(argv[4])
+    fd_fixed = float(argv[5])
+else:
+    alpha_fixed = 2.
+    fd_fixed = 0.7
+if(len(argv) > 7):
+    r_min = float(argv[6])
+    r_max = float(argv[7])
+else:
+    r_min = 0.
+    r_max = 0.028
+    
 logfile = argv[3]
 num_sims = 5000  #the number of simulations wanted
-num_likeparams = 3  #alpha, fd, r
-sim_data = np.zeros((num_sims, num_likeparams+2 ))  #..., r, r_output, r_std
 isim = 0
 
 mc_steps = 50000
@@ -40,25 +34,6 @@ use_Planck_BAO_prior = True
 Planck_BAO_covmat = np.loadtxt('base_plikHM_TTTEEE_lowl_lowE_lensing_post_BAO.covmat')[0:6, 0:6]
 Planck_BAO_invcov = np.linalg.inv(Planck_BAO_covmat)
 
-def update_density(line):
-    shifts = (line[0:3]-lower_bounds)/grid_size_out
-    inds = np.floor(shifts).astype(int)
-    chisq = ((line[num_likeparams]-line[num_likeparams-1])/line[num_likeparams+1])**2 + 0.25
-    for i0 in range(max(0, inds[0]-2), min(inds[0]+3, density_n)):
-        for i1 in range(max(0, inds[1]-2), min(inds[1]+3, density_n)):
-            for i2 in range(max(0, inds[2]-2), min(inds[2]+3, density_n)):     
-                density_field[i0, i1, i2] += chisq * np.exp(-smooth_scale[0]*(i0+0.5-shifts[0])**2 - smooth_scale[1]*(i1+0.5-shifts[1])**2- smooth_scale[2]*(i2+0.5-shifts[2])**2)
-                    
-if(path.exists(logfile)):
-    done_data = np.loadtxt(logfile)
-    isim += done_data.shape[0]
-    sim_data[0:isim, :] = done_data
-    for i in range(isim):
-        update_density(sim_data[i, :])
-
-
-void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)
-    
 sim = sky_simulator(config_file=argv[1], root_overwrite=subl_root)
 mkdir_for_file(sim.root)
 ana = sky_analyser(config_file = argv[2])
@@ -172,24 +147,15 @@ def cmb_loglike(x, s):
         chisq += ((s.getp("beta_s", x) - ana.beta_s_prior[0])/ana.beta_s_prior[1])**2
     return -chisq/2. 
 
-if(len(argv) == 7):
-    pos_vec = np.array([float(argv[4]), float(argv[5]), float(argv[6])])
-else:
-    pos_vec = lower_bounds + (np.array(void_ind)+ np.random.rand(3))  * grid_size_in 
-
     
 while(isim < num_sims):
     print("\n########## simulation ", isim)
-    print('position: ', pos_vec)
-    print('void indices: ', void_ind, ", density = ", density_field[void_ind])
-    aveden = np.sum(density_field)/density_n**3
-    rmsden = np.sqrt(np.sum((density_field-aveden)**2)/density_n**3)
-    print("average density:", aveden, ", rms density:", rmsden, ", # of low density grids:", np.sum(density_field < 3.), np.sum(density_field < 10.))
-    sim.simulate_map(r=pos_vec[num_likeparams-1])  
-    ana.root = sim.root + cmb_postfix_for_r(pos_vec[num_likeparams-1])
+    r_input = r_min + np.random.rand()*(r_max-r_min)
+    sim.simulate_map(r=r_input)  
+    ana.root = sim.root + cmb_postfix_for_r(r_input)
     ana.get_data_vector(overwrite = True)
-    ana.r_interp_index = pos_vec[0]
-    ana.r_lndet_fac = pos_vec[1]
+    ana.r_interp_index = alpha_fixed
+    ana.r_lndet_fac = fd_fixed
     data_chisq = np.dot(ana.data_vec - ana.mean, np.dot(ana.invcov, ana.data_vec - ana.mean))/ana.fullsize
     print('data chi^2 = ', data_chisq)
     if(not ana.analytic_fg):
@@ -216,21 +182,12 @@ while(isim < num_sims):
     settings.postprocess(samples = samples, loglikes = loglikes)    
     r_output = settings.mean[0]
     r_std = settings.std[0]
-    write_str = ''
-    for i in range(num_likeparams):
-        write_str += (str(pos_vec[i]) + ' ')
-    write_str += str(r_output) + ' ' + str(r_std) + "\n"
+    write_str = str(alpha_fixed) + ' ' + str(fd_fixed) + ' ' + str(r_input) + ' ' + str(r_output) + ' ' + str(r_std) + "\n"
     f =  open(logfile, 'a') 
     f.write(write_str)
     f.close()
     del settings
     system('rm -f ' + ana.root + r'*.npy')
-    sim_data[isim, 0:num_likeparams] = pos_vec
-    sim_data[isim, num_likeparams] = r_output
-    sim_data[isim, num_likeparams+1] = r_std
-    update_density(sim_data[isim, :])
-    print(r"r output = "+str(np.round(r_output,4)) + r"+/-" + str(np.round(r_std,4)) + r"; density at the void is updated to " + str(np.round(density_field[void_ind], 3)))
-    void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)            
-    pos_vec = lower_bounds + (np.array(void_ind)+ np.random.rand(3))  * grid_size_in 
+    print(write_str + "\n")
     isim += 1
                             
