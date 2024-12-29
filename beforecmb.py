@@ -1870,7 +1870,7 @@ class  sky_analyser:
             self.invcov_interp[i, :, :] = self.matrix_inv(self.covmat1 * fac + self.covmat * (1.-fac))
         if(self.r_lndet_fac > 0.):
             for i in range(1, self.num_r_interp):
-                self.invcov_lndet[i] = (self.matrix_logdet(self.invcov_interp[i, :, :]) - self.invcov_lndet_base)*self.r_lndet_fac
+                self.invcov_lndet[i] = (self.matrix_logdet(self.invcov_interp[i, :, :]) - self.invcov_lndet_base)
         if(self.verbose):
             print("log det(Cov) corrections:")
             print(self.invcov_lndet)
@@ -2045,25 +2045,25 @@ class  sky_analyser:
             ind_r_pos =  int(r_pos)
             if(ind_r_pos >= self.num_r_interp-1):
                 if(self.do_data_mask):
-                    return np.dot(np.dot(vec[self.used_indices], self.invcov_interp[self.num_r_interp-1, :, :]), vec[self.used_indices]) - self.invcov_lndet[self.num_r_interp-1]
+                    return np.dot(np.dot(vec[self.used_indices], self.invcov_interp[self.num_r_interp-1, :, :]), vec[self.used_indices]) - self.invcov_lndet[self.num_r_interp-1]*self.r_lndet_fac
                 elif(self.ell_cross_range == 0):
-                    chisq = - self.invcov_lndet[self.num_r_interp-1]                    
+                    chisq = - self.invcov_lndet[self.num_r_interp-1]*self.r_lndet_fac                    
                     for i in range(self.num_ells):
                         chisq += np.dot(np.dot(vec[i*self.blocksize:(i+1)*self.blocksize], self.invcov_interp[self.num_r_interp-1, i*self.blocksize:(i+1)*self.blocksize, i*self.blocksize:(i+1)*self.blocksize]), vec[i*self.blocksize:(i+1)*self.blocksize])                         
                     return chisq
                 else:
-                    return np.dot(np.dot(vec, self.invcov_interp[self.num_r_interp-1, :, :]), vec) - self.invcov_lndet[self.num_r_interp-1]
+                    return np.dot(np.dot(vec, self.invcov_interp[self.num_r_interp-1, :, :]), vec) - self.invcov_lndet[self.num_r_interp-1]*self.r_lndet_fac
             else:
                 r_pos = r_pos - ind_r_pos
                 if(self.do_data_mask):
-                    return np.dot(np.dot(vec[self.used_indices], self.invcov_interp[ind_r_pos, :, :]*(1.-r_pos)+self.invcov_interp[ind_r_pos+1, :, :]*r_pos), vec[self.used_indices]) - (self.invcov_lndet[ind_r_pos]*(1.-r_pos) + self.invcov_lndet[ind_r_pos +1]*r_pos)
+                    return np.dot(np.dot(vec[self.used_indices], self.invcov_interp[ind_r_pos, :, :]*(1.-r_pos)+self.invcov_interp[ind_r_pos+1, :, :]*r_pos), vec[self.used_indices]) - (self.invcov_lndet[ind_r_pos]*(1.-r_pos) + self.invcov_lndet[ind_r_pos +1]*r_pos)*self.r_lndet_fac
                 elif(self.ell_cross_range == 0):
-                    chisq =  - (self.invcov_lndet[ind_r_pos]*(1.-r_pos) + self.invcov_lndet[ind_r_pos +1]*r_pos)
+                    chisq =  - (self.invcov_lndet[ind_r_pos]*(1.-r_pos) + self.invcov_lndet[ind_r_pos +1]*r_pos)*self.r_lndet_fac
                     for i in range(self.num_ells):
                         chisq += np.dot(np.dot(vec[i*self.blocksize:(i+1)*self.blocksize], self.invcov_interp[ind_r_pos, i*self.blocksize:(i+1)*self.blocksize, i*self.blocksize:(i+1)*self.blocksize]*(1.-r_pos)+self.invcov_interp[ind_r_pos+1, i*self.blocksize:(i+1)*self.blocksize, i*self.blocksize:(i+1)*self.blocksize]*r_pos ), vec[i*self.blocksize:(i+1)*self.blocksize])                        
                     return chisq
                 else:
-                    return np.dot(np.dot(vec, self.invcov_interp[ind_r_pos, :, :]*(1.-r_pos)+self.invcov_interp[ind_r_pos+1, :, :]*r_pos ), vec) - (self.invcov_lndet[ind_r_pos]*(1.-r_pos) + self.invcov_lndet[ind_r_pos +1]*r_pos)
+                    return np.dot(np.dot(vec, self.invcov_interp[ind_r_pos, :, :]*(1.-r_pos)+self.invcov_interp[ind_r_pos+1, :, :]*r_pos ), vec) - (self.invcov_lndet[ind_r_pos]*(1.-r_pos) + self.invcov_lndet[ind_r_pos +1]*r_pos)*self.r_lndet_fac
         else:
             if(self.do_data_mask):
                 return np.dot(np.dot(vec[self.used_indices], self.invcov), vec[self.used_indices])

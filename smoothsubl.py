@@ -19,8 +19,8 @@ fd_max  = np.max(fd)
 n1 = int(5+20*(alpha_max-alpha_min))
 n2 = int(5+20*(fd_max-fd_min))
 
-d_alpha = 0.03 #(alpha_max - alpha_min)/n1
-d_fd = 0.03 #(fd_max - fd_min)/n2
+d_alpha = 0.1 #(alpha_max - alpha_min)/n1
+d_fd = 0.1 #(fd_max - fd_min)/n2
 x_alpha = np.linspace(alpha_min+d_alpha/2., alpha_max-d_alpha/2., n1)
 grid_alpha = x_alpha[1] - x_alpha[0]
 x_fd =  np.linspace(fd_min+d_fd/2., fd_max-d_fd/2., n2)

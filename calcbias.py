@@ -10,18 +10,8 @@ from mcmc import *
 ##this defines the parameter space you want to search
 #----------------------------------------
 subl_root = r'subl_workdir/subl_map_'
-if(len(argv) > 5):
-    alpha_fixed = float(argv[4])
-    fd_fixed = float(argv[5])
-else:
-    alpha_fixed = 2.
-    fd_fixed = 0.7
-if(len(argv) > 7):
-    r_min = float(argv[6])
-    r_max = float(argv[7])
-else:
-    r_min = 0.
-    r_max = 0.028
+r_min = 0.
+r_max = 0.028
     
 logfile = argv[3]
 num_sims = 5000  #the number of simulations wanted
@@ -45,7 +35,8 @@ else:
     ME_lbd = - ME_ubd
     ME_ini = 0.
 params = {}
-params['r'] = [ r'$r$', ana.r_lowerbound, 0.2, 0.008, 0.004 ]
+params[r'alpha_r'] = [ r'$\alpha_r$', 1., 2., 1.5, 0.01 ]
+params[r'f_d'] = [ r'$f_d$', 0., 1., 0.6, 0.05 ]
 if(ana.vary_cosmology):
     for i in range(6):
         params[cosmology_base_name[i]] = [ cosmology_base_name[i], max(ana.lcdm_params[i] - cosmology_base_std[i]*4., 0.001), ana.lcdm_params[i] + cosmology_base_std[i]*4., ana.lcdm_params[i] ] # , cosmology_base_std[i] ]
@@ -129,7 +120,9 @@ def params_to_fg_models(x, s):
 
 
 def cmb_loglike(x, s):
-    assert(len(x) == s.num_params)    
+    assert(len(x) == s.num_params)
+    ana.r_interp_index =  s.getp('alpha_r', x)
+    ana.r_lndet_fac = s.getp('f_d', x)
     for i in range(s.num_params):
         if(x[i] < s.lower[i] or x[i] > s.upper[i]):
             return s.logzero
@@ -154,8 +147,7 @@ while(isim < num_sims):
     sim.simulate_map(r=r_input)  
     ana.root = sim.root + cmb_postfix_for_r(r_input)
     ana.get_data_vector(overwrite = True)
-    ana.r_interp_index = alpha_fixed
-    ana.r_lndet_fac = fd_fixed
+    params['r'] = [r'$r$', r_input, r_input ]
     data_chisq = np.dot(ana.data_vec - ana.mean, np.dot(ana.invcov, ana.data_vec - ana.mean))/ana.fullsize
     print('data chi^2 = ', data_chisq)
     if(not ana.analytic_fg):
@@ -179,10 +171,14 @@ while(isim < num_sims):
     settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = True)    
     settings.add_parameters(params)
     samples, loglikes = settings.run_mcmc(cmb_loglike)
-    settings.postprocess(samples = samples, loglikes = loglikes)    
-    r_output = settings.mean[0]
-    r_std = settings.std[0]
-    write_str = str(alpha_fixed) + ' ' + str(fd_fixed) + ' ' + str(r_input) + ' ' + str(r_output) + ' ' + str(r_std) + "\n"
+    settings.postprocess(samples = samples, loglikes = loglikes)
+    alpha_median = settings.prob_limits(0, 0.5)
+    alpha_upper1sig = settings.prob_limits(0, 0.8415)
+    alpha_lower1sig = settings.prob_limits(0, 0.1585)        
+    fd_median = settings.prob_limits(0, 0.5)
+    fd_upper1sig = settings.prob_limits(0, 0.8415)
+    fd_lower1sig = settings.prob_limits(0, 0.1585)        
+    write_str = str(settings.mean[0]) + ' ' + str(settings.mean[1]) + ' ' + str(settings.std[0]) + ' ' + str(settings.std[1]) + ' ' + str(alpha_median) + ' ' + str(alpha_upper1sig) + ' ' + str(alpha_lower1sig) + ' ' + str(fd_median) + ' ' + str(fd_upper1sig) + ' ' + str(fd_lower1sig) + ' ' + str(settings.covmat[0, 1]) + ' ' + str(r_input) + "\n"
     f =  open(logfile, 'a') 
     f.write(write_str)
     f.close()
