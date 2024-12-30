@@ -27,8 +27,7 @@ grid_size_out = grid_size * (1.+1.e-9)
 #----------------------------------------
 subl_root = r'subl_workdir/subl_map_'
 logfile = argv[3]
-num_sims = 5000  #the number of simulations wanted
-isim = 0
+num_sims = 10000  #the number of simulations wanted
 
 mc_steps = 50000
 burn_steps = 2500
@@ -168,16 +167,16 @@ def shortstr(x):
 
 
 n_update = 20
-i_update = 0
 
-while(isim < num_sims):
+
+for isim in range(num_sims):
     print("\n########## simulation ", isim)
     void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)    
     print('void indices: ', void_ind, ", density = ", density_field[void_ind])
     ana.r_interp_index = alpha_min + (void_ind[0] + np.random.rand())*grid_size_in[0]
     ana.r_lndet_fac = fd_min + (void_ind[1] + np.random.rand())*grid_size_in[1]
     print('now position: '+shortstr(ana.r_interp_index) + ' ' + shortstr(ana.r_lndet_fac))    
-    if(i_update == 0):
+    if(isim % n_update == 0):
         system('rm -f ' + ana.root + r'*.npy')        
         r_input  = r_min + np.random.rand()*(r_max - r_min)
         sim.simulate_map(r=r_input)  
@@ -216,5 +215,4 @@ while(isim < num_sims):
     del settings
     update_density(ana.r_interp_index, ana.r_lndet_fac)
     print(write_str + "; density at the void is updated to " + shortstr(density_field[void_ind]))
-    isim += 1
                             
