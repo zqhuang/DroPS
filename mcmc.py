@@ -211,7 +211,7 @@ class mcmc_settings:
         if(try_propose):  
             fac = 2. + np.sqrt(self.num_params-0.99)
             self.slow_propose = self.slow_covmat/(fac-1.)   #initial guess
-        miansi = 5
+        miansi = 8
         while(try_propose and accept*30. < self.burn_steps):
             accept = 0                        
             for i in range(self.burn_steps):
