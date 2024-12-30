@@ -18,7 +18,7 @@ lower_bounds = np.array([alpha_min, fd_min])  #r must be the last one
 upper_bounds = np.array([alpha_max, fd_max])
 unit_vector = upper_bounds - lower_bounds
 density_n = 25
-density_field = np.random.rand(density_n, density_n)/100.
+density_field = np.random.rand(density_n, density_n)/1.e7
 
 grid_size = unit_vector/density_n #make it slightly larger to avoid overflow due to round-off error
 grid_size_in = grid_size * (1.-1.e-9)
@@ -39,13 +39,13 @@ Planck_BAO_invcov = np.linalg.inv(Planck_BAO_covmat)
 def update_density(alpha, fd):
     shifts = (np.array([alpha, fd])-lower_bounds)/grid_size_out
     inds = np.floor(shifts).astype(int)
-    density_field[inds] += 1.
+    density_field[inds[0], inds[1]] += 1.
                     
 if(path.exists(logfile)):
     done_data = np.loadtxt(logfile)
     for i in range(done_data.shape[0]):
         update_density(done_data[i, 0], done_data[i, 1])
-
+    del done_data
 
     
 sim = sky_simulator(config_file=argv[1], root_overwrite=subl_root)
@@ -172,7 +172,7 @@ n_update = 20
 for isim in range(num_sims):
     print("\n########## simulation ", isim)
     void_ind = np.unravel_index(np.argmin(density_field, axis=None), density_field.shape)    
-    print('void indices: ', void_ind, ", density = ", density_field[void_ind])
+    print('void indices: ', void_ind, ", density = ", density_field[void_ind[0], void_ind[1]], "total density:", np.sum(density_field))
     ana.r_interp_index = alpha_min + (void_ind[0] + np.random.rand())*grid_size_in[0]
     ana.r_lndet_fac = fd_min + (void_ind[1] + np.random.rand())*grid_size_in[1]
     print('now position: '+shortstr(ana.r_interp_index) + ' ' + shortstr(ana.r_lndet_fac))    
@@ -214,5 +214,5 @@ for isim in range(num_sims):
     f.close()
     del settings
     update_density(ana.r_interp_index, ana.r_lndet_fac)
-    print(write_str + "; density at the void is updated to " + shortstr(density_field[void_ind]))
+    print(write_str + "; density at the void is updated to " + shortstr(density_field[void_ind[0], void_ind[1]]))
                             
