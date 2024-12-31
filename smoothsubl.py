@@ -41,7 +41,7 @@ for k in range(ns):
             w[j, i] += thisw
 
 x_dev /= w
-plt.imshow(x_dev, origin = 'lower', extent = (alpha_min, alpha_max, fd_min, fd_max) , cmap='seismic', vmax = 0.3, vmin=-0.3)
+plt.imshow(x_dev, origin = 'lower', extent = (alpha_min, alpha_max, fd_min, fd_max) , cmap='seismic', vmax = 1., vmin=-1.)
 #plt.plot(x[ns-10:ns, 0], x[ns-10:ns, 1], color="black", alpha=0.3)
 plt.scatter(x = x[:, 0], y = x[:, 1], c=(x[:, 3] - x[:,2])/x[:, 4], cmap='rainbow', vmin = -3., vmax = 3., alpha=0.5)
 plt.savefig(r'biasrun.png')
