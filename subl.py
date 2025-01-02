@@ -182,8 +182,8 @@ for isim in range(num_sims):
         sim.simulate_map(r=r_input)  
         ana.root = sim.root + cmb_postfix_for_r(r_input)
         ana.get_data_vector(overwrite = True)
-    data_chisq = np.dot(ana.data_vec - ana.mean, np.dot(ana.invcov, ana.data_vec - ana.mean))/ana.fullsize
-    print('data chi^2 = ', data_chisq)
+        data_chisq = np.dot(ana.data_vec - ana.mean, np.dot(ana.invcov, ana.data_vec - ana.mean))/ana.fullsize
+        print('data chi^2 = ', data_chisq)
     if(not ana.analytic_fg):
         fgm = foreground_model(ells = ana.power_calc.ells, freq_sync_ref = ana.freq_lowest, freq_dust_ref = ana.freq_highest, ell_ref = 80.)    
         for field in ana.fields:

@@ -2,6 +2,12 @@ import numpy as np
 from sys import argv
 import matplotlib.pyplot as plt
 x = np.loadtxt(argv[1])
+if(len(argv)>3):
+    r_min = float(argv[2])
+    r_max = float(argv[3])
+else:
+    r_min = 0.
+    r_max = 0.1
 plt.xlabel(r'$\alpha$')
 plt.ylabel(r'$f_d$')
 ns = x.shape[0]
@@ -30,7 +36,7 @@ w = np.zeros((n2, n1))
 range_alpha = int(d_alpha/grid_alpha*3.)
 range_fd = int(d_fd/grid_fd*3.)
 for k in range(ns):
-    if(abs(dev[k]) > 5.):
+    if(abs(dev[k]) > 5. or x[k, 3] > r_max or x[k, 3] < r_min):
         continue
     pos_alpha = int(np.floor((alpha[k]-alpha_min)/grid_alpha))
     pos_fd = int(np.floor((fd[k] - fd_min)/grid_fd))
