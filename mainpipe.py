@@ -3,9 +3,6 @@ import numpy as np
 from sys import argv
 from os import path
 from mcmc import *
-import matplotlib.pyplot as plt
-import corner
-import pickle
 
 print('-----------------------------------')
 print(argv)
