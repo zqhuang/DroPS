@@ -8,10 +8,10 @@ from mcmc import *
 ##python subl.py sim_config_file ana_config_file log_file [initial_alpha initial_fd initial_r]
 
 ##this defines the parameter space you want to search
-alpha_min = 1.
-alpha_max = 2.
-fd_min = 0.
-fd_max = 1.
+alpha_min = 1.49
+alpha_max = 1.51
+fd_min = 0.599
+fd_max = 0.601
 r_min = 0.  #well r is always marginalized so it is not really counted as a dimension
 r_max = 0.028
 lower_bounds = np.array([alpha_min, fd_min])  #r must be the last one
@@ -37,6 +37,8 @@ Planck_BAO_covmat = np.loadtxt('base_plikHM_TTTEEE_lowl_lowE_lensing_post_BAO.co
 Planck_BAO_invcov = np.linalg.inv(Planck_BAO_covmat)
 
 def update_density(alpha, fd):
+    if(alpha > alpha_max or alpha < alpha_min or fd > fd_max or fd < fd_min):
+        return
     shifts = (np.array([alpha, fd])-lower_bounds)/grid_size_out
     inds = np.floor(shifts).astype(int)
     density_field[inds[0], inds[1]] += 1.
@@ -166,7 +168,7 @@ def shortstr(x):
     return str(np.round(x, 5))
 
 
-n_update = 20
+n_update = 1
 
 
 for isim in range(num_sims):
