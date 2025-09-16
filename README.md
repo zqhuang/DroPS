@@ -1,15 +1,15 @@
 # DroPS
 Deriving r from Power Spectra (DroPS) of CMB
 
+
 please install all dependences:
 healpy
 astropy
-pymaster
+pymaster 
 pysm3
 camb
 matplotlib
 numpy
-ast
 emcee (this is actually not used by default)
 
 To simulate sky maps, you need to
