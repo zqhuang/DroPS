@@ -3,6 +3,7 @@ Deriving r from Power Spectra (DroPS) of CMB
 
 
 please install all dependences:
+camb
 healpy
 astropy
 pymaster 
@@ -18,10 +19,16 @@ To simulate sky maps, you need to
 
 2. generate a TOD filtering model by running
 
-python mock_filtering.py
+python mock_filtering.py 
+
+3. simulate maps with a 4-channel ground-based experiment
 
 
 
+
+
+
+#=======================================================
 Example of simulating CMB-S4 sky maps:
 
 python simulate.py CMBS4/cmbs4_sim_config.py
@@ -34,3 +41,4 @@ python simulate.py CMBS4/cmbs4_sim_config.py  new_root_name  0.01
 Example of analysing the data maps and inferring r
 
 python mainpipe.py CMBS4/cmbs4_ana_config.py 
+#===================================================
