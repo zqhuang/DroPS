@@ -1,0 +1,5 @@
+#weights for the 150GHz band
+149.  1.
+150.  8.
+151.  1.
+

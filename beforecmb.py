@@ -354,7 +354,7 @@ class TOD_filtering:
 
     def project_map(self, mask, maps, want_wof = True):
         nside = int(np.round(np.sqrt(maps.shape[1]/12), 0))
-        assert(nside == 256 or nside == 512 or nside == 1024 or nside == 2048)  #default settings for BeForeCMB, other resolutions are practically useless
+        assert(nside==128 or nside == 256 or nside == 512 or nside == 1024 or nside == 2048)  #default settings for BeForeCMB, other resolutions are practically useless
         alms = hp.map2alm(maps*np.tile(mask, (maps.shape[0], 1)), lmax = self.lmax)
         if(want_wof):
             maps_wof = hp.alm2map(alms, nside=nside)
@@ -510,6 +510,8 @@ class foreground_model:
             dw1 = self.dust_freq_weight(freq1)            
             sw2 = self.sync_freq_weight(freq2)
             dw2 = self.dust_freq_weight(freq2)
+            mean_freq1 = freq1
+            mean_freq2 = freq2
         else:
             nw1 = len(freq1)
             assert(len(weights1) == nw1)
@@ -522,6 +524,7 @@ class foreground_model:
                 for i in range(nw1):
                     sw1 += self.sync_freq_weight(freq1[i])*weights1[i]
                     dw1 += self.dust_freq_weight(freq1[i])*weights1[i]
+            mean_freq1 = np.sum(freq1*weights1)/np.sum(weights1)
             nw2 = len(freq2)
             assert(len(weights2) == nw2)
             if(nw2 == 1):
@@ -533,8 +536,9 @@ class foreground_model:
                 for i in range(nw2):
                     sw2 += self.sync_freq_weight(freq2[i])*weights2[i]
                     dw2 += self.dust_freq_weight(freq2[i])*weights2[i]
-        power_sync = self.P_sync * sw1 * sw2 * (1. + self.B_sync * (np.log(freq1/self.freq_sync_ref)**2+np.log(freq2/self.freq_sync_ref)**2) +  np.log(freq1/self.freq_sync_ref)*np.log(freq2/self.freq_sync_ref) * self.svs_sync * (self.ells/self.ell_ref)**self.svs_sync_index )
-        power_dust = self.P_dust *  dw1 * dw2 * (1. + self.B_dust * (np.log(freq1/self.freq_dust_ref)**2+np.log(freq2/self.freq_dust_ref)**2) +  np.log(freq1/self.freq_dust_ref)*np.log(freq2/self.freq_dust_ref) * self.svs_dust * (self.ells/self.ell_ref)**self.svs_dust_index )
+            mean_freq2 = np.sum(freq2*weights2)/np.sum(weights2)   
+        power_sync = self.P_sync * sw1 * sw2 * (1. + self.B_sync * (np.log(mean_freq1/self.freq_sync_ref)**2+np.log(mean_freq2/self.freq_sync_ref)**2) +  np.log(mean_freq1/self.freq_sync_ref)*np.log(mean_freq2/self.freq_sync_ref) * self.svs_sync * (self.ells/self.ell_ref)**self.svs_sync_index )
+        power_dust = self.P_dust *  dw1 * dw2 * (1. + self.B_dust * (np.log(mean_freq1/self.freq_dust_ref)**2+np.log(mean_freq2/self.freq_dust_ref)**2) +  np.log(mean_freq1/self.freq_dust_ref)*np.log(mean_freq2/self.freq_dust_ref) * self.svs_dust * (self.ells/self.ell_ref)**self.svs_dust_index )
         power_cross = self.P_ds * (sw1 * dw2 + sw2 * dw1) 
         return  power_sync + power_dust + power_cross
 
@@ -598,8 +602,8 @@ class sky_simulator:
         self.smoothed_mask = nmt.mask_apodization(self.mask, 2., apotype = "C2")  #do 2 deg smoothing for pseudo alm calculation
         self.mask_zeros = (self.mask <= 0.)
         self.mask_ones = (self.mask > 0.)        
-        self.lmax = config.get("lmax", self.nside*3)
-        assert(self.lmax >= self.nside * 3)  
+        self.lmax = config.get("lmax", self.nside*3-1)
+#        assert(self.lmax >= self.nside * 3)  
         self.coordinate = config.get('coordinate', 'G')
         assert(self.coordinate == "G" or self.coordinate == "C" or self.coordinate == "E")
         self.freqs = np.array(config['freqs'])
@@ -892,7 +896,7 @@ class band_power_calculator:
     purify_b = True
     is_Dell = True
     
-    def __init__(self, mask_file, apo_deg = 4., apo_type = "C2", like_fields = ['BB'], lmin = 21, lmax = 261, delta_ell = 20, verbose = False):
+    def __init__(self, mask_file, apo_deg = 4., apo_type = "C2", like_fields = ['BB'], lmin = 21, lmax = 201, delta_ell = 20, verbose = False):
         self.mask_file = mask_file #mask file name
         self.verbose = verbose
         rawmask = hp.read_map(self.mask_file, field=0, dtype=np.float64)        
@@ -927,7 +931,7 @@ class band_power_calculator:
         self.delta_ell = delta_ell
         self.apo_deg = apo_deg
         self.apo_type = apo_type
-        self.lbins = nmt.NmtBin.from_edges(range(self.lmin, self.lmax-1,self.delta_ell),  range(self.lmin + self.delta_ell-1, self.lmax, self.delta_ell), is_Dell = self.is_Dell)
+        self.lbins = nmt.NmtBin.from_edges(ell_ini = range(self.lmin, self.lmax-self.delta_ell+2,self.delta_ell),  ell_end = range(self.lmin + self.delta_ell, self.lmax+2, self.delta_ell), is_Dell = self.is_Dell)
         #self.lbins = nmt.NmtBin.from_lmax_linear(self.lmax, self.delta_ell, is_Dell=True)
         self.ells = self.lbins.get_effective_ells()
         self.num_ells = len(self.ells)
@@ -1003,26 +1007,26 @@ class band_power_calculator:
             exit()
     
     def get_band_power(self, map1, map2 = None):
-        lmax_enhance = 2
-        f0 = nmt.NmtField(self.mask, map1[0:1, :], lmax_sht = self.lmax*lmax_enhance +100)
-        f2 = nmt.NmtField(self.mask, map1[1:3, :], purify_b = self.purify_b, lmax_sht = self.lmax * lmax_enhance +100)
+        lmax_mask = self.lmax #self.lmax*2 + 100
+        f0 = nmt.NmtField(self.mask, map1[0:1, :], lmax = self.lmax, lmax_mask = lmax_mask)
+        f2 = nmt.NmtField(self.mask, map1[1:3, :], lmax = self.lmax, purify_b = self.purify_b, lmax_mask = lmax_mask)
         if(map2 is None):
             g0 = f0
             g2 = f2
         else:
-            g0 = nmt.NmtField(self.mask, map2[0:1, :], lmax_sht = self.lmax*lmax_enhance + 100)
-            g2 = nmt.NmtField(self.mask, map2[1:3, :], purify_b = self.purify_b, lmax_sht = self.lmax * lmax_enhance +100)
+            g0 = nmt.NmtField(self.mask, map2[0:1, :], lmax = self.lmax, lmax_mask =  lmax_mask)
+            g2 = nmt.NmtField(self.mask, map2[1:3, :], lmax = self.lmax, purify_b = self.purify_b, lmax_mask =  lmax_mask)
         if( not self.w00_initialized and self.want_00):
-            self.w00.compute_coupling_matrix(f0, g0, self.lbins, lmax_mask = self.lmax*2+100)
+            self.w00.compute_coupling_matrix(f0, g0, self.lbins)
             self.w00_initialized = True
         if( not self.w02_initialized and self.want_02):
-            self.w02.compute_coupling_matrix(f0, g2, self.lbins, lmax_mask = self.lmax*2+100)
+            self.w02.compute_coupling_matrix(f0, g2, self.lbins)
             self.w02_initialized = True
         if( not self.w20_initialized and self.want_20):
-            self.w20.compute_coupling_matrix(f2, g0, self.lbins, lmax_mask = self.lmax*2+100)
+            self.w20.compute_coupling_matrix(f2, g0, self.lbins)
             self.w20_initialized = True
         if( not self.w22_initialized and self.want_22):
-            self.w22.compute_coupling_matrix(f2, g2, self.lbins, lmax_mask = self.lmax*2+100)
+            self.w22.compute_coupling_matrix(f2, g2, self.lbins)
             self.w22_initialized = True
         if(self.want_00):
             cls00 = compute_master_with_workspace(f0, g0, self.w00)
@@ -1193,8 +1197,8 @@ class  sky_analyser:
         self.nside = config['nside']
         assert(self.nside == 128 or self.nside == 256 or self.nside == 512 or self.nside == 1024) #default resolutions for small aperture telescopes
         self.npix = 12*self.nside**2
-        self.lmax = config.get("lmax", self.nside*3)
-        assert(self.lmax >= self.nside * 3)  
+        self.lmax = config.get("lmax", self.nside*3-1)
+#        assert(self.lmax >= self.nside * 3)  
         self.coordinate = config.get('coordinate', r'G')
         assert(self.coordinate == "G" or self.coordinate == "C" or self.coordinate == "E")
         self.freqs = np.array(config['freqs'])

@@ -19,12 +19,15 @@ To simulate sky maps, you need to
 
 2. generate a TOD filtering model by running
 
-python mock_filtering.py 
+python mock_filtering.py
+enter the nside (128 for testing, 256/512 for serious simulations) and file name (e.g. filter_128.pickle)
 
 3. simulate maps with a 4-channel ground-based experiment
 
+python simulate.py Test/test_sim_config.txt
 
 
+python simulate.py Test/test_sim_config.txt testmap 0.01
 
 
 
