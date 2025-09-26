@@ -157,15 +157,15 @@ class mcmc_settings:
 
     def search_bestfit(self, loglike):
         step = 0.05
-        while(step > 0.0005):
-            x_try =  np.random.multivariate_normal(self.global_bestfit , self.covmat)*step
+        while(step > 1.e-5):
+            x_try =  np.random.multivariate_normal(self.global_bestfit , self.covmat*step)
             like_try = loglike(x_try, self)
             if(like_try > self.global_bestlike):
                 self.global_bestfit = x_try.copy()
                 self.global_bestlike = like_try
                 step *= 1.005
             else:
-                step *= 0.98
+                step *= 0.975
 
     def run_mcmc(self, loglike, continue_from = None, init_values = None, discard_ratio = 0., slow_propose = None, fast_propose = None):  #single thread, ignore nwalkers
         try_propose = True
@@ -175,6 +175,42 @@ class mcmc_settings:
             lold = len(old_loglikes)
             if(lold != old_samples.shape[0]):
                 print('Error: ' + continue_from + r'samples.npy and loglikes.npy do not match')
+                fix = input("fix the loglikes file? (Y/N)")
+                if(fix == "Y"):
+                    nskip = 0                    
+                    old_loglikes = np.empty(old_samples.shape[0])
+                    old_loglikes[0] = loglike(old_samples[0, :], self)
+                    if(old_loglikes[0] <= self.logzero):
+                        print("Error: get logZero for parameters: ", old_samples[0, :], old_loglikes[0])                        
+                        exit()
+                    i=1
+                    skip = False
+                    while(i < old_samples.shape[0] - nskip):
+                        if(np.sum(abs(old_samples[i, :] - old_samples[i-1, :]))<1.e-12):
+                            old_loglikes[i] = old_loglikes[i-1]
+                            i += 1
+                        else:
+                            old_loglikes[i] = loglike(old_samples[i, :], self)
+                            if(old_loglikes[i] > self.logzero):
+                                i += 1
+                            else:
+                                print("Error: get logZero for parameters: ", old_samples[i, :], old_loglikes[i])
+                                if(nskip == 0):
+                                    skip = (input("skip this line? (Y/N)") == "Y")
+                                if(skip):
+                                    nskip += 1
+                                    old_samples[i, :] = old_samples[old_samples.shape[0]-nskip, :].copy()
+                                    
+                                else:
+                                    exit()
+                        if(i % 100 == 0):
+                            print("progress: ", np.round(i*100./old_samples.shape[0], 2), r"%, skipped lines: ", nskip)
+                    print("finished, skipped lines: ", nskip)
+                    if(nskip == 0):
+                        np.save(continue_from + 'loglikes.npy', old_loglikes)
+                    else:
+                        np.save(continue_from + 'loglikes.npy', old_loglikes[0:old_samples.shape[0]-nskip])
+                        np.save(continue_from + 'samples.npy', old_samples[0:old_samples.shape[0]-nskip, :])                                                
                 exit()
             elif(self.verbose):
                 print('loaded ' + str(lold) + ' lines from ' + continue_from)
@@ -211,7 +247,7 @@ class mcmc_settings:
         if(try_propose):  
             fac = 2. + np.sqrt(self.num_params-0.99)
             self.slow_propose = self.slow_covmat/(fac-1.)   #initial guess
-        miansi = 10
+        miansi = 5
         while(try_propose and accept*30. < self.burn_steps):
             accept = 0                        
             for i in range(self.burn_steps):
@@ -287,7 +323,7 @@ class mcmc_settings:
                 print(r'burned in, now accept ratio: ', np.round(accept/(self.burn_steps*3.), 4), r';best loglike: ', np.round(self.bestlike, 5), '; fast_scale: ', np.round(fast_scale, 5))
             self.fast_propose = self.fast_std  / np.sqrt((1.+self.num_fast))/2.
         accept = 0
-        for i in range(self.mc_steps // 5):  #throw away 20% samples (when propose matrix is fixed)
+        for i in range(self.mc_steps // 20):  #throw away 5% samples (when propose matrix is fixed)
             p_save[1-ind_now, self.slow_indices] =  np.random.multivariate_normal(p_save[ind_now, self.slow_indices], self.slow_propose)
             if(i%7 == 0): #in case locked in local minimum
                 p_save[1-ind_now, self.fast_indices] = p_save[ind_now, self.fast_indices] + self.fast_propose*np.random.normal(scale=4., size=self.num_fast)                
@@ -307,10 +343,9 @@ class mcmc_settings:
             exit()            
         accept = 0
         self.bestlike = like_save[ind_now]
-        if(self.verbose):
-            print('current loglike:', np.round(self.bestlike, 5), '; global best loglike:', np.round(self.global_bestlike, 5) )
+        print('current loglike:', np.round(self.bestlike, 5), '; global best loglike:', np.round(self.global_bestlike, 5) )
         for i in range(self.mc_steps):  #key ingredient here is that I am forcing the run to have like >= global_bestlike
-            if(self.verbose and (i % 2000 == 1999)):
+            if(self.verbose and (i % 1000 == 999)):
                 print(r'MCstep #', i+1, '/', self.mc_steps, r'; accept: ', np.round(accept/i, 4), r'; bestlike: ', np.round(self.bestlike, 5), r'; now like:', np.round(like_save[ind_now], 5))
             p_save[1-ind_now, self.slow_indices] =  np.random.multivariate_normal(p_save[ind_now, self.slow_indices], self.slow_propose)
             if(i%7 == 0): #in case locked in local minimum
@@ -328,8 +363,7 @@ class mcmc_settings:
                 accept += 1
             samples[i, :] = p_save[ind_now, :]
             loglikes[i] = like_save[ind_now]
-        if(self.verbose):
-            print(r'MCMC done; accept ratio: ', np.round(accept/(self.mc_steps), 4), r';best loglike: ', np.round(self.global_bestlike, 5))
+        print(r'MCMC done; accept ratio: ', np.round(accept/(self.mc_steps), 4), r';best loglike: ', np.round(self.global_bestlike, 5))
         if(continue_from is None or discard_ratio > 0.99):
             return samples, loglikes
         else:
