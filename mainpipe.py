@@ -7,8 +7,8 @@ from mcmc import *
 print('-----------------------------------')
 print(argv)
 print('-----------------------------------')
-mc_steps = 60000
-burn_steps = 2800
+mc_steps = 80000
+burn_steps = 5000
 use_Planck_BAO_prior = True
 debug = False
 
@@ -164,9 +164,9 @@ else:
                 params[r'eps2_' + field  + str(i)] = [ r'$\varepsilon_{2, ' + field + r',' + str(i) + r'}$',  0., 0. ]
 
 if(len(argv) == 4):
-    settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = True, covmat=argv[3])        
+    settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = ana.verbose, covmat=argv[3])        
 else:
-    settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = True)    
+    settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = ana.verbose)    
 settings.add_parameters(params)
 
 
@@ -244,16 +244,21 @@ np.save(covmat_file, settings.covmat)
 np.save(slow_propose_file, settings.slow_propose)
 np.save(fast_propose_file, settings.fast_propose)
 
-print("-----------mean +/- standard deviation---------")    
-for i in range(3):
+if(ana.verbose):
+    numecho = 3
+else:
+    numecho = 1
+
+if(ana.verbose):
+    print("-----------mean +/- standard deviation---------")    
+for i in range(numecho):
     print(settings.names[i], r'=', settings.mean[i], r'\pm ', settings.std[i], r', best: ', settings.global_bestfit[i])
-print('min chi^2 = : ', np.round(-2.*settings.global_bestlike, 2), ", per dof: ", np.round(-2.*settings.global_bestlike/(ana.fullsize - settings.num_params), 3)) 
+if(ana.verbose):
+    print('best loglike = : ', np.round(settings.global_bestlike, 2))
+
 #print('refining bestfit searching steps...')    
 #settings.search_bestfit(cmb_loglike)
-#for i in range(settings.num_params):
-#    print(r'best ', settings.names[i], r' = ', settings.global_bestfit[i])
-#print('now best like =  ', settings.global_bestlike)                         
-#print('   min chi^2 = ', -2.*settings.global_bestlike)
+#print('now best loglike =  ', settings.global_bestlike)                         
     
 
 with open(ana.output_root + r'margestat.txt', 'w') as f:
@@ -265,7 +270,7 @@ with open(ana.output_root + r'margestat.txt', 'w') as f:
         upper95 = settings.prob_limits(i, 0.95)
         lower95 = settings.prob_limits(i, 0.05)                
         f.write(settings.names[i] + ' ' + str(settings.mean[i]) + ' ' + str(settings.std[i]) + ' ' + str(median) + ' ' + str(upper1sig - median) + ' ' + str(median - lower1sig) + ' '+ str(upper95) + ' ' + str(lower95) + ' ' + str(settings.global_bestfit[i]) + "\n")
-    f.write("#chi^2/d.o.f.:"+str(-2*settings.global_bestlike/ana.fullsize))            
+    f.write("#best loglike: "+str(np.round(settings.global_bestlike, 2)))            
     
 
 if(debug):

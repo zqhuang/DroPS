@@ -1,7 +1,7 @@
 {
 "path" : r"Test",
 "mask_file" : r"toy_mask_128.fits",
-"root" : r"maps/test_d0s0_s0_",
+"root" : r"maps/test_",
 "noise_root" : "noise/noise_",
 "cmb_root" : "cmb/cmb_",
 "foreground_root" : "fg/fg_",
