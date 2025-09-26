@@ -1,0 +1,5 @@
+#weights for  the 95GHz band
+94. 1.
+95. 10.
+96. 1.
+
