@@ -1,47 +1,48 @@
 # DroPS
 Deriving r from Power Spectra (DroPS) of CMB
 
-
-please install all dependences:
-camb
-healpy
-astropy
-pymaster 
-pysm3
-camb
-matplotlib
-numpy
-emcee (this is actually not used by default)
-
-To simulate sky maps, you need to
+--------------------------------------------------------
+#Set up a virtual environment and activate it
+(please google "python virtual environment" to learn how to do that)
+#upgrade pip for the latest info of packages
+pip install --upgrade pip
+#install dependences
+pip install -r requirements.txt
+----------------------------------------------------------------
+Step by step tutorial for simulating and analysing sky maps
 
 1. hack pysm3 by replacing path_to_pysm3/models/cmb.py (where pyth_to_pysm3 is the local path where pysm3 is installed) with cmb.py in this repository.
+ (use "whereis python" to find the python path)
 
 2. generate a TOD filtering model by running
 
 python mock_filtering.py
 enter the nside (128 for testing, 256/512 for serious simulations) and file name (e.g. filter_128.pickle)
 
-3. simulate maps with a 4-channel ground-based experiment
+3. simulate cmb/noise/foreground maps with a 4-channel ground-based experiment
 
 python simulate.py Test/test_sim_config.txt
 
 
-python simulate.py Test/test_sim_config.txt testmap 0.01
+4a. simulate one set of sky maps
+
+python simulate.py Test/test_sim_config.txt maps/test_  0.01 9999
+
+you can replace maps/test_ with your preferred prefix of the output maps, 0.01 with your preferred fiducial r, and 9999 with your preferred random seed
+
+5a. analyse the sky maps and obtain constraint on r
+
+python mainpipe.py Test/test_ana_config.txt maps/test_
 
 
+4b. simulate multiple sets of sky maps
 
-#=======================================================
-Example of simulating CMB-S4 sky maps:
+You need to simulate more than one set of sky maps if you want to test the bias of r measurement. You may use the shell script to simulate 20 sets of sky maps with different random seeds. 
+./sim.sh
 
-python simulate.py CMBS4/cmbs4_sim_config.py
+5b. measure r from multiple sets of sky maps
 
-if you want to simulate the data map with a different fiducial r, say r=0.01, you can run
+If you want to measure r for the maps generated with sim.sh, you can run:
+./ana.sh
 
-python simulate.py CMBS4/cmbs4_sim_config.py  new_root_name  0.01
 
-
-Example of analysing the data maps and inferring r
-
-python mainpipe.py CMBS4/cmbs4_ana_config.py 
-#===================================================

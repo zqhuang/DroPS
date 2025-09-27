@@ -855,11 +855,9 @@ class sky_simulator:
 
     def simulate_map(self, r=None, seed = None, overwrite = False):
         lcdm_params = self.lcdm_params.copy()        
-        if(r is None):
-            file_root = self.root + cmb_postfix_for_r(self.cosmo_r)
-        else:
+        if(r is not None):
             lcdm_params[6] = r
-            file_root = self.root + cmb_postfix_for_r(r)
+        file_root = self.root #+ cmb_postfix_for_r(r)
         if(self.verbose):
             print('simulating maps with r = ', lcdm_params[6])
         if((not overwrite) and self.files_exist(prefix =  file_root , postfix = r'.npy')):
