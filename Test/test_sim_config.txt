@@ -8,7 +8,7 @@
 "filtered_noise_root" : "noisef/noisef_",
 "filtered_cmb_root" : "cmbf/cmbf_",
 "filtered_foreground_root" : "fgf/fgf_",
-"nmaps" : 200,
+"nmaps" : 300,
 "nside" : 128,
 "num_seasons" : 2, 
 "lmax" : 384,

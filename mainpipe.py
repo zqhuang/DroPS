@@ -243,11 +243,13 @@ np.save(bestfit_file, settings.global_bestfit)
 np.save(covmat_file, settings.covmat)
 np.save(slow_propose_file, settings.slow_propose)
 np.save(fast_propose_file, settings.fast_propose)
+with open(ana.r_logfile, 'a') as f:
+    f.write(str(settings.mean[0]) + " " + str(settings.std[0]) + "\n")
 
 if(ana.verbose):
-    numecho = 3
+    numecho = settings.num_params
 else:
-    numecho = 1
+    numecho = 3
 
 if(ana.verbose):
     print("-----------mean +/- standard deviation---------")    

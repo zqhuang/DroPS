@@ -13,7 +13,7 @@
 "filtered_noise_root" : r"noisef/noisef_",
 "filtered_cmb_root" : r"cmbf/cmbf_",
 "filtered_foreground_root" : r"fgf/fgf_",
-"nmaps" : 200,
+"nmaps" : 300,
 "nside" : 128,
 "num_seasons" : 2, 
 "lmax" : 250,
@@ -48,5 +48,6 @@
 "assume_parity" : True,
 "clean_noise_cov" : True,
 "model_sxn_cov" : False,
-"data_product_path" : "Test/products"
+"data_product_path" : "Test/products",
+"r_logfile" :  "Test/r_logfile.txt"
 }

@@ -1177,6 +1177,7 @@ class  sky_analyser:
             self.root =  path.join(self.path, config["root"])
         else:
             self.root = path.join(self.path, root_overwrite)
+        self.r_logfile = config.get("r_logfile", path.join(self.path, "r__LOGFILE.txt"))
         self.band_weights_root  = path.join(self.path, r"band_weights/BW_")        
         self.cmb_root_raw = path.join(self.path, config.get('cmb_root', r'cmb/cmb_'))
         self.cmbf_root_raw = path.join(self.path, config.get('filtered_cmb_root', r'cmbf/cmbf_'))        
