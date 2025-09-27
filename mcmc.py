@@ -343,7 +343,8 @@ class mcmc_settings:
             exit()            
         accept = 0
         self.bestlike = like_save[ind_now]
-        print('current loglike:', np.round(self.bestlike, 5), '; global best loglike:', np.round(self.global_bestlike, 5) )
+        if(self.verbose):
+            print('current loglike:', np.round(self.bestlike, 5), '; global best loglike:', np.round(self.global_bestlike, 5) )
         for i in range(self.mc_steps):  #key ingredient here is that I am forcing the run to have like >= global_bestlike
             if(self.verbose and (i % 1000 == 999)):
                 print(r'MCstep #', i+1, '/', self.mc_steps, r'; accept: ', np.round(accept/i, 4), r'; bestlike: ', np.round(self.bestlike, 5), r'; now like:', np.round(like_save[ind_now], 5))
@@ -363,7 +364,8 @@ class mcmc_settings:
                 accept += 1
             samples[i, :] = p_save[ind_now, :]
             loglikes[i] = like_save[ind_now]
-        print(r'MCMC done; accept ratio: ', np.round(accept/(self.mc_steps), 4), r';best loglike: ', np.round(self.global_bestlike, 5))
+        if(self.verbose):
+            print(r'MCMC done; accept ratio: ', np.round(accept/(self.mc_steps), 4), r';best loglike: ', np.round(self.global_bestlike, 5))
         if(continue_from is None or discard_ratio > 0.99):
             return samples, loglikes
         else:

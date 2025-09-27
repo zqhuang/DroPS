@@ -1116,26 +1116,31 @@ class band_power_calculator:
 #                print('loading saved power spectra for ', mapfiles1, mapfiles2)
             bp = {}
             for field in self.like_fields:
-                bp[field] = np.load(prefix + field + r'.npy')
+                try:
+                    bp[field] = np.load(prefix + field + r'.npy')
+                except:
+                    saved = False
+                    break
+            if(saved):
+                return bp
+        map1 = self.load_IQU_map(mapfiles1[0])
+        if(w1 != 1.):
+            map1 *= w1
+        for i in range(1, len(mapfiles1)):
+            map1 += self.load_IQU_map(mapfiles1[i])            
+        if(mapfiles2 is None):
+            map2 = None
         else:
-            map1 = self.load_IQU_map(mapfiles1[0])
-            if(w1 != 1.):
-                map1 *= w1
-            for i in range(1, len(mapfiles1)):
-                map1 += self.load_IQU_map(mapfiles1[i])            
-            if(mapfiles2 is None):
-                map2 = None
-            else:
-                map2 = self.load_IQU_map(mapfiles2[0])
-                if(w2 != 1.):
-                    map2 *= w2
-                for i in range(1, len(mapfiles2)):
-                    map2 += self.load_IQU_map(mapfiles2[i])            
-            bp =  self.get_band_power(map1, map2)
-            if(self.verbose):
-                print('saving power spectra for ', mapfiles1, mapfiles2)
-            for field in self.like_fields:
-                np.save(prefix + field + r'.npy', bp[field])
+            map2 = self.load_IQU_map(mapfiles2[0])
+            if(w2 != 1.):
+                map2 *= w2
+            for i in range(1, len(mapfiles2)):
+                map2 += self.load_IQU_map(mapfiles2[i])            
+        bp =  self.get_band_power(map1, map2)
+        if(self.verbose):
+            print('saving power spectra for ', mapfiles1, mapfiles2)
+        for field in self.like_fields:
+            np.save(prefix + field + r'.npy', bp[field])
         return bp
 
     def band_power(self, mapfile1, mapfile2 = None, overwrite = False, w1=1., w2=1.):
