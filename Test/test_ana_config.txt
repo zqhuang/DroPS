@@ -29,7 +29,7 @@
 "cosmo_tau" : 0.0561,
 "cosmo_logA" : 3.047,
 "cosmo_ns" :  0.966,
-"verbose" : False,
+"verbose" : True,
 "r_interp_index" : 2.,
 "r_lower_bound" : 0.,
 "r_lndet_fac" : 1., 
@@ -42,12 +42,13 @@
 "ME_upperbound" : 0.05,
 "beta_d_prior" : None,
 "beta_s_prior" : None,
-"dust_vary_SED" : False,
-"sync_vary_SED" : False,
+"dust_vary_SED" : True,
+"sync_vary_SED" : True,
 "vary_cosmology" : False,
+"Gaussianize_BB" : False,
 "assume_parity" : True,
 "clean_noise_cov" : True,
 "model_sxn_cov" : False,
 "data_product_path" : "Test/products",
-"r_logfile" :  "Test/r_logfile.txt"
+"r_logfile" :  "Test/r_logfile_r3test.txt"
 }

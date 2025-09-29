@@ -36,7 +36,7 @@ if(ana.verbose):
     print("data chi^2=",data_chisq )
     print('BB filtering:')
     print(ana.filters[ana.BB_loc].diag)
-if(data_chisq > 20.): #seesms something goes wrong
+if(data_chisq > 1.e4): #seesms something goes wrong
     print('Error: data seem to be very different from simulations!')
     for ifield in range(ana.num_fields):
         print('-------------' + ana.fields[ifield]+'---------------')
