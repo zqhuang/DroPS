@@ -29,8 +29,7 @@
 "cosmo_tau" : 0.0561,
 "cosmo_logA" : 3.047,
 "cosmo_ns" :  0.966,
-"verbose" : True,
-"r_interp_index" : 2.,
+"verbose" : False,
 "r_lower_bound" : 0.,
 "r_lndet_fac" : 1., 
 "output_dir" : r"Test/results",
@@ -50,5 +49,5 @@
 "clean_noise_cov" : True,
 "model_sxn_cov" : False,
 "data_product_path" : "Test/products",
-"r_logfile" :  "Test/r_logfile_r3test.txt"
+"r_logfile" :  "Test/r_logfile_i12_r2test.txt" 
 }

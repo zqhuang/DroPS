@@ -1226,7 +1226,6 @@ class  sky_analyser:
         self.lcdm_params = np.array( [ self.cosmo_ombh2, self.cosmo_omch2, self.cosmo_theta, self.cosmo_tau, self.cosmo_logA, self.cosmo_ns, self.cosmo_r ] )
         if(self.do_r1):
             self.lcdm1_params = np.array( [ self.cosmo_ombh2, self.cosmo_omch2, self.cosmo_theta, self.cosmo_tau, self.cosmo_logA, self.cosmo_ns, self.cosmo_r1 ] )
-            self.r_interp_index = config.get("r_interp_index", 2.)
             self.r_lndet_fac = config.get("r_lndet_fac", 1.)  #likelihood = exp(-chi^2/2 -ln det(C)*fac/2)
         self.camb_approx_prepared = False
         self.num_freqs = len(self.freqs)
@@ -1459,13 +1458,13 @@ class  sky_analyser:
 
     def matrix_inv(self, mat):
         if(self.do_data_mask):
-            return np.linalg.inv(mat[self.used_indices][:, self.used_indices])            
+            return np.linalg.inv(mat[self.used_indices][:, self.used_indices] * self.cov_filter[self.used_indices][:, self.used_indices] )            
         if(self.ell_cross_range > 0):
-            return np.linalg.inv(mat)
+            return np.linalg.inv(mat *self.cov_filter)
         matinv = np.zeros((self.fullsize, self.fullsize))
         for i in range(self.num_ells):
             base = i*self.blocksize
-            matinv[base : base+self.blocksize, base : base+self.blocksize] = np.linalg.inv(mat[base : base+self.blocksize, base : base+self.blocksize])
+            matinv[base : base+self.blocksize, base : base+self.blocksize] = np.linalg.inv(mat[base : base+self.blocksize, base : base+self.blocksize] * self.cov_filter[base : base+self.blocksize, base : base+self.blocksize])
         return matinv
 
     def matrix_logdet(self, mat):
@@ -1865,6 +1864,7 @@ class  sky_analyser:
                     if(i != j):
                         self.signal1_cov[j, i] = self.signal1_cov[i, j]
 
+
     def set_invcov_interp(self):
         if(not self.do_r1):
             return
@@ -1872,32 +1872,35 @@ class  sky_analyser:
         self.invcov_lndet = np.zeros(self.num_r_interp)
         self.invcov_interp[0, :, :] = self.invcov
         self.invcov_lndet_base = self.matrix_logdet(self.invcov)
-        self.invcov_interp[self.num_r_interp-1, :, :] = self.matrix_inv(self.covmat1)                            
-        for i in range(1, self.num_r_interp-1):
+        for i in range(1, self.num_r_interp):
             fac = i/(self.num_r_interp-1.)            
-            self.invcov_interp[i, :, :] = self.matrix_inv(self.covmat1 * fac + self.covmat * (1.-fac))
+            self.invcov_interp[i, :, :] = self.matrix_inv(self.sxn1_cov * fac + self.sxn_cov * (1.-fac) + self.signal1_cov*fac**2 + self.signal_cov*(1.-fac**2) + self.noise_cov )
         if(self.r_lndet_fac > 0.):
             for i in range(1, self.num_r_interp):
                 self.invcov_lndet[i] = (self.matrix_logdet(self.invcov_interp[i, :, :]) - self.invcov_lndet_base)
-        if(self.verbose):
-            print("log det(Cov) corrections:")
-            print(self.invcov_lndet)
-        
+            if(self.verbose):
+                print("log det(Cov) corrections:")
+                print(self.invcov_lndet)
+            
 
             
     #get mean and covariance for (total Cl  - noise Cl - signal Cl)
     def get_covmat(self):
-        if(self.data_product_path is not None and path.exists( path.join(self.data_product_path, r'covmat.npy')) ):  #try load from saved 
+        if(self.data_product_path is not None and path.exists( path.join(self.data_product_path, r'filters.pickle')) ):  #try load from saved 
             self.lens_res = np.load(path.join(self.data_product_path, r'lens_res.npy'))
             self.mean = np.load(path.join(self.data_product_path, r'mean.npy'))
-            self.covmat = np.load(path.join(self.data_product_path, r'covmat.npy'))
-            self.invcov = np.load(path.join(self.data_product_path, r'invcov.npy'))
+            self.noise_cov = np.load(path.join(self.data_product_path, r'noise_cov.npy'))
+            self.signal_cov = np.load(path.join(self.data_product_path, r'signal_cov.npy'))
+            self.sxn_cov = np.load(path.join(self.data_product_path, r'sxn_cov.npy'))
+            self.covmat =  self.noise_cov  + self.signal_cov + self.sxn_cov
+            self.invcov = self.matrix_inv(self.covmat)
             with open(path.join(self.data_product_path, r'filters.pickle'), 'rb') as f:
                 self.filters = pickle.load(f)    
             if(self.do_r1):
                 self.lens1_res = np.load(path.join(self.data_product_path, r'lens1_res.npy'))
                 self.mean1 = np.load(path.join(self.data_product_path, r'mean1.npy'))
-                self.covmat1 =np.load( path.join(self.data_product_path, r'covmat1.npy'))
+                self.signal1_cov =np.load( path.join(self.data_product_path, r'signal1_cov.npy'))
+                self.sxn1_cov =np.load( path.join(self.data_product_path, r'sxn1_cov.npy'))
                 self.set_invcov_interp()
             self.invcov_computed = True                
         if(self.invcov_computed):
@@ -1948,19 +1951,20 @@ class  sky_analyser:
                     if(ifreq2 == ifreq3):
                         self.sxn_cov[k1, k2] += Nl[ifreq2] * self.signal_mean[base +  self.power_index(ifreq1, ifreq4)*self.num_fields+self.BB_loc]
                     if(ifreq2 == ifreq4):
-                        self.sxn_cov[k1, k2] += Nl[ifreq2] * self.signal_mean[base +  self.power_index(ifreq1, ifreq3)*self.num_fields+self.BB_loc]                        
-        self.covmat = (self.noise_cov  + self.signal_cov + self.sxn_cov)*self.cov_filter
+                        self.sxn_cov[k1, k2] += Nl[ifreq2] * self.signal_mean[base +  self.power_index(ifreq1, ifreq3)*self.num_fields+self.BB_loc]
         if(self.do_delensing):
-            for i in range(self.fullsize):  #deapproximately take into account uncertainties of lensing residual
-                self.covmat[i, i] += self.lens_res[i]**2*2./self.dofs[i // self.blocksize ]
+            for i in range(self.fullsize):  #deapproximately take into account uncertainties of lensing residual, add to noise cov
+                self.noise_cov[i, i] += self.lens_res[i]**2*2./self.dofs[i // self.blocksize ]                        
+        self.covmat = self.noise_cov  + self.signal_cov + self.sxn_cov
         self.get_filters(prefix_no_filter = self.noise_root, prefix_with_filter = self.noisef_root)
         self.invcov = self.matrix_inv(self.covmat)
         self.invcov_computed = True
         if(self.data_product_path is not None):
             np.save(path.join(self.data_product_path, r'lens_res.npy'), self.lens_res)
             np.save(path.join(self.data_product_path, r'mean.npy'), self.mean)
-            np.save(path.join(self.data_product_path, r'covmat.npy'), self.covmat)
-            np.save(path.join(self.data_product_path, r'invcov.npy'), self.invcov)                        
+            np.save(path.join(self.data_product_path, r'noise_cov.npy'), self.noise_cov)
+            np.save(path.join(self.data_product_path, r'signal_cov.npy'), self.signal_cov)
+            np.save(path.join(self.data_product_path, r'sxn_cov.npy'), self.sxn_cov)                        
             with open(path.join(self.data_product_path, r'filters.pickle'), 'wb') as f:
                 pickle.dump(self.filters, f)
         if(not self.do_r1):
@@ -2006,14 +2010,11 @@ class  sky_analyser:
                         self.sxn1_cov[k1, k2] += Nl[ifreq2] * self.signal_mean[base +  self.power_index(ifreq1, ifreq4)*self.num_fields+self.BB_loc]
                     if(ifreq2 == ifreq4):
                         self.sxn1_cov[k1, k2] += Nl[ifreq2] * self.signal_mean[base +  self.power_index(ifreq1, ifreq3)*self.num_fields+self.BB_loc]                        
-        self.covmat1 = (self.noise_cov  + self.signal1_cov + self.sxn1_cov)*self.cov_filter
-        if(self.do_delensing):
-            for i in range(self.fullsize):  #approximately take into account uncertainties of lensing residual
-                self.covmat1[i, i] += self.lens_res[i]**2*2./self.dofs[i // self.blocksize ]        
         if(self.data_product_path is not None):
             np.save(path.join(self.data_product_path, r'lens1_res.npy'), self.lens1_res)
             np.save(path.join(self.data_product_path, r'mean1.npy'), self.mean1)
-            np.save(path.join(self.data_product_path, r'covmat1.npy'), self.covmat1)
+            np.save(path.join(self.data_product_path, r'signal1_cov.npy'), self.signal1_cov)
+            np.save(path.join(self.data_product_path, r'sxn1_cov.npy'), self.sxn1_cov)                        
         self.set_invcov_interp()
         
     def model_vector(self, lcdm_params, fgs):
@@ -2049,7 +2050,7 @@ class  sky_analyser:
                     
     def chisq_of_vec(self, vec, r):
         if(self.do_r1):
-            r_pos =  (abs(r)/self.cosmo_r1)**self.r_interp_index*(self.num_r_interp-1) 
+            r_pos =  (abs(r)/self.cosmo_r1)*(self.num_r_interp-1) 
             ind_r_pos =  int(r_pos)
             if(ind_r_pos >= self.num_r_interp-1):
                 if(self.do_data_mask):
