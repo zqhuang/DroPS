@@ -31,6 +31,7 @@
 "cosmo_ns" :  0.966,
 "verbose" : False,
 "r_lower_bound" : 0.,
+"eps_upperbound": 0.3,
 "r_lndet_fac" : 1., 
 "output_dir" : r"Test/results",
 "ell_cross_range" : 0,
@@ -44,10 +45,9 @@
 "dust_vary_SED" : True,
 "sync_vary_SED" : True,
 "vary_cosmology" : False,
-"Gaussianize_BB" : False,
 "assume_parity" : True,
 "clean_noise_cov" : True,
 "model_sxn_cov" : False,
 "data_product_path" : "Test/products",
-"r_logfile" :  "Test/r_logfile_i12_r2test.txt" 
+"r_logfile" :  "Test/r_logfile.txt" 
 }
