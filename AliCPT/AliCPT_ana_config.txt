@@ -40,7 +40,7 @@
 "ME_is_positive": False,
 "ME_upperbound" : 0.05,
 "beta_d_prior" : [ 1.54, 0.1 ],
-"beta_s_prior" : [-3., 0.1 ]
+"beta_s_prior" : [-3., 0.1 ],
 "dust_vary_SED" : True,
 "sync_vary_SED" : True,
 "vary_cosmology" : False,
