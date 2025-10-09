@@ -11,7 +11,7 @@ plt.ylabel(r"$r$")
 def plot_data(filename, fmt, color, mean_ls, mean_label, xshift = 0.):
     rs = np.loadtxt(filename)
     mean_r = np.sum(rs[:, 0])/rs.shape[0]
-    plt.errorbar(x = np.array(range(rs.shape[0]),dtype=np.float64) +xshift, y = rs[:, 0], yerr = rs[:, 1], fmt= fmt, capsize = 2., color=color)
+    plt.errorbar(x = np.array(range(1, rs.shape[0]+1),dtype=np.float64) +xshift, y = rs[:, 0], yerr = rs[:, 1], fmt= fmt, capsize = 2., color=color)
     plt.axhline(y = mean_r, ls = mean_ls, linewidth=2., color=color, label=mean_label)
 
     

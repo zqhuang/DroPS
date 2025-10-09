@@ -18,7 +18,7 @@
 "white_noise" :  [33., 22., 2.5, 2.8, 5.5, 14.],
 "l_knee_P" :  [ 15., 15., 25., 25., 35., 40. ],
 "alpha_knee_P" : [ -2.4, -2.4, -2.5, -3.0, -3.0, -3.0 ],
-"filter_model" : r"filter_256.pickle",
+"filter_model" : r"filter_SO.pickle",
 "delens_fac" : 0.8,
 "cosmo_r": 0.,
 "cosmo_r1" : 0.03,

@@ -29,7 +29,7 @@
 "cosmo_logA" : 3.047,
 "cosmo_ns" :  0.966,
 "verbose" : True,
-"r_lower_bound" : 0.,
+"r_lowerbound" : 0.,
 "eps_upper_bound" : 0.3, 
 "r_lndet_fac" : 1., 
 "output_dir" : r"CMBS4/results",

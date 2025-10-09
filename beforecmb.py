@@ -470,7 +470,7 @@ class foreground_model:
         #frequency spectral index
         self.beta_dust = beta_dust
         self.beta_sync = beta_sync
-        #2011.11575, momentum expansion for spatially varying SED of syncrotron
+        #2011.11575, moment expansion for spatially varying SED of syncrotron
         self.B_dust = B_dust
         self.B_sync = B_sync
         self.svs_dust = svs_dust
@@ -483,7 +483,7 @@ class foreground_model:
         hGk_t0 = 0.0479924/self.T_CMB  # h*GHz/k_B/TCMB
         p = hGk_t0*freq
         p0 = hGk_t0*ref
-        return (ref/freq)**2*np.exp(p0-p)*(np.exp(p)-1.)**2/(np.exp(p0)-1.)**2 
+        return (ref/freq*(np.exp(p)-1.)/(np.exp(p0)-1.))**2*np.exp(p0-p)
 
     
     def dust_brightness_ratio(self, freq, ref):
@@ -894,7 +894,7 @@ class band_power_calculator:
     purify_b = True
     is_Dell = True
     
-    def __init__(self, mask_file, apo_deg = 4., apo_type = "C2", like_fields = ['BB'], lmin = 21, lmax = 201, delta_ell = 20, verbose = False):
+    def __init__(self, mask_file, apo_deg = 4., apo_type = "C2", like_fields = ['BB'], lmin = 21, lmax = 200, delta_ell = 20, verbose = False):
         self.mask_file = mask_file #mask file name
         self.verbose = verbose
         rawmask = hp.read_map(self.mask_file, field=0, dtype=np.float64)        
@@ -1085,7 +1085,10 @@ class band_power_calculator:
                     bp[field] *= w2
                 return bp
         nmap1 = len(mapfiles1)
-        nmap2 = len(mapfiles2)
+        if(mapfiles2 is None):
+            nmap2 = nmap1
+        else:
+            nmap2 = len(mapfiles2)
         if(w1 != 1.):
             sumints1 = path23ints(mapfiles1[0]+'__'+str(int(w1*100000)))
         else:
@@ -1954,7 +1957,10 @@ class  sky_analyser:
                         self.sxn_cov[k1, k2] += Nl[ifreq2] * self.signal_mean[base +  self.power_index(ifreq1, ifreq3)*self.num_fields+self.BB_loc]
         if(self.do_delensing):
             for i in range(self.fullsize):  #deapproximately take into account uncertainties of lensing residual, add to noise cov
-                self.noise_cov[i, i] += self.lens_res[i]**2*2./self.dofs[i // self.blocksize ]                        
+                self.noise_cov[i, i] += self.lens_res[i]**2 * 2./self.dofs[i // self.blocksize ]
+        else:  ###here only consider lensed power due to E
+            for i in range(self.fullsize):
+                self.noise_cov[i, i] += (self.cmb_lensed_base[i] - self.cmb_unlensed_base[i])**2 * 2./self.dofs[i // self.blocksize ]
         self.covmat = self.noise_cov  + self.signal_cov + self.sxn_cov
         self.get_filters(prefix_no_filter = self.noise_root, prefix_with_filter = self.noisef_root)
         self.invcov = self.matrix_inv(self.covmat)
