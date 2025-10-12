@@ -10,8 +10,6 @@ print('-----------------------------------')
 mc_steps = 80000
 burn_steps = 5000
 use_Planck_BAO_prior = True
-debug = False
-
 Planck_BAO_covmat = np.loadtxt('base_plikHM_TTTEEE_lowl_lowE_lensing_post_BAO.covmat')[0:6, 0:6]
 Planck_BAO_invcov = np.linalg.inv(Planck_BAO_covmat)
 data_overwrite = False
@@ -56,9 +54,16 @@ covmat_file = ana.output_root + r'covmat.npy'
 slow_propose_file = ana.output_root + r'slow_propose.npy'
 fast_propose_file = ana.output_root + r'fast_propose.npy'
 
+#find the index of ell bin that is closest to l = 100
+ind100 = 0
+for i in range(1, ana.num_ells):
+    if( abs(ana.ells[i] - 100.) < abs(ana.ells[ind100]-100.)):
+        ind100 = i
     
         
 params = {}
+
+        
 
 #cosmological parameters
 if(ana.BB_loc >= 0):
@@ -78,6 +83,7 @@ params[r'T_dust_MBB'] =  [r'$T_{\rm MBB}$', 20., 20. ]
 params[r'beta_d'] =  [r'$\beta_d$', 1.2, 1.9, 1.54, 0.01 ]
 params[r'beta_s'] =  [r'$\beta_s$', -3.5, -2.5, -3., 0.01 ]
 
+
 ME_ubd = ana.ME_upperbound
 if(ana.ME_is_positive):
     ME_lbd = 0.
@@ -87,51 +93,57 @@ else:
     ME_ini = 0.
 
     
-
-if(ana.dust_vary_SED):
+if(ana.freq_decorr_model == "Taylor"):
+    if(ana.analytic_fg):
+        print('When using analytic_fg =  True, please set freq_decorr_model = "ME" or "None" ')
+        exit()
+    params[r'beta_prime_d'] = [r'$\beta_d^\prime$', -0.1, 0.1, 0.]
+    params[r'beta_prime_s'] = [r'$\beta_s^\prime$', -0.1, 0.1, 0.]                   
+    for ifield in range(ana.num_fields):
+        field = ana.fields[ifield]
+        for i in range(ana.num_ells):
+            if(i == ind100 and ifield == 0):  #this one is degenerate with beta
+                params[r'B_d_'+field+str(i)] = [r'$B_{d,'+field+r','+str(i)+r'}$', 0., 0.]                
+                params[r'B_s_'+field+str(i)] = [r'$B_{s,'+field+r','+str(i)+r'}$', 0., 0.]
+            else:
+                params[r'B_d_'+field+str(i)] = [r'$B_{d,'+field+r','+str(i)+r'}$', -0.05, 0.05, 0.]
+                params[r'B_s_'+field+str(i)] = [r'$B_{s,'+field+r','+str(i)+r'}$', -0.05, 0.05, 0.]                
+            params[r'S_d_'+field+str(i)] = [r'$S_{d,'+field+r','+str(i)+r'}$', 0., 100., 50.]
+            params[r'S_s_'+field+str(i)] = [r'$S_{s,'+field+r','+str(i)+r'}$', 0., 100., 50.]    
+elif(ana.freq_decorr_model == "ME"):
+    params[r'beta_prime_d'] = [r'$\beta_d^\prime$', 0., 0.]
+    params[r'beta_prime_s'] = [r'$\beta_s^\prime$', 0., 0.]
     for field in ana.fields:
         if(ana.analytic_ME):
             params[r'B_d_'+field] = [r'$B_{d,' + field + r'}$', ME_lbd, ME_ubd, ME_ini]            
             params[r'S_d_'+field] = [ r'$S_{d' + field + r'}$', ME_lbd, ME_ubd, ME_ini]
-            params[r'gamma_d_'+field] = [ r'$\gamma_{d,' + field + r'}$', -5., 0., -0.5 ]
+            params[r'q_d_'+field] = [ r'$q_{d,' + field + r'}$', -5., 0., -0.5 ]
+            params[r'B_s_'+field] = [r'$B_{s,' + field + r'}$', ME_lbd, ME_ubd, ME_ini]            
+            params[r'S_s_'+field] = [ r'$S_{s' + field + r'}$', ME_lbd, ME_ubd, ME_ini]
+            params[r'q_s_'+field] = [ r'$q_{s,' + field + r'}$', -5., 0., -0.5]
         else:
             for i in range(ana.num_ells):
                 params[r'B_d_'+field+str(i)] = [r'$B_{d,'+field+r','+str(i)+r'}$', ME_lbd, ME_ubd, ME_ini]                
                 params[r'S_d_'+field+str(i)] = [r'$S_{d,'+field+r','+str(i)+r'}$', ME_lbd, ME_ubd, ME_ini]
+                params[r'B_s_'+field+str(i)] = [r'$B_{s,'+field+r','+str(i)+r'}$', ME_lbd, ME_ubd, ME_ini]                                
+                params[r'S_s_'+field+str(i)] = [r'$S_{s,'+field+r','+str(i)+r'}$', ME_lbd, ME_ubd, ME_ini]
 else:
+    params[r'beta_prime_d'] = [r'$\beta_d^\prime$', 0., 0.]
+    params[r'beta_prime_s'] = [r'$\beta_s^\prime$', 0., 0.]
     for field in ana.fields:
         if(ana.analytic_ME):
             params[r'B_d_'+field] = [r'$B_{d,' + field + r'}$', 0., 0.]            
             params[r'S_d_'+field] = [ r'$S_{d,' + field + r'}$', 0., 0.]
-            params[r'gamma_d_'+field] = [ r'$\gamma_{d,' + field + r'}$', 0., 0.]        
+            params[r'q_d_'+field] = [ r'$q_{d,' + field + r'}$', 0., 0.]        
+            params[r'B_s_'+field] = [r'$B_{s,' + field + r'}$', 0., 0.]            
+            params[r'S_s_'+field] = [ r'$S_{s,' + field + r'}$', 0., 0.]
+            params[r'q_s_'+field] = [ r'$q_{s,' + field + r'}$', 0., 0.]        
         else:
             for i in range(ana.num_ells):
                 params[r'B_d_'+field+str(i)] = [r'$B_{d,'+field+r','+str(i)+r'}$', 0., 0.]                                
                 params[r'S_d_'+field+str(i)] = [r'$S_{d,' + field + r','+str(i) + r'}$', 0., 0. ]
-
-if(ana.sync_vary_SED):
-    for field in ana.fields:
-        if(ana.analytic_ME):
-            params[r'B_s_'+field] = [r'$B_{s,' + field + r'}$', ME_lbd, ME_ubd, ME_ini]            
-            params[r'S_s_'+field] = [ r'$S_{s' + field + r'}$', ME_lbd, ME_ubd, ME_ini]
-            params[r'gamma_s_'+field] = [ r'$\gamma_{s,' + field + r'}$', -5., 0., -0.5]
-        else:
-            for i in range(ana.num_ells):
-                params[r'B_s_'+field+str(i)] = [r'$B_{s,'+field+r','+str(i)+r'}$', ME_lbd, ME_ubd, ME_ini]                                
-                params[r'S_s_'+field+str(i)] = [r'$S_{s,'+field+r','+str(i)+r'}$', ME_lbd, ME_ubd, ME_ini]
-else:
-    for field in ana.fields:
-        if(ana.analytic_ME):
-            params[r'B_s_'+field] = [r'$B_{s,' + field + r'}$', 0., 0.]            
-            params[r'S_s_'+field] = [ r'$S_{s,' + field + r'}$', 0., 0.]
-            params[r'gamma_s_'+field] = [ r'$\gamma_{s,' + field + r'}$', 0., 0.]        
-        else:
-            for i in range(ana.num_ells):
                 params[r'B_s_'+field+str(i)] = [r'$B_{s,'+field+r','+str(i)+r'}$', 0., 0.]                                                
                 params[r'S_s_'+field+str(i)] = [r'$S_{s,' + field + r','+str(i) + r'}$', 0., 0. ]
-
-    
-
 
 if(ana.analytic_fg):
     for field in ana.fields:
@@ -142,7 +154,7 @@ if(ana.analytic_fg):
         params[r'alpha_s_'+field] = [r'$\alpha_{s, ' + field + r'}$', -4., 0., -0.5, 0.1]
         params[r'alpha_prime_s_'+field] = [r'$\alpha^\prime_{s, ' + field + r'}$', -1., 1., 0.]
         for field in  ana.fields:
-            params[r'eps2_' + field] = [r'\varepsilon_{2,' + field + r'}$', -ana.eps_upperbound, ana.eps_upperbound, 0.]
+            params[r'eps2_' + field] = [r'\varepsilon_{2,' + field + r'}$', -ana.ds_cross_prior*10., ana.ds_cross_prior*10., 0.]
             params[r'alpha_eps_' + field] = [r'\alpha_{\varepsilon,' + field + r'}$', 0., 4., 0.5]            
 else:
     fgm = foreground_model(ells = ana.power_calc.ells, freq_sync_ref = ana.freq_lowest, freq_dust_ref = ana.freq_highest, ell_ref = 80.)
@@ -153,11 +165,11 @@ else:
         for i in range(ana.num_ells):
             dust_approx[i] = max(0.01, dust_approx[i])                
             sync_approx[i] = max(0.05, sync_approx[i])
-            eps_approx[i] = max(min(eps_approx[i], ana.eps_upperbound*0.8), -ana.eps_upperbound*0.8)
+            eps_approx[i] = max(min(eps_approx[i], ana.ds_cross_prior*3.), -ana.ds_cross_prior*3.)
             if(ana.ell_used_indices[i]):
                 params[r'A_s_' + field  + str(i)] = [ r'$A_{s, ' + field + r',' + str(i) + r'}$',  0., sync_approx[i]*4.+5., sync_approx[i], (sync_approx[i]*4.+5.)/200. ]
                 params[r'A_d_' + field  + str(i)] = [ r'$A_{d, ' + field + r',' + str(i) + r'}$',  0., dust_approx[i]*4.+20.,  dust_approx[i], (dust_approx[i]*4.+20.)/200. ]
-                params[r'eps2_' + field  + str(i)] = [ r'$\varepsilon_{2, ' + field + r',' + str(i) + r'}$',  -ana.eps_upperbound, ana.eps_upperbound,  eps_approx[i] ] #fast parameter
+                params[r'eps2_' + field  + str(i)] = [ r'$\varepsilon_{2, ' + field + r',' + str(i) + r'}$',  -ana.ds_cross_prior*5., ana.ds_cross_prior*5.,  eps_approx[i] ] #fast parameter
             else:
                 params[r'A_s_' + field  + str(i)] = [ r'$A_{s, ' + field + r',' + str(i) + r'}$',   sync_approx[i],  sync_approx[i] ]
                 params[r'A_d_' + field  + str(i)] = [ r'$A_{d, ' + field + r',' + str(i) + r'}$',  dust_approx[i], dust_approx[i] ]
@@ -195,13 +207,13 @@ def params_to_fg_models(x, s):
     fgs = []
     if(ana.analytic_fg): #in this case we also force analytic_ME
         for field in ana.fields:
-            fgs.append( foreground_model(ells = ana.power_calc.ells, T_dust_MBB = s.getp('T_dust_MBB', x), eps2 = s.getp(r'eps2_'+field, x), alpha_eps =  s.getp('alpha_eps_'+field, x), A_sync =  s.getp('A_s_'+field, x), alpha_sync = s.getp('alpha_s_'+field,x ), run_sync =  s.getp('alpha_prime_s_'+field, x), beta_sync =  s.getp('beta_s',x), A_dust =  s.getp('A_d_'+field,x), alpha_dust =  s.getp('alpha_d_'+field,x), run_dust = s.getp('alpha_prime_d_'+field,x), beta_dust = s.getp('beta_d',x), B_dust = s.getp('B_d_'+field, x), svs_dust = s.getp('S_d_'+field, x), svs_dust_index = s.getp('gamma_d_'+field, x), B_sync = s.getp('B_s_'+field, x), svs_sync = s.getp('S_s_'+field, x), svs_sync_index = s.getp('gamma_s_'+field, x), freq_sync_ref = ana.freq_lowest, freq_dust_ref = ana.freq_highest, ell_ref = 80.) )                
+            fgs.append( foreground_model(ells = ana.power_calc.ells, T_dust_MBB = s.getp('T_dust_MBB', x), eps2 = s.getp(r'eps2_'+field, x), alpha_eps =  s.getp('alpha_eps_'+field, x), A_sync =  s.getp('A_s_'+field, x), alpha_sync = s.getp('alpha_s_'+field,x ), run_sync_ell =  s.getp('alpha_prime_s_'+field, x), beta_sync =  s.getp('beta_s',x), A_dust =  s.getp('A_d_'+field,x), alpha_dust =  s.getp('alpha_d_'+field,x), run_dust_ell = s.getp('alpha_prime_d_'+field,x), beta_dust = s.getp('beta_d',x), B_dust = s.getp('B_d_'+field, x), svs_dust = s.getp('S_d_'+field, x), svs_dust_index = s.getp('q_d_'+field, x), B_sync = s.getp('B_s_'+field, x), svs_sync = s.getp('S_s_'+field, x), svs_sync_index = s.getp('q_s_'+field, x), freq_sync_ref = ana.freq_lowest, freq_dust_ref = ana.freq_highest, ell_ref = 80., freq_decorr_model = ana.freq_decorr_model, run_dust_freq = s.getp('beta_prime_d', x),  run_sync_freq = s.getp('beta_prime_s', x)) )                
     elif(ana.analytic_ME):
         for field in ana.fields:
-            fgs.append( foreground_model(ells = ana.power_calc.ells, T_dust_MBB = s.getp('T_dust_MBB', x),  eps2 = s.getps('eps2_'+field, ana.num_ells, x), alpha_eps = 0., A_sync =  s.getps('A_s_'+field, ana.num_ells, x), alpha_sync = 0., run_sync = 0., beta_sync =  s.getp('beta_s',x), A_dust =  s.getps('A_d_'+field, ana.num_ells, x), alpha_dust = 0., run_dust = 0.,  beta_dust = s.getp('beta_d',x), B_dust = s.getp('B_d_'+field, x), svs_dust = s.getp('S_d_'+field, x), svs_dust_index = s.getp('gamma_d_'+field, x), B_sync = s.getp('B_s_'+field, x), svs_sync = s.getp('S_s_'+field, x), svs_sync_index = s.getp('gamma_s_'+field, x), freq_sync_ref = ana.freq_lowest, freq_dust_ref = ana.freq_highest, ell_ref = 80.) )
+            fgs.append( foreground_model(ells = ana.power_calc.ells, T_dust_MBB = s.getp('T_dust_MBB', x),  eps2 = s.getps('eps2_'+field, ana.num_ells, x), alpha_eps = 0., A_sync =  s.getps('A_s_'+field, ana.num_ells, x), alpha_sync = 0., run_sync_ell = 0., beta_sync =  s.getp('beta_s',x), A_dust =  s.getps('A_d_'+field, ana.num_ells, x), alpha_dust = 0., run_dust_ell = 0.,  beta_dust = s.getp('beta_d',x), B_dust = s.getp('B_d_'+field, x), svs_dust = s.getp('S_d_'+field, x), svs_dust_index = s.getp('q_d_'+field, x), B_sync = s.getp('B_s_'+field, x), svs_sync = s.getp('S_s_'+field, x), svs_sync_index = s.getp('q_s_'+field, x), freq_sync_ref = ana.freq_lowest, freq_dust_ref = ana.freq_highest, ell_ref = 80., freq_decorr_model = ana.freq_decorr_model, run_dust_freq = s.getp('beta_prime_d', x),  run_sync_freq = s.getp('beta_prime_s', x)) )
     else:
         for field in ana.fields:
-            fgs.append( foreground_model(ells = ana.power_calc.ells, T_dust_MBB = s.getp('T_dust_MBB', x),  eps2 = s.getps('eps2_'+field, ana.num_ells, x), alpha_eps = 0., A_sync =  s.getps('A_s_'+field, ana.num_ells, x), alpha_sync = 0., run_sync = 0., beta_sync =  s.getp('beta_s',x), A_dust =  s.getps('A_d_'+field, ana.num_ells, x), alpha_dust = 0., run_dust = 0.,  beta_dust = s.getp('beta_d',x), B_dust = s.getps('B_d_'+field, ana.num_ells, x), svs_dust = s.getps('S_d_'+field, ana.num_ells, x), B_sync = s.getps('B_s_'+field, ana.num_ells, x), svs_sync = s.getps('S_s_'+field, ana.num_ells, x) , freq_sync_ref = ana.freq_lowest, freq_dust_ref = ana.freq_highest, ell_ref = 80.) )
+            fgs.append( foreground_model(ells = ana.power_calc.ells, T_dust_MBB = s.getp('T_dust_MBB', x),  eps2 = s.getps('eps2_'+field, ana.num_ells, x), alpha_eps = 0., A_sync =  s.getps('A_s_'+field, ana.num_ells, x), alpha_sync = 0., run_sync_ell = 0., beta_sync =  s.getp('beta_s',x), A_dust =  s.getps('A_d_'+field, ana.num_ells, x), alpha_dust = 0., run_dust_ell = 0.,  beta_dust = s.getp('beta_d',x), B_dust = s.getps('B_d_'+field, ana.num_ells, x), svs_dust = s.getps('S_d_'+field, ana.num_ells, x), B_sync = s.getps('B_s_'+field, ana.num_ells, x), svs_sync = s.getps('S_s_'+field, ana.num_ells, x) , freq_sync_ref = ana.freq_lowest, freq_dust_ref = ana.freq_highest, ell_ref = 80., freq_decorr_model = ana.freq_decorr_model, run_dust_freq = s.getp('beta_prime_d', x),  run_sync_freq = s.getp('beta_prime_s', x)) )
     return fgs
 
 
@@ -216,6 +228,13 @@ def cmb_loglike(x, s):
     r_value = lcdm_params[6]
     vec =  ana.model_vector(lcdm_params = lcdm_params, fgs = fgs)  - ana.data_vec
     chisq = ana.chisq_of_vec(vec, r_value)
+    #beta running prior
+    chisq += (s.getp('beta_prime_d', x)/ana.beta_prime_prior)**2
+    chisq += (s.getp('beta_prime_s', x)/ana.beta_prime_prior)**2        
+    for field in ana.fields:  #dust x synchrotron correlation
+        eps2 = s.getps('eps2_'+field, ana.num_ells, x)
+        chisq += np.sum((eps2/ana.ds_cross_prior)**2)
+
     if(ana.vary_cosmology and use_Planck_BAO_prior):
         d_lcdm = lcdm_params[0:6] - cosmology_base_mean[0:6]
         chisq +=  np.dot(np.dot(d_lcdm, Planck_BAO_invcov), d_lcdm)  #add Planck+BAO prior
@@ -249,7 +268,7 @@ with open(ana.r_logfile, 'a') as f:
 if(ana.verbose):
     numecho = settings.num_params
 else:
-    numecho = 3
+    numecho = 5
 
 if(ana.verbose):
     print("-----------mean +/- standard deviation---------")    
@@ -275,20 +294,4 @@ with open(ana.output_root + r'margestat.txt', 'w') as f:
     f.write("#best loglike: "+str(np.round(settings.global_bestlike, 2)))            
     
 
-if(debug):
-    fgs = params_to_fg_models(settings.global_bestfit, settings)
-    vec =  ana.model_vector(lcdm_params = ana.lcdm_params, fgs = fgs)
-    for ipower in range(ana.num_powers):
-        ifreq1, ifreq2 = ana.freq_indices(ipower)
-        print('====================' + ana.freqnames[ifreq1] + " x " + ana.freqnames[ifreq2] + '====================')
-        chisq = 0.
-        for i in range(ana.num_ells):
-            k = ipower*ana.num_fields + ana.BB_loc + i*ana.blocksize
-            dev = (vec[k] - ana.data_vec[k])/np.sqrt(ana.covmat[k, k])
-            if(dev>3.):
-                print(ana.ells[i], vec[k], ana.data_vec[k], np.round(dev, decimals=1))
-            chisq += dev**2
-        print('------chi^2 = '+str(np.round(chisq, decimals=1)))
-
-print("\n")        
 

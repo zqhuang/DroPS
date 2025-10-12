@@ -449,8 +449,7 @@ class foreground_model:
 
 
     #A_dust (A_sync, corr_ds) can be a single number or an array
-    def __init__(self, ells, A_dust = 10., A_sync = 1., beta_dust = 1.6, beta_sync = -3., eps2 = 0.,  alpha_eps = 0., T_CMB = 2.726, T_dust_MBB = 20., alpha_dust = 0., alpha_sync = 0., run_dust_ell = 0., run_sync_ell = 0., run_dust_freq = 0., run_sync_freq = 0., svs_dust = 0.,  svs_dust_index = 0.,  B_dust = 0., svs_sync_index = 0., svs_sync = 0., B_sync = 0., freq_sync_ref = 30., freq_dust_ref = 270., ell_ref=80., freq_decorr_model = None):
-        self.freq_decorr_model = freq_decorr_model
+    def __init__(self, ells, A_dust = 10., A_sync = 1., beta_dust = 1.6, beta_sync = -3., eps2 = 0.,  alpha_eps = 0., T_CMB = 2.726, T_dust_MBB = 20., alpha_dust = 0., alpha_sync = 0., run_dust = 0., run_sync = 0., svs_dust = 0.,  svs_dust_index = 0.,  B_dust = 0., svs_sync_index = 0., svs_sync = 0., B_sync = 0., freq_sync_ref = 30., freq_dust_ref = 270., ell_ref=80.):  
         self.T_CMB = T_CMB   #one field only
         self.freq_sync_ref = freq_sync_ref
         self.freq_dust_ref = freq_dust_ref
@@ -465,14 +464,12 @@ class foreground_model:
         for i in range(1,self.num_ells-1):
             self.lbin_width[i] = (self.ells[i+1]-self.ells[i-1])/2.
         #if A is given as a scalar, the ell spectrum is approximated by a quadratic function; if A is given as a list, the ell spectrum is a free (binned) function
-        self.P_dust = A_dust * (ells/self.ell_ref)**(alpha_dust + (run_dust_ell/2.) * np.log(ells/self.ell_ref)) 
-        self.P_sync = A_sync * (ells/self.ell_ref)**(alpha_sync + (run_sync_ell/2.) * np.log(ells/self.ell_ref)) 
+        self.P_dust = A_dust * (ells/self.ell_ref)**(alpha_dust + (run_dust/2.) * np.log(ells/self.ell_ref)) 
+        self.P_sync = A_sync * (ells/self.ell_ref)**(alpha_sync + (run_sync/2.) * np.log(ells/self.ell_ref)) 
         self.P_ds = np.sqrt(self.P_dust * self.P_sync) * eps2 * (2./ells)**alpha_eps
         #frequency spectral index
         self.beta_dust = beta_dust
         self.beta_sync = beta_sync
-        self.run_dust_freq = run_dust_freq
-        self.run_sync_freq = run_sync_freq
         #2011.11575, moment expansion for spatially varying SED of syncrotron
         self.B_dust = B_dust
         self.B_sync = B_sync
@@ -481,23 +478,31 @@ class foreground_model:
         self.svs_dust_index  = svs_dust_index
         self.svs_sync_index  = svs_sync_index        
 
-    def dust_freq_weight(self, nu):
-        hGk_t0 = 0.0479924/self.T_CMB  # h*GHz/ k_B / T_CMB
-        hGk_td = 0.0479924/self.T_dust_MBB  #h GHz/k_B/T_MBB
-        if(self.freq_decorr_model == "Taylor"):
-            return (nu/self.freq_dust_ref)**(self.beta_dust+self.B_dust + self.run_dust_freq*np.log(nu/self.freq_dust_ref)-1.)*np.exp(hGk_t0*(self.freq_dust_ref - nu))*((np.exp(hGk_t0*nu)-1.)/(np.exp(hGk_t0*self.freq_dust_ref)-1.))**2*((np.exp(hGk_td*self.freq_dust_ref)-1.)/(np.exp(hGk_td*nu)-1.))
-        else:
-            return (nu/self.freq_dust_ref)**(self.beta_dust-1.)*np.exp(hGk_t0*(self.freq_dust_ref - nu))*((np.exp(hGk_t0*nu)-1.)/(np.exp(hGk_t0*self.freq_dust_ref)-1.))**2*((np.exp(hGk_td*self.freq_dust_ref)-1.)/(np.exp(hGk_td*nu)-1.))            
-            
-
-    def sync_freq_weight(self, nu):
-        hGk_t0 = 0.0479924/self.T_CMB  # h*GHz/ k_B / T_CMB
-        if(self.freq_decorr_model == "Taylor"):
-            return (nu/self.freq_sync_ref)**(self.beta_sync+self.B_sync + self.run_sync_freq*np.log(nu/self.freq_sync_ref)-2.)*np.exp(hGk_t0*(self.freq_sync_ref - nu))*((np.exp(hGk_t0*nu)-1.)/(np.exp(hGk_t0*self.freq_sync_ref)-1.))**2
-        else:
-            return (nu/self.freq_sync_ref)**(self.beta_sync-2.)*np.exp(hGk_t0*(self.freq_sync_ref - nu))*((np.exp(hGk_t0*nu)-1.)/(np.exp(hGk_t0*self.freq_sync_ref)-1.))**2            
+    def convert_i2cmb(self, freq, ref):  
+        """convert uK_RJ to uK_CMB"""
+        hGk_t0 = 0.0479924/self.T_CMB  # h*GHz/k_B/TCMB
+        p = hGk_t0*freq
+        p0 = hGk_t0*ref
+        return (ref/freq*(np.exp(p)-1.)/(np.exp(p0)-1.))**2*np.exp(p0-p)
 
     
+    def dust_brightness_ratio(self, freq, ref):
+        """dust uK_RJ temperature scaling"""
+        hGk_td = 0.0479924/self.T_dust_MBB #dust effective MBB temperature ~20K
+        return (freq/ref)*(np.exp(hGk_td*ref)-1.)/(np.exp(hGk_td*freq)-1.)
+
+    def dust_cmb_ratio(self, freq, ref):
+        return self.convert_i2cmb(freq, ref) * self.dust_brightness_ratio(freq, ref)
+
+
+    def sync_freq_weight(self, freq):
+        return (freq/self.freq_sync_ref) ** self.beta_sync   * self.convert_i2cmb(freq, self.freq_sync_ref) 
+    
+
+    def dust_freq_weight(self, freq):
+        return   (freq/self.freq_dust_ref) **  self.beta_dust  * self.dust_cmb_ratio(freq, self.freq_dust_ref)
+
+
     
     def full_bandpower(self, freq1, freq2, weights1 = None, weights2 = None):
         if((weights1 is None) and (weights2 is None)):
@@ -531,19 +536,10 @@ class foreground_model:
                 for i in range(nw2):
                     sw2 += self.sync_freq_weight(freq2[i])*weights2[i]
                     dw2 += self.dust_freq_weight(freq2[i])*weights2[i]
-            mean_freq2 = np.sum(freq2*weights2)/np.sum(weights2)
-        if(self.freq_decorr_model == "ME"):
-            power_sync = self.P_sync * sw1 * sw2 * (1. + self.B_sync * (np.log(mean_freq1/self.freq_sync_ref)**2+np.log(mean_freq2/self.freq_sync_ref)**2) +  np.log(mean_freq1/self.freq_sync_ref)*np.log(mean_freq2/self.freq_sync_ref) * self.svs_sync * (self.ells/self.ell_ref)**self.svs_sync_index )
-            power_dust = self.P_dust *  dw1 * dw2 * (1. + self.B_dust * (np.log(mean_freq1/self.freq_dust_ref)**2+np.log(mean_freq2/self.freq_dust_ref)**2) +  np.log(mean_freq1/self.freq_dust_ref)*np.log(mean_freq2/self.freq_dust_ref) * self.svs_dust * (self.ells/self.ell_ref)**self.svs_dust_index )
-            power_cross = self.P_ds * (sw1 * dw2 + sw2 * dw1)
-        elif(self.freq_decorr_model == "Taylor"):
-            power_sync = self.P_sync * sw1 * sw2 * np.exp( - (np.log(mean_freq1/mean_freq2)/self.svs_sync)**2 )
-            power_dust = self.P_dust * dw1 * dw2 * np.exp( - (np.log(mean_freq1/mean_freq2)/self.svs_dust)**2)
-            power_cross = self.P_ds * (sw1 * dw2 + sw2 * dw1)            
-        else:
-            power_sync = self.P_sync * sw1 * sw2
-            power_dust = self.P_dust * dw1 * dw2
-            power_cross = self.P_ds * (sw1 * dw2 + sw2 * dw1)            
+            mean_freq2 = np.sum(freq2*weights2)/np.sum(weights2)   
+        power_sync = self.P_sync * sw1 * sw2 * (1. + self.B_sync * (np.log(mean_freq1/self.freq_sync_ref)**2+np.log(mean_freq2/self.freq_sync_ref)**2) +  np.log(mean_freq1/self.freq_sync_ref)*np.log(mean_freq2/self.freq_sync_ref) * self.svs_sync * (self.ells/self.ell_ref)**self.svs_sync_index )
+        power_dust = self.P_dust *  dw1 * dw2 * (1. + self.B_dust * (np.log(mean_freq1/self.freq_dust_ref)**2+np.log(mean_freq2/self.freq_dust_ref)**2) +  np.log(mean_freq1/self.freq_dust_ref)*np.log(mean_freq2/self.freq_dust_ref) * self.svs_dust * (self.ells/self.ell_ref)**self.svs_dust_index )
+        power_cross = self.P_ds * (sw1 * dw2 + sw2 * dw1) 
         return  power_sync + power_dust + power_cross
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -788,7 +784,6 @@ class sky_simulator:
                 self.save_map(self.noisef_root + self.freqnames[ifreq] + r'_' + str(i) + r'.npy', noisef_sum, overwrite = True)
 
 
-    
     def simulate_fg(self, seed = None, overwrite=False): #only simulate one foreground map
         if((not overwrite) and self.files_exist(prefix = self.fgf_root, postfix = r'.npy')):
             return
@@ -879,15 +874,7 @@ class sky_simulator:
             if(self.verbose):
                 print('simulating frequency '+self.freqnames[ifreq])
             filename = file_root + self.freqnames[ifreq]  + r'.npy'
-            #--------------
-            if(self.has_band_weights):
-                fgraw = sky.get_emission(self.band_weights[ifreq][0,0] * pysm3.units.GHz).to(pysm3.units.uK_CMB, equivalencies=pysm3.units.cmb_equivalencies(self.band_weights[ifreq][0,0] * pysm3.units.GHz)).value * self.band_weights[ifreq][0,1]
-                for iw in range(1, self.band_weights[ifreq].shape[0]):
-                    fgraw += sky.get_emission(self.band_weights[ifreq][iw,0] * pysm3.units.GHz).to(pysm3.units.uK_CMB, equivalencies=pysm3.units.cmb_equivalencies(self.band_weights[ifreq][iw,0] * pysm3.units.GHz)).value * self.band_weights[ifreq][iw,1]
-            else:
-                fgraw = sky.get_emission(self.freqs[ifreq] * pysm3.units.GHz).to(pysm3.units.uK_CMB, equivalencies=pysm3.units.cmb_equivalencies(self.freqs[ifreq] * pysm3.units.GHz)).value            
-            fgraw = sky.get_emission(self.freqs[ifreq] * pysm3.units.GHz).to(pysm3.units.uK_CMB, equivalencies=pysm3.units.cmb_equivalencies(self.freqs[ifreq] * pysm3.units.GHz)).value
-            #--------------------------
+            fgraw = sky.get_emission(self.freqs[ifreq] * pysm3.units.GHz).to(pysm3.units.uK_CMB, equivalencies=pysm3.units.cmb_equivalencies(self.freqs[ifreq] * pysm3.units.GHz))/pysm3.units.uK_CMB
             fgcmb = smooth_rotate(fgraw+cmb_lensed, fwhm_rad = self.fwhms_rad[ifreq], rot = self.rotator)
             total_map = np.zeros( (3, self.npix) )
             for isea in range(self.num_seasons):
@@ -907,10 +894,9 @@ class band_power_calculator:
     purify_b = True
     is_Dell = True
     
-    def __init__(self, mask_file, apo_deg = 4., apo_type = "C2", like_fields = ['BB'], lmin = 21, lmax = 200, delta_ell = 20, verbose = False, coordinate = 'G'):
+    def __init__(self, mask_file, apo_deg = 4., apo_type = "C2", like_fields = ['BB'], lmin = 21, lmax = 200, delta_ell = 20, verbose = False):
         self.mask_file = mask_file #mask file name
         self.verbose = verbose
-        self.coordinate = coordinate
         rawmask = hp.read_map(self.mask_file, field=0, dtype=np.float64)        
         self.npix = len(rawmask)
         self.nside = int(np.sqrt(self.npix/12.+1.e-3))
@@ -1237,11 +1223,10 @@ class  sky_analyser:
         self.freq_decorr_model =config.get("freq_decorr_model", "None") #None for assuming no frequency decorrelation, ME for Moment Expansion, or Taylor for Taylor expansion, 
         self.ME_is_positive = config.get(r"ME_is_positive", True)
         self.ME_upperbound = config.get(r"ME_upperbound", 0.05)
+        self.eps_upperbound = config.get(r"eps_upperbound", 0.3)
         self.r_lowerbound = config.get(r'r_lowerbound', 0.)
         self.beta_d_prior = config.get(r"beta_d_prior", None)
         self.beta_s_prior = config.get(r"beta_s_prior", None)
-        self.ds_cross_prior = config.get(r"ds_cross_prior", 0.03) #this sets the expected order of magnitude for dust x synchrotron correlation, the default value 0.03 is estimated from pysm simulations
-        self.beta_prime_prior = config.get(r"beta_prime_prior", 0.02) #this sets the expected order of magnitude for beta running, the default 0.02 is estimated from pysm simulations         
         self.lcdm_params = np.array( [ self.cosmo_ombh2, self.cosmo_omch2, self.cosmo_theta, self.cosmo_tau, self.cosmo_logA, self.cosmo_ns, self.cosmo_r ] )
         if(self.do_r1):
             self.lcdm1_params = np.array( [ self.cosmo_ombh2, self.cosmo_omch2, self.cosmo_theta, self.cosmo_tau, self.cosmo_logA, self.cosmo_ns, self.cosmo_r1 ] )
@@ -1259,14 +1244,12 @@ class  sky_analyser:
         self.output_root = path.join(self.output_dir, path.basename(self.root))
         self.ell_cross_range = config.get('ell_cross_range', 0)
         self.analytic_fg = config.get('analytic_fg', False)
-        self.analytic_ME = config.get('analytic_ME', False)
-        if(self.analytic_fg):
-            if(self.freq_decorr_model == "Taylor"):
-                print(r'(analtyic_fg = True) is incompatible with (freq_decorr_model = "Taylor"). Please set freq_decorr_model = "ME" or "None"')
-                exit()
-            if(self.freq_decorr_model =="ME" and not self.analytic_ME):
-                print(r'Sorry: using analytic FG but piecewise ME is nonsense, please set analytic_ME = True')
-                exit()
+        self.sync_vary_SED = config.get('sync_vary_SED', True)
+        self.dust_vary_SED = config.get('dust_vary_SED', True)
+        self.analytic_ME = config.get('analytic_ME', True)
+        if(self.analytic_fg and not self.analytic_ME):
+            print(r'Sorry: using analytic FG but piecewise ME is nonsense, please set analytic_ME = True')
+            exit()
         self.vary_cosmology = config.get('vary_cosmology', True)
         self.clean_noise_cov = config.get('clean_noise_cov', True)
         if('noise_weights' in config.keys()):
@@ -1278,7 +1261,7 @@ class  sky_analyser:
             self.noise_weights = None
         self.assume_parity = config.get('assume_parity', True)
         self.fields = config.get("fields", ['BB'])
-        self.power_calc = band_power_calculator(lmin = config.get("band_lmin", 21), lmax = config.get("band_lmax", 201), delta_ell = config.get("band_delta_ell", 20), mask_file = self.mask_file, like_fields = self.fields, coordinate = self.coordinate)
+        self.power_calc = band_power_calculator(lmin = config.get("band_lmin", 21), lmax = config.get("band_lmax", 201), delta_ell = config.get("band_delta_ell", 20), mask_file = self.mask_file, like_fields = self.fields)
         self.freq_lowest = self.freqs[0]
         self.freq_highest = self.freqs[0]
         self.ifreq_lowest = 0
@@ -1669,22 +1652,6 @@ class  sky_analyser:
             print('Error in select_spectrum: field ' + field + ' is not used!')
             exit()
         return vec[ipower*self.num_fields + ifield : self.fullsize : self.blocksize]
-
-    def fg_band_weights(self, beta_d, beta_s):
-        fg = foreground_model(ells = self.ells, beta_dust = beta_d, beta_sync = beta_s, freq_dust_ref = self.freq_highest, freq_sync_ref = self.freq_lowest)
-        dust_weights = np.zeros(self.num_freqs)
-        sync_weights = np.zeros(self.num_freqs)
-        if(self.has_band_weights):
-            for ifreq  in range(self.num_freqs):
-                for iw in range(self.band_weights[ifreq].shape[0]):
-                    dust_weights[ifreq] += fg.dust_freq_weight(self.band_weights[ifreq][iw, 0])*self.band_weights[ifreq][iw, 1]
-                    sync_weights[ifreq] += fg.sync_freq_weight(self.band_weights[ifreq][iw, 0])*self.band_weights[ifreq][iw, 1]                    
-        else:
-            for ifreq in range(self.num_freqs):
-                dust_weights[ifreq] = fg.dust_freq_weight(self.freqs[ifreq])
-                sync_weights[ifreq] = fg.sync_freq_weight(self.freqs[ifreq])                
-        return dust_weights, sync_weights
-
         
 
     def fg_model_vector(self, fgs): #fgs is a list of foreground models
