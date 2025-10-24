@@ -30,6 +30,6 @@
 "cosmo_logA" : 3.047,
 "cosmo_ns" :  0.966,
 "fg_models": [ "d0", "s0" ],
-"verbose" : True,
+"verbose" : False,
 "save_disk" : True
 }

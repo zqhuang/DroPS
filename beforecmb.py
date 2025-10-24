@@ -284,6 +284,29 @@ def get_weights(power_array):
     weights /= np.sum(weights)
     return weights
 
+
+def map_to_alm(maps, lmax):
+    if(len(maps.shape) == 1):
+        return np.array(hp.map2alm(maps = maps, lmax = lmax))
+    if(len(maps.shape) == 2):
+        if(maps.shape[0] == 1 or maps.shape[0] == 3):
+            return np.array(hp.map2alm(maps = maps, lmax = lmax))
+        if(maps.shape[0] == 2):
+            return np.array(hp.map2alm_spin(maps = maps, spin= 2, lmax = lmax))
+    print('Error in map_to_alm: shape of input map must be I, IQU or QU')
+    exit()
+
+def alm_to_map(alms, nside, lmax):
+    if(len(alms.shape) == 1):
+        return np.array(hp.alm2map(alms = alms, nside=nside, lmax = lmax))
+    if(len(alms.shape) == 2):
+        if(alms.shape[0] == 1 or alms.shape[0] == 3):
+            return np.array(hp.alm2map(alms=alms, nside=nside, lmax = lmax))
+        if(alms.shape[0] == 2):
+            return np.array(hp.alm2map_spin(alms = alms, nside=nside, spin= 2, lmax = lmax))
+    print('Error in alm_to_map: shape of input alms must be I, IQU or QU')
+    exit()
+    
 ##%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #tod_filtering class: a toy model for filtering in harmonic space
 class TOD_filtering:
@@ -352,17 +375,18 @@ class TOD_filtering:
                 idx += 1
         alms[:, idx] = alms_copy[:, idx] * self.transfer[idx, 0] + alms_copy[:, idx-1]*self.transfer[idx, 1]  #l=m=lmax
 
+
     def project_map(self, mask, maps, want_wof = True):
         nside = int(np.round(np.sqrt(maps.shape[1]/12), 0))
-        assert(nside==128 or nside == 256 or nside == 512 or nside == 1024 or nside == 2048)  #default settings for BeForeCMB, other resolutions are practically useless
-        alms = hp.map2alm(maps*np.tile(mask, (maps.shape[0], 1)), lmax = self.lmax)
+        assert(nside==64 or nside==128 or nside == 256 or nside == 512 or nside == 1024 or nside == 2048)  #default settings for BeForeCMB, other resolutions are practically useless
+        alms = map_to_alm(maps*np.tile(mask, (maps.shape[0], 1)), lmax = self.lmax)
         if(want_wof):
-            maps_wof = hp.alm2map(alms, nside=nside)
+            maps_wof = alm_to_map(alms, nside=nside, lmax = self.lmax)
             self.project_alms(alms)
-            return maps_wof, hp.alm2map(alms, nside=nside)
+            return maps_wof, alm_to_map(alms, nside=nside, lmax = self.lmax)
         else:
             self.project_alms(alms)
-            return hp.alm2map(alms, nside=nside)
+            return alm_to_map(alms, nside=nside, lmax = self.lmax)
         
 
 
@@ -616,6 +640,17 @@ class sky_simulator:
         assert(self.num_freqs > 0)                
         if(self.verbose):
             print("freqs [GHz] = ", self.freqs)
+        self.freq_lowest = self.freqs[0]
+        self.freq_highest = self.freqs[0]
+        self.ifreq_lowest = 0
+        self.ifreq_highest = 0
+        for i in range(1, self.num_freqs):
+            if(self.freqs[i] < self.freq_lowest):
+                self.freq_lowest = self.freqs[i]
+                self.ifreq_lowest = i
+            if(self.freqs[i] > self.freq_highest):
+                self.freq_highest = self.freqs[i]
+                self.ifreq_highest = i            
         self.band_weights = []
         self.has_band_weights = False
         for ifreq in range(self.num_freqs):
@@ -694,7 +729,32 @@ class sky_simulator:
         else:
             print('Cannot save unknown map format: ' + filename)
             exit()
-        
+
+    def load_IQU_map(self, filename):
+        if(filename[-5:] == ".fits"):
+            m = hp.read_map(filename, field = [0, 1, 2], dtype = np.float64)
+            m[:, self.mask_zeros] = 0.
+        elif(filename[-4:] == ".npy"):
+            m = np.zeros((3, self.npix))
+            m[:, self.mask_ones] = np.load(filename)
+        else:
+            print('unknown map format: ' + filename)
+            exit()
+        return m
+
+    def load_QU_map(self, filename):
+        if(filename[-5:] == ".fits"):
+            m = hp.read_map(filename, field = [1, 2], dtype = np.float64)
+            m[:, self.mask_zeros] = 0.
+        elif(filename[-4:] == ".npy"):
+            m = np.zeros((2, self.npix))
+            m[:, self.mask_ones] = np.load(filename)[1:3, :]
+        else:
+            print('unknown map format: ' + filename)
+            exit()
+        return m
+    
+            
     def set_cosmology(self, lcdm_params = cosmology_base_mean, w = -1., wa = 0., mnu=0.06, omk=0., MOG_eta = 1., MOG_eta_slope = 0.):  #default Planck18 best fit cosmology; MOG_eta is evaluated at l = 1000
         pars = CAMBparams()
         if(lcdm_params[6] > 0.):
@@ -720,6 +780,21 @@ class sky_simulator:
         np.savetxt(self.cmb_spectra_file, arr, fmt = r'%d %14.7e  %14.7e %14.7e  %14.7e  %14.7e %14.7e %14.7e', header = r'   L    TT             EE             BB             TE             PP             TP             EP')
         import_file_to_cache(r'https://portal.nersc.gov/project/cmb/pysm-data/pysm_2/camb_lenspotentialCls.dat', self.cmb_spectra_file) #This is for pysm3 c1 model
 
+    def fg_band_weights(self, beta_d, beta_s):
+        fg = foreground_model(ells = np.array([10., 20.]), beta_dust = beta_d, beta_sync = beta_s, freq_dust_ref = self.freq_highest, freq_sync_ref = self.freq_lowest)
+        dust_weights = np.zeros(self.num_freqs)
+        sync_weights = np.zeros(self.num_freqs)
+        if(self.has_band_weights):
+            for ifreq  in range(self.num_freqs):
+                for iw in range(self.band_weights[ifreq].shape[0]):
+                    dust_weights[ifreq] += fg.dust_freq_weight(self.band_weights[ifreq][iw, 0])*self.band_weights[ifreq][iw, 1]
+                    sync_weights[ifreq] += fg.sync_freq_weight(self.band_weights[ifreq][iw, 0])*self.band_weights[ifreq][iw, 1]                    
+        else:
+            for ifreq in range(self.num_freqs):
+                dust_weights[ifreq] = fg.dust_freq_weight(self.freqs[ifreq])
+                sync_weights[ifreq] = fg.sync_freq_weight(self.freqs[ifreq])
+        return dust_weights, sync_weights
+        
 
     def Noise_Power_T(self, ell, ifreq = None, deconv = True):
         if(deconv):
@@ -862,10 +937,9 @@ class sky_simulator:
         lcdm_params = self.lcdm_params.copy()        
         if(r is not None):
             lcdm_params[6] = r
-        file_root = self.root #+ cmb_postfix_for_r(r)
         if(self.verbose):
             print('simulating maps with r = ', lcdm_params[6])
-        if((not overwrite) and self.files_exist(prefix =  file_root , postfix = r'.npy')):
+        if((not overwrite) and self.files_exist(prefix =  self.root , postfix = r'.npy')):
             return
         sky = pysm3.Sky(nside = self.nside, preset_strings = self.fg_models)
         self.set_cosmology(lcdm_params = lcdm_params)
@@ -874,11 +948,11 @@ class sky_simulator:
         else:
             cmblens = pysm3.CMBLensed(nside = self.nside, cmb_spectra = self.cmb_spectra_file, cmb_seed = seed, construct_map = False)
         cmb_unlensed, cmb_lensed = cmblens.unlensed_and_lensed_maps()
-        self.save_map(file_root + 'lenstemp.npy', (cmb_lensed - cmb_unlensed) * self.delens_fac, overwrite = True)
+        self.save_map(self.root + 'lenstemp.npy', (cmb_lensed - cmb_unlensed) * self.delens_fac, overwrite = True)
         for  ifreq in range(self.num_freqs):
             if(self.verbose):
                 print('simulating frequency '+self.freqnames[ifreq])
-            filename = file_root + self.freqnames[ifreq]  + r'.npy'
+            filename = self.root + self.freqnames[ifreq]  + r'.npy'
             #--------------
             if(self.has_band_weights):
                 fgraw = sky.get_emission(self.band_weights[ifreq][0,0] * pysm3.units.GHz).to(pysm3.units.uK_CMB, equivalencies=pysm3.units.cmb_equivalencies(self.band_weights[ifreq][0,0] * pysm3.units.GHz)).value * self.band_weights[ifreq][0,1]
@@ -893,7 +967,7 @@ class sky_simulator:
             for isea in range(self.num_seasons):
                 noise_map = self.Noise_Map(ifreq = ifreq) * (self.season_fac)  #noise is already smoothed (and no need to rotate since it is statistically isotropic)
                 season_map = self.filtering.project_map(mask = self.smoothed_mask, maps = noise_map+fgcmb, want_wof = False)
-                self.save_map( file_root + self.freqnames[ifreq]  + r'_season' + str(isea) + r'.npy',  season_map, overwrite=True)
+                self.save_map( self.root + self.freqnames[ifreq]  + r'_season' + str(isea) + r'.npy',  season_map, overwrite=True)
                 total_map += season_map
             total_map /= self.num_seasons
             self.save_map(filename, total_map, overwrite=True)
@@ -913,7 +987,8 @@ class band_power_calculator:
         self.coordinate = coordinate
         rawmask = hp.read_map(self.mask_file, field=0, dtype=np.float64)        
         self.npix = len(rawmask)
-        self.nside = int(np.sqrt(self.npix/12.+1.e-3))
+        self.nside = int(np.round(np.sqrt(self.npix/12.), 0))
+        assert(self.nside==64 or self.nside == 128 or self.nside==256 or self.nside==512 or self.nside==1024 or self.nside==2048)
         if(self.verbose):
             print('mask file = ', self.mask_file)
             print('nside = ', self.nside)
@@ -1005,6 +1080,21 @@ class band_power_calculator:
             print('unknown map format: ' + filename)
             exit()
         return m
+
+    def smooth_map(self, m, fwhm_in, fwhm_out):
+        assert(fwhm_out >= fwhm_in)        
+        for i in range(3):
+            m[i, :] *= self.mask
+        if(fwhm_out == fwhm_in):
+            return m
+        else:
+            return hp.smoothing(m, fwhm = 1./np.sqrt(1./fwhm_in**2 - 1./fwhm_out**2))
+
+
+    def load_and_smooth(self, filename, fwhm_in, fwhm_out):
+        m = self.load_IQU_map(filename)
+        return self.smooth_map(m, fwhm_in, fwhm_out)
+    
 
     def save_map(self, filename, maps, overwrite):
         if((not overwrite)  and path.exists(filename)):
@@ -1682,7 +1772,7 @@ class  sky_analyser:
         else:
             for ifreq in range(self.num_freqs):
                 dust_weights[ifreq] = fg.dust_freq_weight(self.freqs[ifreq])
-                sync_weights[ifreq] = fg.sync_freq_weight(self.freqs[ifreq])                
+                sync_weights[ifreq] = fg.sync_freq_weight(self.freqs[ifreq])
         return dust_weights, sync_weights
 
         
