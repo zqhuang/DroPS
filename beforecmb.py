@@ -736,7 +736,10 @@ class sky_simulator:
             m[:, self.mask_zeros] = 0.
         elif(filename[-4:] == ".npy"):
             m = np.zeros((3, self.npix))
-            m[:, self.mask_ones] = np.load(filename)
+            try:
+                m[:, self.mask_ones] = np.load(filename)
+            except:
+                m[1:3, self.mask_ones] = np.load(filename)                
         else:
             print('unknown map format: ' + filename)
             exit()
@@ -1075,7 +1078,10 @@ class band_power_calculator:
             m[:, self.mask_zeros] = 0.
         elif(filename[-4:] == ".npy"):
             m = np.zeros((3, self.npix))
-            m[:, self.mask_ones] = np.load(filename)
+            try:
+                m[:, self.mask_ones] = np.load(filename)
+            except:
+                m[1:3, self.mask_ones] = np.load(filename)                
         else:
             print('unknown map format: ' + filename)
             exit()
