@@ -30,7 +30,7 @@
 "cosmo_logA" : 3.047,
 "cosmo_ns" :  0.966,
 "verbose" : False,
-"r_lowerbound" : 0.,
+"r_lowerbound" : -0.2,
 "eps_upperbound": 0.3,
 "r_lndet_fac" : 1., 
 "output_dir" : r"Test/results",
