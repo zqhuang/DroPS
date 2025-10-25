@@ -1,0 +1,58 @@
+\documentclass[12pt, a4paper]{ctexart} % 使用ctexart文档类，支持中文
+
+%%%%%%%%% 页边距设置 %%%%%%%%%
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+%\usepackage{hyperref}
+\input{journal_macros.tex}
+\def\tbox#1{\begin{tcolorbox}#1\end{tcolorbox}}
+\geometry{a4paper, left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm} % 设置A4纸和页边距
+
+%%%%%%%%% 页眉页脚设置 %%%%%%%%%
+\pagestyle{headings}
+
+%%%%%%%%% 超链接设置（使目录可点击） %%%%%%%%%
+\usepackage[colorlinks, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
+
+%%%%%%%%% 文档开始 %%%%%%%%%
+\begin{document}
+\thispagestyle{empty}
+%%%%%%%%% 标题区域 %%%%%%%%%
+\title{\Huge \textbf{DroPS}  \\ \huge {\color{blue}D}eriving {\color{blue} $r$} fr{\color{blue}o}m {\color{blue}P}ower {\color{blue}S}pectra}
+\author{Zhiqi Huang \\
+huangzhq25@mail.sysu.edu.cn}
+\date{\today} % 自动显示当前日期，若不需要可改为 \date{}
+\maketitle % 生成标题
+
+\thispagestyle{empty} % 标题页不显示页眉页脚
+\newpage
+
+%%%%%%%%% 生成目录 %%%%%%%%%
+\tableofcontents
+\newpage % 目录后换页
+
+%%%%%%%%% 正文内容 %%%%%%%%%
+\section{引言} % 一级标题
+这里是引言部分。此模板支持中文，并且会自动在目录中生成对应的条目。
+
+\section{主要章节}
+\subsection{二级标题} % 二级标题
+这里是二级标题下的内容。子标题同样会自动出现在目录中。
+
+\subsubsection{三级标题} % 三级标题
+这里是三级标题下的内容。
+\begin{itemize}
+    \item 列表项一
+    \item 列表项二
+    \item 列表项三
+\end{itemize}
+
+\section{总结}
+这里是文档的总结部分。
+
+\end{document}
