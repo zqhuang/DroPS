@@ -1,6 +1,6 @@
 {
 "fields" : [ "BB" ],
-"mask_file" : r"toy_mask_256.fits",
+"mask_file" : r"SHmask_G_256.fits",
 "band_lmin" : 21,
 "band_lmax" : 240,
 "band_delta_ell" : 20,

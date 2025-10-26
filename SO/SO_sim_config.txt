@@ -1,6 +1,6 @@
 {
 "path" : r"SO/",
-"mask_file" : r"toy_mask_256.fits",
+"mask_file" : r"SHmask_G_256.fits",
 "root" : r"maps/SO_",
 "noise_root" : r"noise/noise_",
 "cmb_root" : r"cmb/cmb_",
