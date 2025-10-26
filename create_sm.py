@@ -38,6 +38,6 @@ local_dir = r"/home/zqhuang/work/pysm_2/"
 #print(filemap[theurl])
 
 beta_file = hp.smoothing(hp.read_map(r"s5_beta_map.fits"), fwhm=np.pi/180.*2.)
-hp.write_map("sm_beta_map.fits", beta_file)
-import_file("sm_beta_map.fits", "pysm_2/sm_synch_beta_2deg.fits")
+hp.write_map("sm_synch_beta_2deg.fits", beta_file)
+import_file("sm_synch_beta_2deg.fits", "pysm_2/sm_synch_beta_2deg.fits")
 
