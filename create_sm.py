@@ -3,7 +3,6 @@ import pysm3
 import healpy as hp
 from astropy.utils.data import import_file_to_cache, export_download_cache, is_url_in_cache, is_url, get_cached_urls, cache_contents
 
-
 url_prefix = r'https://portal.nersc.gov/project/cmb/pysm-data/'
 
 def export_file(cache_filename, local_filename):
@@ -37,7 +36,7 @@ local_dir = r"/home/zqhuang/work/pysm_2/"
 #theurl = url_prefix + r"synch/synch_beta_nside2048_2023.02.16.fits"
 #print(filemap[theurl])
 
-beta_file = hp.smoothing(hp.read_map(r"s5_beta_map.fits"), fwhm=np.pi/180.*2.)
-hp.write_map("sm_synch_beta_2deg.fits", beta_file)
-import_file("sm_synch_beta_2deg.fits", "pysm_2/sm_synch_beta_2deg.fits")
+#beta_file = hp.smoothing(hp.read_map(r"s5_beta_map.fits"), fwhm=np.pi/180.*2.)
+#hp.write_map("sm_synch_beta_2deg.fits", beta_file)
+import_file(local_dir + r"sm_synch_beta_2deg.fits", r"pysm_2/sm_synch_beta_2deg.fits")
 
