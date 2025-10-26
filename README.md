@@ -1,17 +1,20 @@
-# DroPS
+DroPS
 Deriving r from Power Spectra (DroPS):  measuring primordial gravitational wave (tensor-to-scalar ratio r) from CMB maps.
 
 This is a quick-start documentation. For more details see DroPS_doc.pdf
 
 INSTALL:
 --------------------------------------------------------
-#Set up a virtual environment and activate it
+Set up a virtual environment and activate it
 (please google "python virtual environment" to learn how to do that)
-#upgrade pip for the latest info of packages
+
+upgrade pip for the latest info of packages
 pip install --upgrade pip
-#install dependences
+
+install dependences
 pip install -r requirements.txt
-# hack pysm3 by replacing path_to_pysm3/models/cmb.py (where pyth_to_pysm3 is the local path where pysm3 is installed) with cmb.py in this repository. (use "whereis python" to find the python path)
+
+hack pysm3 by replacing path_to_pysm3/models/cmb.py (where pyth_to_pysm3 is the local path where pysm3 is installed) with cmb.py in this repository. (use "whereis python" to find the python path)
  This step is for more efficient simulations of CMB maps.
  If you only want to analyze maps, you can skip this step
 ----------------------------------------------------------------
