@@ -883,7 +883,7 @@ class sky_simulator:
                     rawmap += sky.get_emission(self.band_weights[ifreq][iw,0] * pysm3.units.GHz).to(pysm3.units.uK_CMB, equivalencies=pysm3.units.cmb_equivalencies(self.band_weights[ifreq][iw,0] * pysm3.units.GHz))*self.band_weights[ifreq][iw,1]
             else:
                 rawmap = sky.get_emission(self.freqs[ifreq] * pysm3.units.GHz).to(pysm3.units.uK_CMB, equivalencies=pysm3.units.cmb_equivalencies(self.freqs[ifreq] * pysm3.units.GHz))
-            fg = smooth_rotate(rawmap, fwhm_rad = self.fwhms_rad[ifreq], rot = self.rotator)
+            fg = smooth_rotate(rawmap, fwhm_rad = self.fwhms_rad[ifreq], rot = self.rotator).value
             fgf = self.filtering.project_map(mask = self.smoothed_mask, maps = fg, want_wof = False)
             if(self.write_more):
                 self.save_map(fn, fg, overwrite = True)
