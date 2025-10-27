@@ -4,7 +4,7 @@ from sys import argv
 from os import path
 import matplotlib.pyplot as plt
 
-filedir = r'csfil128/'
+filedir = r'cs/'
 
 def complex_randn(n = None):
     if(n is None):
@@ -56,8 +56,8 @@ class compsep_BMH:
             self.data_map = np.load(filedir + r'data_map.npy')
             self.noise_cls = np.load(filedir + r'noise_cls.npy')
         else:
-            self.data_map = np.empty((sim.num_freqs, 2, self.npix))
-            self.noise_cls = np.zeros((sim.num_freqs, 2, lmax + 1))
+            self.data_map = np.empty((sim.num_freqs, 2, sim.npix))
+            self.noise_cls = np.zeros((sim.num_freqs, 2, self.lmax + 1))
             for ifreq in range(sim.num_freqs):
                 print("loading data with frequency "+sim.freqnames[ifreq])            
                 self.data_map[ifreq, :, :] = sim.load_QU_map(sim.root +  sim.freqnames[ifreq]   + r'.npy')
@@ -140,6 +140,8 @@ class compsep_BMH:
         self.pp_mzero = np.zeros(self.pp_size, dtype=np.bool_)
         k = 0
         for l in range(self.pp_lmin, self.pp_lmax+1):
+            almsize_in = hp.Alm.getsize(lmax=l)
+            alms_in = np.zeros((2, almsize_in), dtype = np.complex128)                                        
             for m in range(l+1):
                 self.pp_idx[k] = hp.Alm.getidx(lmax = self.lmax, l = l, m = m)
                 if(m == 0):
@@ -154,7 +156,7 @@ class compsep_BMH:
                     idx = hp.Alm.getidx(lmax = l, l=l, m=m)
                     for ifreq in range(sim.num_freqs):
                         for imap in range(2):
-                            alms_in = np.zeros((2, almsize), dtype = np.complex128)                            
+                            alms_in *= 0.
                             alms_in[imap, idx] = 1.
                             alms_out = self.smooth_and_filter_alms(ifreq = ifreq, alms_in = alms_in, lmax_in = l)
                             self.pp_rr[k, imap, ifreq, :, :] = alms_out.real
@@ -189,9 +191,9 @@ class compsep_BMH:
 
     def pseudo_cls(self, maps):
         alms = self.pseudo_alms(maps)
-        cls = np.empty((2, lmax+1))
+        cls = np.empty((2, self.lmax+1))
         for i in range(2):
-            cls[i, :] =  hp.alm2cl(alms[i], lmax=lmax)
+            cls[i, :] =  hp.alm2cl(alms[i], lmax=self.lmax)
         return cls
     
     def smooth_and_filter_alms(self, ifreq, alms_in, lmax_in):
@@ -465,8 +467,8 @@ class compsep_BMH:
         return dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms
 
 
-cs = compsep_BMH(snapshot=filedir + r'burn_in')
-dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms = cs.sample(n_iter = 3000,  eps = 2.5e-5, noise_factor = 1.e-6, snapshot = filedir + r'burn_in')
+cs = compsep_BMH(snapshot=None) #snapshot = filedir + r'burn_in')
+dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms = cs.sample(n_iter = 3000,  eps = 2.5e-5, noise_factor = 1.e-6, snapshot=filedir + r'burn_in') 
 np.save(filedir + r'cmb_mean_alms.npy', cmb_mean)
 np.save(filedir + r'sync_mean_alms.npy', sync_mean)
 np.save(filedir + r'dust_mean_alms.npy', dust_mean)

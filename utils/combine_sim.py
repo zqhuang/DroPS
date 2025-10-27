@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.insert(0, os.getcwd())
 from beforecmb import sky_simulator
 from sys import argv
 

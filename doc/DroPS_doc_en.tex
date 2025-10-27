@@ -191,7 +191,7 @@ In the last section, we run ``base simulations'' based on the known noise model,
 Generate the ``observed sky'' with, e.g.,
 \tbox{python simulate.py Test/test\_sim\_config.txt maps/test\_  0.01 999}
 
-You can replace maps/test\_ with your preferred prefix for the output maps, 0.01 with your preferred fiducial r, and 999 with your preferred random seed. To test whether DroPS can deal with a spatial variation of the foreground, you may also replace the ['d0', 's0'] foreground model with ['d1', 's1'] in the configuration file Test/test\_sim\_config.txt.
+You can replace maps/test\_ with your preferred prefix for the output maps, 0.01 with your preferred fiducial $r$ value, and 999 with your preferred random seed. To test whether DroPS can deal with a spatial variation of the foreground, you may also replace the ['d0', 's0'] foreground model with ['d1', 's1'] in the configuration file Test/test\_sim\_config.txt.
 
 Now analyze the ``observed sky'' with
 \tbox{python mainpipe.py Test/test\_ana\_config.txt maps/test\_}
@@ -199,15 +199,15 @@ Read the configuration file Test/test\_ana\_config.txt to understand how to anal
 
 \subsubsection{Analyzing multiple realizations of sky}
 
-In this step we will simulate the sky with may different random seeds, and anlyze all the simulations. The purpose is to test whether the measured $r$ is biased or not.
+In this step we will simulate the sky with may different random seeds, and anlyze all the realizations of sky. The purpose is to test whether the measured $r$ is biased or not.
 
 First you clean up the log file for $r$:
 \tbox{rm Test/r\_logfile.txt}
-This time we choose a different foreground model [``d1'', ``s1''] (modify Test/test\_sim\_config.txt). Now run the simulations and analyze them by running the following shell script
+This time we choose a different foreground model [``d1'', ``s1''] (modify the configuration file Test/test\_sim\_config.txt, if you have not done so). Now run the simulations and analyze them by running the following shell script
 \tbox{./test\_bias.sh}
 Plot the result
 \tbox{python utils/plot\_rs.py Test/r\_logfile.txt 0.01}
-Here $0.01$ is the fiducial value of $r$ used in simulations (see sim.sh). The ``mean of mean'' is supposed to be very close to the fiducial value, as shown in Figure~\ref{fig:r_logs}.
+Here $0.01$ is the fiducial value of $r$ used in simulations (see the content of test\_bias.sh), used to plot the solid orange line. The mean of reconstructed mean values of $r$ (dotted blue line) is supposed to be close to the fiducial value for an unbiased estimator, as shown in Figure~\ref{fig:r_logs}.
 \begin{figure}
   \includegraphics[width=\textwidth]{r_logs.png}
   \caption{Reconstructed $r$ for 20 skys with different random seeds. For each sky, the $r$ value is reconstructed by comparing the sky with 300 simulations. The 20 skys are simulated with foreground model ['d1','s1'] (spatially varying SED of synchrotron and dust emission), while  ['d0', 's0'] (fixed SED) is used in the 300 simulations. \label{fig:r_logs}}
@@ -216,12 +216,12 @@ Here $0.01$ is the fiducial value of $r$ used in simulations (see sim.sh). The `
 
 \subsubsection{How to apply on real data}
 
-A real experiment comes with its own pipeline of noise simulations and TOD filtering, and provides the actually observed sky maps. To analyze the real data, you can simply replace the base simulations with the maps from the simulation pipeline of the experiment, and replace the simulated sky maps with the actually observed ones.
+A real experiment comes with its own pipeline of noise simulations and TOD filtering, and provides the actually observed sky maps. To analyze the real data, you can simply replace the base simulations with the maps from the simulation pipeline of the experiment, and replace the realization of sky with the actually observed ones.
 
 
 \subsubsection{Comparing with other pipelines}
 
-DroPS has been applied on AliCPT data challenge (simulated 14\% sky, 95GHz and 150GHz) and achieved consistent results with other methods~\cite{Zhang24}. Here we further compare DroPS with three pipelines that have been applied on simulation data of SO-SAT (Wolz et al. 2024~\cite{SO-SAT}). We adopt the optimistic configuration of SO-SAT. The input fiducial $r$ is zero, and in the analyses nonphysical negative $r$ is allowed\footnote{in DroPS this is realized by setting r\_lowerbound negative in the configuration file}.  The results are shown in Figure~\ref{fig:compare_SO}.  From top to bottom, foreground models ``d0, s0'', ``d1, s1'', and ``dm, sm'' are used, respectively. From the left where the reconstructed mean values of $r$ and the bias (mean of the mean values of $r$) are shown, we find DroPS has negligible biases for all cases and more stable than the three pipelines tested in Wolz et al. The right column shows $\sigma_r$, the statistical uncertainties in $r$. We again find good consistency between DroPS and the other pipelines.
+DroPS has been applied on AliCPT data challenge (simulated 14\% sky, 95GHz and 150GHz) and achieved consistent results with other methods~\cite{Zhang24}. Here we further compare DroPS with three pipelines that have been applied on simulation data of SO-SAT (Wolz et al. 2024~\cite{SO-SAT}). We adopt the optimistic configuration of SO-SAT. The input fiducial $r$ is zero, and in the analyses nonphysical negative $r$ is allowed\footnote{in DroPS this is realized by setting r\_lowerbound negative in the configuration file}.  The results are shown in Figure~\ref{fig:compare_SO}.  From top to bottom, foreground models [``d0'', ``s0''], [``d1'', ``s1''], and [``dm'', ``sm''] are used, respectively. From the left where the reconstructed mean values of $r$ and the bias (mean of the mean values of $r$) are shown, we find DroPS has negligible biases for all cases and more stable than the three pipelines tested in Wolz et al. The right column shows $\sigma_r$, the statistical uncertainties in $r$. We again find good consistency between DroPS and the other pipelines.
 
 \begin{figure}
   \includegraphics[width=0.5\textwidth]{d0s0_mean.png}%
@@ -235,6 +235,7 @@ DroPS has been applied on AliCPT data challenge (simulated 14\% sky, 95GHz and 1
 
 \subsection{Map-level Operations}
 
+\subsubsection{Likelihood-based component separation}
 The most well known method of component separation is probably the internal linear combination (ILC) algorithm and its variations. The basic idea is to isolate a signal - whose frequency dependence is known - by taking linear combination of the frequency maps. To do that in pixel space, the frequency maps have to be smoothed to a common resolution. 
 
 For ground-based CMB experiments, however, a key challenge of ILC or ILC-like methods is that TOD filtering and beam convolution are non commutative operations. This prevents the frequency maps from being smoothed to a common resolution. Thus, while ILC remains popular in studies where the complexity of TOD filtering effect is ignored~\cite{SO-SAT}, likelihood-based method - which requires much more computing resources - has been used in real data analyses of BICEP/Keck~\cite{BKmap}.
@@ -242,9 +243,36 @@ For ground-based CMB experiments, however, a key challenge of ILC or ILC-like me
 
 The likelihood $\mathcal{L}\propto e^{-\chi^2/2}$ is based on a Gaussian noise model
 \begin{equation}
-  \chi^2 = \left(v_{\rm obs} - v_{\rm CMB} - v_{\rm FG}\right)^TN^{-1}\left(v_{\rm obs} - v_{\rm CMB} - v_{\rm FG}\right),
+  \chi^2 = v_{\rm noise}^TN^{-1}v_{\rm noise},
 \end{equation}
-where $v_{\rm obs}$ is the vector of observed frequency maps, $v_{\rm CMB}$ the CMB maps, $v_{\rm FG}$ the foreground maps, and $N$ the covariance of noise. In pixel space, the size of each vector is $n_{\rm pixel} n_{\rm frequency}$, i.e., product of the number of pixels and the number of frequency channels. For AliCPT or SO-SAT and maps with degree-scale resolution, we typically have $n_{\rm pixel} n_{\rm frequency} \gtrsim 10^4$. The number of elements in the covariance matrix $N$ is $\gtrsim 10^8$, which is difficult to estimate with simulations and also difficult to invert. The BICEP/Keck analysis~\cite{BKmap} only considers pixel auto-correlation, that is, the diagonal approximation of $N$.
+where $v_{\rm noise}$ is the noise frequency maps inferred from a sky model and the observed frequency maps, and $N$ is the covariance of $v_{\rm noise}$. In pixel space, the size of each vector is $n_{\rm pix} n_f$, i.e., product of the number of pixels and the number of frequency channels. For AliCPT or SO-SAT and maps with degree-scale resolution, we typically have $n_{\rm pixel} n_{\rm frequency} \gtrsim 10^4$. The number of elements in the covariance matrix $N$ is $\gtrsim 10^8$, which is difficult to estimate with simulations and also difficult to invert. The BICEP/Keck analysis~\cite{BKmap} only considers pixel auto-correlation, that is, the diagonal approximation of $N$ in pixel space. A better approximation, which will be used in DroPS, is a diagonal form of $N$ in harmonic space.
+
+We label a pixel with index $j$ ($j=1, 2, \ldots, n_{\rm pix}$), and frequency channels with index $k$ ($k = 1, 2, \ldots, n_f$). The CMB maps are identical in all frequency channels, and are modeled as
+\begin{equation}
+  (Q\pm \mathrm{i}U)_{\rm CMB, j, k} = -\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (c_{\ell m}^E\pm \mathrm{i} c_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j), \label{eq:CMB_comp}
+\end{equation}
+where $\mathbf{n}_j$ is the directional vector of the $j$-th pixel. Note that here $c_{\ell m}^E$ and $c_{\ell m}^B$ are harmonic coefficients of the full-sky CMB map. Degeneracy between these parameters are expected for partial sky observations. 
+
+Due to limited frequency resolution, BICEP/Keck model $v_{\rm FG}$ as a single component (thermal dust). DroPS takes a more accurate two-component model with emission from Galactic synchrotron and thermal dust. The dust maps are modeled as
+\begin{equation}
+  (Q\pm \mathrm{i}U)_{\rm dust, j, k} =  -\int W_d(\nu) f_k(\nu) d\nu \,\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (d_{\ell m}^E\pm \mathrm{i}  d_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j),  \label{eq:dust_comp}
+\end{equation}
+where the frequency dependence frunction $W_d$ is defined in Eq.~\eqref{eq:dust_w} and $f_k(\nu)$ is the frequency distribution of the $k$-th frequency channel.
+Synchrotron maps are modeled similarly,
+\begin{equation}
+  (Q\pm \mathrm{i}U)_{\rm sync, j, k} =  -\int W_s(\nu) f_k(\nu) d\nu \,\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (s_{\ell m}^E\pm \mathrm{i}  s_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j),  \label{eq:sync_comp}
+\end{equation}
+where $W_s$ is given in Eq.~\eqref{eq:sync_w}.
+
+The sky model $(Q+iU)_{\rm sky}$ is the sum of Eqs.~(\ref{eq:CMB_comp}, \ref{eq:dust_comp}, \ref{eq:sync_comp}). Passing the sky model through the TOD filtering and map making process, we obtain the filtered sky maps. Substracting the filtered sky maps from the observed (filtered) maps, we obtain filtered noise maps in pixel space. To compute the likelihood, we decompose the noise maps into harmonic space,
+\begin{equation}
+   M_j(Q\pm \mathrm{i}U)_{\rm noise, filtered, j, k} = -\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (\tilde{n}_{\ell m}^E\pm \mathrm{i} \tilde{n}_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j).
+\end{equation}
+Here $M_j$ is pixel value of a smoothed mask (default: apodization with $2$ degrees and ``C2''). The purpose of introducing such a smoothed mask is to avoid large edge effect on the estimation of pseudo harmonic coefficients $\tilde{n}_{\ell m}^E$ and $\tilde{n}_{\ell m}^B$.
+
+On the other hand, we can calculate $\tilde{n}_{\ell m}^E$ and $\tilde{n}_{\ell m}^B$ from the filtered noise maps in the base simulations, and compute their diagonal covariance $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle $ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^B|^2\rangle $.
+
+
 
 \section{Technical Details}
 
@@ -252,12 +280,12 @@ where $v_{\rm obs}$ is the vector of observed frequency maps, $v_{\rm CMB}$ the 
 
 The frequency dependence of dust temperature fluctuation is
 \begin{equation}
-  W_d(\nu) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_d-1}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2 \left(\frac{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm MBB}}}-1}{e^{\frac{h\nu}{k_BT_{\rm MBB}}}-1}\right).
+  W_d(\nu) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_d-1}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2 \left(\frac{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm MBB}}}-1}{e^{\frac{h\nu}{k_BT_{\rm MBB}}}-1}\right). \label{eq:dust_w}
 \end{equation}
 
 The frequency dependence of synchrotron temperature fluctuation is
 \begin{equation}
-  W_s(\nu) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_s-2}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2.
+  W_s(\nu) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_s-2}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2. \label{eq:sync_w}
 \end{equation}
 
 \subsection{TOD filtering}
