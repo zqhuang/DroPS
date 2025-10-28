@@ -18,7 +18,7 @@ def complex_randn(n = None):
 
 #-----------------load configuration-----------------
 if(len(argv) < 2):
-    print("python compsep.py sim_config_file [root] [random_seed]")
+    print("python compsep.py sim_config_file [root] [lmin lmax] [random_seed]")
     exit()
     
 if(len(argv) > 2):
@@ -264,16 +264,26 @@ class compsep_BMH:
                 self.dust_rms[:, self.pp_idx[batch_indices]] *= 0.99
                 self.sync_rms[:, self.pp_idx[batch_indices]] *= 0.99
                 self.cmb_rms[:, self.pp_idx[batch_indices]] *= 0.99
-                eps *= 0.98
-                noise_factor *= 0.5
-            elif(self.lnlike[self.current_ind]-lnlike_save < 0.05):
+                eps *= 0.95
+                noise_factor *= 0.8
+            elif(self.lnlike[self.current_ind]-lnlike_save < abs(lnlike_save)*1.e-6):
+                self.dust_rms[:, self.pp_idx[batch_indices]] *= 1.005
+                self.sync_rms[:, self.pp_idx[batch_indices]] *= 1.005
+                self.cmb_rms[:, self.pp_idx[batch_indices]] *= 1.005
+                eps *= 1.03
+            elif(self.lnlike[self.current_ind]-lnlike_save < abs(lnlike_save)*1.e-5 ):
                 self.dust_rms[:, self.pp_idx[batch_indices]] *= 1.002
                 self.sync_rms[:, self.pp_idx[batch_indices]] *= 1.002
                 self.cmb_rms[:, self.pp_idx[batch_indices]] *= 1.002
-                eps *= 1.001
+                eps *= 1.02                
+            elif(self.lnlike[self.current_ind]-lnlike_save < abs(lnlike_save)*1.e-4 ):
+                self.dust_rms[:, self.pp_idx[batch_indices]] *= 1.001
+                self.sync_rms[:, self.pp_idx[batch_indices]] *= 1.001
+                self.cmb_rms[:, self.pp_idx[batch_indices]] *= 1.001
+                eps *= 1.01                
             else:
-                eps *= 1.0001
-                noise_factor = min(1., noise_factor * 1.001)
+                eps *= 1.0005
+                noise_factor = min(1., noise_factor * 1.0005)
         if(makecopy):
             self.lnlike[1-self.current_ind] = self.lnlike[self.current_ind]
             self.chisq[1-self.current_ind, :] = self.chisq[self.current_ind, :]
@@ -370,10 +380,13 @@ class compsep_BMH:
     def save_snapshot(self, snapshot):
         if(snapshot is None):
             return
-        x = np.loadtxt(snapshot+'_lnlike.txt')
-        if(x[0] > self.lnlike[self.current_ind]):
-            print('save_snapshot: last snapshot has better likelihood; skipping this snapshot...')
-            return
+        if(path.exists(snapshot+'_lnlike.txt')):
+            x = np.loadtxt(snapshot+'_lnlike.txt')
+            if(x[0] > self.lnlike[self.current_ind]):
+                print('save_snapshot: last snapshot has better likelihood; skipping this snapshot...')
+                return
+        else:
+            x = np.array([ -1.e99, -1.e99 ])    
         self.chisq[self.current_ind, :] = self.chisq_l()
         self.set_lnlike_from_chisq()
         print('saving snapshot with lnlike=', self.lnlike[self.current_ind])
@@ -448,7 +461,7 @@ class compsep_BMH:
             if(istep % 67 == 61):
                 self.save_snapshot(snapshot)                
                 for l in range(self.pp_lmin, self.pp_lmax+1):
-                    print(l, np.round(self.chisq[self.current_ind, l]/(2.*l+1.), 2))     
+                    print(l, np.round(self.chisq[self.current_ind, l]/(2.*l+1.), 2))
                 lmin = np.random.randint(2, self.lmax-1)
                 lmax = min(self.lmax, int(np.sqrt(lmin**2 + 3000.)))
                 self.load_pp(lmin, lmax)                
@@ -466,8 +479,13 @@ class compsep_BMH:
         self.save_snapshot(snapshot)                
         return dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms
 
-
-cs = compsep_BMH(snapshot=None) #snapshot = filedir + r'burn_in')
+if(path.exists(filedir + r'burn_in_lnlike.txt')):
+    cs = compsep_BMH(snapshot = filedir + r'burn_in')
+else:
+    cs = compsep_BMH(snapshot=None)
+if(len(argv) < 4):  #this is only for computing gradient templates
+    print("gradient templates are done")
+    exit()
 dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms = cs.sample(n_iter = 3000,  eps = 2.5e-5, noise_factor = 1.e-6, snapshot=filedir + r'burn_in') 
 np.save(filedir + r'cmb_mean_alms.npy', cmb_mean)
 np.save(filedir + r'sync_mean_alms.npy', sync_mean)

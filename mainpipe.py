@@ -14,14 +14,19 @@ Planck_BAO_covmat = np.loadtxt('base_plikHM_TTTEEE_lowl_lowE_lensing_post_BAO.co
 Planck_BAO_invcov = np.linalg.inv(Planck_BAO_covmat)
 data_overwrite = False
 
-if(len(argv) > 2):
+if(len(argv) < 2):
+    print('python mainpipe.py config_file [root] [r_logfile]')
+    exit()
+elif(len(argv) > 2):
     if(argv[2] == 'OVERWRITE'):
         data_overwrite = True
         ana = sky_analyser(argv[1])                
     elif(argv[2] != "NONE"):
         ana = sky_analyser(argv[1], root_overwrite = argv[2])
     else:
-        ana = sky_analyser(argv[1])        
+        ana = sky_analyser(argv[1])
+    if(len(argv) > 3):
+        ana.r_logfile = argv[3]
 else:
     ana = sky_analyser(argv[1])
 
@@ -175,10 +180,7 @@ else:
                 params[r'A_d_' + field  + str(i)] = [ r'$A_{d, ' + field + r',' + str(i) + r'}$',  dust_approx[i], dust_approx[i] ]
                 params[r'eps2_' + field  + str(i)] = [ r'$\varepsilon_{2, ' + field + r',' + str(i) + r'}$',  0., 0. ]
 
-if(len(argv) == 4):
-    settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = ana.verbose, covmat=argv[3])        
-else:
-    settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = ana.verbose)    
+settings = mcmc_settings(burn_steps = burn_steps, mc_steps = mc_steps, verbose = ana.verbose)    
 settings.add_parameters(params)
 
 
@@ -247,8 +249,6 @@ def cmb_loglike(x, s):
 
 if(ana.continue_run):
     samples, loglikes = settings.run_mcmc(cmb_loglike, continue_from = ana.output_root, discard_ratio = ana.discard_ratio)    
-elif(len(argv) == 5):
-    samples, loglikes = settings.run_mcmc(cmb_loglike, slow_propose = argv[3], fast_propose = argv[4])    
 else:
     samples, loglikes = settings.run_mcmc(cmb_loglike)
 
