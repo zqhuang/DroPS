@@ -8,6 +8,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{tcolorbox}
+\usepackage{listings}
 %\usepackage{hyperref}
 \input{journal_macros.tex}
 \def\tbox#1{\begin{tcolorbox}#1\end{tcolorbox}}
@@ -201,10 +202,23 @@ Read the configuration file Test/test\_ana\_config.txt to understand how to anal
 
 In this step we will simulate the sky with may different random seeds, and anlyze all the realizations of sky. The purpose is to test whether the measured $r$ is biased or not.
 
-This time we choose a different foreground model [``d1'', ``s1''] (modify the configuration file Test/test\_sim\_config.txt, if you have not done so). Now run the simulations and analyze them by running the following shell script
-\tbox{./test\_bias.sh}
+This time we choose a different foreground model [``d1'', ``s1''] (modify the configuration file Test/test\_sim\_config.txt, if you have not done so). Now run the simulations and analyze them by running the following shell script (test\_bias.sh in the repository)
+
+
+\begin{lstlisting}[language=bash, caption={Testing $r$ bias}]
+#!/bin/bash
+for i in `seq 20` 
+do 
+    python simulate.py Test/test_sim_config.txt maps/test${i}_  0.01 ${i}  d1s1  
+    python mainpipe.py Test/test_ana_config.txt maps/test${i}_  Test/r1_logfile_d1s1.txt
+done
+\end{lstlisting}
+
+
+
 Plot the result
-\tbox{python utils/plot\_rs.py Test/r\_logfile.txt 0.01}
+\tbox{python utils/plot\_rs.py Test/r1\_logfile\_d1s1.txt 0.01}
+
 Here $0.01$ is the fiducial value of $r$ used in simulations (see the content of test\_bias.sh), used to plot the solid orange line. The mean of reconstructed mean values of $r$ (dotted blue line) is supposed to be close to the fiducial value for an unbiased estimator, as shown in Figure~\ref{fig:r_logs}.
 \begin{figure}
   \includegraphics[width=\textwidth]{r_logs.png}
