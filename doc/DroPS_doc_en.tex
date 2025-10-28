@@ -201,8 +201,6 @@ Read the configuration file Test/test\_ana\_config.txt to understand how to anal
 
 In this step we will simulate the sky with may different random seeds, and anlyze all the realizations of sky. The purpose is to test whether the measured $r$ is biased or not.
 
-First you clean up the log file for $r$:
-\tbox{rm Test/r\_logfile.txt}
 This time we choose a different foreground model [``d1'', ``s1''] (modify the configuration file Test/test\_sim\_config.txt, if you have not done so). Now run the simulations and analyze them by running the following shell script
 \tbox{./test\_bias.sh}
 Plot the result
@@ -241,6 +239,30 @@ The most well known method of component separation is probably the internal line
 For ground-based CMB experiments, however, a key challenge of ILC or ILC-like methods is that TOD filtering and beam convolution are non commutative operations. This prevents the frequency maps from being smoothed to a common resolution. Thus, while ILC remains popular in studies where the complexity of TOD filtering effect is ignored~\cite{SO-SAT}, likelihood-based method - which requires much more computing resources - has been used in real data analyses of BICEP/Keck~\cite{BKmap}.
 
 
+
+
+\section{Technical Details}
+
+\subsection{Foreground model}
+
+The frequency dependence of dust temperature fluctuation is
+\begin{equation}
+  W_d(\nu) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_d-1}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2 \left(\frac{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm MBB}}}-1}{e^{\frac{h\nu}{k_BT_{\rm MBB}}}-1}\right). \label{eq:dust_w}
+\end{equation}
+
+The frequency dependence of synchrotron temperature fluctuation is
+\begin{equation}
+  W_s(\nu) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_s-2}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2. \label{eq:sync_w}
+\end{equation}
+
+\subsection{TOD filtering}
+
+
+\subsection{Likelihood for band powers}
+
+
+\subsection{Likelihood for map-level component separation}
+
 The likelihood $\mathcal{L}\propto e^{-\chi^2/2}$ is based on a Gaussian noise model
 \begin{equation}
   \chi^2 = v_{\rm noise}^TN^{-1}v_{\rm noise},
@@ -273,22 +295,6 @@ Here $M_j$ is pixel value of a smoothed mask (default: apodization with $2$ degr
 On the other hand, we can calculate $\tilde{n}_{\ell m}^E$ and $\tilde{n}_{\ell m}^B$ from the filtered noise maps in the base simulations, and compute their diagonal covariance $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle $ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^B|^2\rangle $.
 
 
-
-\section{Technical Details}
-
-\subsection{Foreground model}
-
-The frequency dependence of dust temperature fluctuation is
-\begin{equation}
-  W_d(\nu) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_d-1}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2 \left(\frac{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm MBB}}}-1}{e^{\frac{h\nu}{k_BT_{\rm MBB}}}-1}\right). \label{eq:dust_w}
-\end{equation}
-
-The frequency dependence of synchrotron temperature fluctuation is
-\begin{equation}
-  W_s(\nu) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_s-2}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2. \label{eq:sync_w}
-\end{equation}
-
-\subsection{TOD filtering}
 
 \bibliographystyle{unsrt}
 \bibliography{refs} 
