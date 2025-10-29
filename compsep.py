@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 
 filedir = r'cs/'
 
+mkdir_if_not_exists(filedir)
+
 def complex_randn(n = None):
     if(n is None):
         random_values = np.random.randn(2)

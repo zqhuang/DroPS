@@ -31,5 +31,5 @@
 "cosmo_ns" :  0.966,
 "fg_models": [ "d0", "s0" ],
 "verbose" : False,
-"save_disk" : True
+"save_disk" : False
 }

@@ -3,7 +3,12 @@ import matplotlib.pyplot as plt
 import healpy as hp
 from sys import argv
 
-m = hp.read_map(argv[1], field=[0, 1, 2])
+try:
+    m = hp.read_map(argv[1], field=[0, 1, 2])
+except:
+    m = hp.read_map(argv[1])
+
+    
 if(len(m.shape)>1):
     if(len(argv)>2):
         ind = int(argv[2])

@@ -40,6 +40,9 @@ if(len(argv)<6):
     sig = np.sqrt(np.sum(ms**2)/np.count_nonzero(ms))
     hp.mollview(ms, min = -sig*5., max = sig*5.)
 else:
-    hp.mollview(ms, min = float(argv[4]), max = float(argv[5]))    
+    if(len(argv) > 6):
+        hp.mollview(ms, min = float(argv[4]), max = float(argv[5]), title=argv[6])
+    else:
+        hp.mollview(ms, min = float(argv[4]), max = float(argv[5]), title=argv[3]+' map')        
 plt.show()
     
