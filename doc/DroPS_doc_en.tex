@@ -75,7 +75,7 @@ Many ground-based CMB experiments with small-aperture telescopes (SAT), such as 
 
 The instruction here has been tested on Ubuntu-24.04.3LTS, and should be easily extendable to other linux platforms. A bit twists may need to be done if you are working with Windows or Mac-OS.
 
-\subsubsection{Installing Tools and Libraries}
+\subsubsection{Installing tools and libraries}
 
 Install the following packages and libraries with Synaptic Package Manager (or ``sudo apt install''):
 
@@ -232,7 +232,7 @@ Here $0.01$ is the fiducial value of $r$ used in simulations (see the content of
 A real experiment comes with its own pipeline of noise simulations and TOD filtering, and provides the actually observed sky maps. To analyze the real data, you can simply replace the base simulations with the maps from the simulation pipeline of the experiment, and replace the realization of sky with the actually observed ones.
 
 
-\subsubsection{Comparing with other pipelines}
+\subsubsection{Comparison with other pipelines}
 
 DroPS has been applied on AliCPT data challenge (simulated 14\% sky, 95GHz and 150GHz) and achieved consistent results with other methods~\cite{Zhang24}. Here we further compare DroPS with three pipelines that have been applied on simulation data of SO-SAT (Wolz et al. 2024~\cite{SO-SAT}). We adopt the optimistic configuration of SO-SAT. The input fiducial $r$ is zero, and in the analyses unphysical negative $r$ is allowed\footnote{in DroPS this is realized by setting r\_lowerbound negative in the configuration file}.  The results are shown in Figure~\ref{fig:compare_SO}.  From top to bottom, foreground models [``d0'', ``s0''], [``d1'', ``s1''], and [``dm'', ``sm''] are used, respectively. From the left where the reconstructed mean values of $r$ and the bias (mean of the mean values of $r$) are shown, we find DroPS has negligible biases for all cases and more stable than the three pipelines tested in Wolz et al. The right column shows $\sigma_r$, the statistical uncertainties in $r$. We again find good consistency between DroPS and the other pipelines.
 
@@ -275,7 +275,7 @@ The code uses Stochastic Gradient Langevin Dynamics (SGLD) method to search the 
 
 For real data analyses, the calculation of gradient template involves map making and therefore can take months to built. Fortunately, the gradient template can be built in a parallel way. The template can be built for $\ell \in [\ell_{\min}, \ell_{\max}]$ by running
 \tbox{python compsep.py Test/test\_sim\_config.txt maps/r3test0\_ lmin lmax}
-Thus, the task can be decomposed into many subtasks with different lmin and lmax. You need $\sim$100GB disk space to store all of these gradient templates.
+Thus, the task can be decomposed into many subtasks with different lmin and lmax. You need $\sim$100GB disk space to store all the gradient templates.
 
 
 
@@ -301,7 +301,7 @@ To display E/B components, use utils/viewEB.py.
 
 In this section I assume the reader is familiar with Healpix and has the basic knowledge of spherical harmonic analyses.
 
-\subsubsection{TOD filtering}
+\subsection{TOD filtering}
 
 In ground-based CMB experiments, TOD filtering is a crucial preprocessing step to isolate the faint CMB signal from overwhelming, structured ground-based noise. Since these telescopes observe from the ground, their data streams are heavily contaminated by low-frequency noise, primarily from atmospheric emission and instrumental $1/f$ noise. TOD filtering works in the time domain to identify and subtract these systematic contaminants, which often have characteristic temporal or scan-synchronous patterns distinct from the cosmological CMB fluctuations. By applying high-pass or more sophisticated modal filters, this process effectively suppresses large-scale noise while striving to preserve the intrinsic CMB signal, thereby enabling the recovery of high-fidelity sky maps for cosmological analysis.
 
@@ -335,7 +335,7 @@ Note that, however, strictly speaking, TOD filtering is a linear operation on th
 
 Gravitational lensing by large-scale structure subtly distorts the pristine CMB, smoothing its acoustic peaks and generating a spurious B-mode polarization signal that obscures the far weaker primordial signature. The expectation of CMB lensing B-mode power can be computed from theory and subtracted if the other cosmological parameters are known. However, for actual realization of the universe, the lensing BB power randomly deviate from its expectation value. Such random deviation, often called cosmic variance, which cannot be predicted from the theory may contaminate the measurement of $r$ if we are targeting at $\sigma_r \lesssim 10^{-3}$. Delensing is the process of statistically reconstructing this actual lensing distortion (rather than the theoretical expectation) from high-resolution CMB data itself or from external tracers of the matter distribution, and then removing its effect from the observed CMB map. By cleaning this cosmic foreground, delensing sharpens the CMB's original features and significantly reduces the confounding lensing B-mode power, thereby dramatically improving the sensitivity of experiments to detect the faint imprints of inflation.
 
-
+DroPS assumes that an ideal lensing potential map is obtained from external sources (high-resolution CMB experiments or large scale structure surveys). Although the ideal lensing potential map allows to remove all the lensing effect, we will not be able to do so in practice. By setting the delensing efficiency (delens\_fac in configuration file, e.g., Test/test\_ana\_config.txt), you can specify how much lensing effect you want to remove.
 
 \subsection{Likelihood for band powers~\label{sec:bandpower_like}}
 
@@ -345,7 +345,7 @@ The data vector is the band powers of filtered sky maps. The cross correlation b
 
 Suppose the number of $\ell$ bins is $n_{\rm bin}$ and the number of frequency channels is $n_f$. The length of the data vector $D^{XY}_\ell(\nu_1,\nu_2)$ is $N_d=3 n_{\rm bin} n_f(n_f+1)$, if $XY = TT, TE, TB, EE, EB, BB$ band powers are all used. However, since the constraint on $r$ will mostly come from the $BB$ band powers, by default DroPS only uses $BB$ band powers. (This can be changed in the configuration file, e.g., Test/test\_ana\_config.txt.) The default length of data vector is then $N_d = n_{\rm bin}\frac{n_f(n_f+1)}{2}$.  Note that when $\nu_1=\nu_2$,, the band powers are computed by averaging all band powers between season maps,  as we mentioned earlier.
 
-The basic idea is then to compare the data vector $(D_{jk_1k_2})$ with the theory, which include cosmological, foreground, and noise models. The likelihood can be abstractly written as
+The basic idea is then to compare the data vector with the theory, which include cosmological, foreground, and noise models. The likelihood can be abstractly written as
 \begin{equation}
   \mathcal{L} = \frac{1}{(2\pi)^{N_d/2}\sqrt{\det\mathrm{Cov}}} \exp{\left[-\frac{1}{2}(D^{\rm obs} - D^{\rm model})^T\mathrm{Cov}^{-1}(D^{\rm obs} - D^{\rm model})\right]},
 \end{equation}
@@ -386,7 +386,16 @@ The frequency dependence of synchrotron temperature fluctuation is modeled as a 
 \end{equation}
 To convert a synchrotron map (in CMB $\mu K$ unit) of frequency $\nu_1$ to dust map at frequency $\nu_2$, a scaling factor $\frac{W_s(\nu_2)}{W_s(\nu_1)}$ is applied.
 
+By default DroPS treats the band powers of {\it filtered} dust and synchrotron maps as free parameters. The advantage of doing so is two folds. First, we do not need to worry about the accuracy of $F_{\ell\ell^\prime}$ modeling, as we are directly modeling the band powers of filtered maps. Second, although the average dust/synchrotron power spectra is likely to be smooth, their power spectra in a small sky area may have random ``cosmic variance'', which is taken into account in the free-bandpower parametrization. The disadvantage of abandoning the smoothness assumption on foreground band powers is that it degrades the constraining power on $r$. However, this extra uncertainty is physical, as it correctly reflects that the foreground band powers can have random fluctuations around a smooth model.
+
+If the number of available frequency channel is small (less than five) or the noise is large (target $\sigma_r\gtrsim 0.01$), however, smooth parameterization of foreground power is recommended. The reason is that the ``cosmic variance'' of foreground becomes a tiny effect compared to noise, filter modeling uncertainty, and uncertainties due to parameter degeneracy. The smooth foreground model can be turned on in the configuration file by setting analytic\_fg = True.
+
 \subsubsection{Covariance matrix}
+
+The covariance matrix of band powers (of filtered sky maps) can be, in principle, blindly estimated from simulations. In practice, however, the covariance typically contains $\gtrsim 10^3$ free elements, which do not converge well with a few hundred simulations that we typically have.
+
+DroPS decomposes the covariance matrix into three components: the noise covariance, the signal covariance, and the signal$\times$noise covariance. The advantage of doing so is that noise covariance can be ``cleaned'' with the piror knowledge that noise in different frequency channels are uncorrelated. DroPS also assumes that the noise $T$, $E$, $B$ are mutually uncorrelated\footnote{In the default settings where $BB$ band powers are used, this assumption is unecessary.}. Consequently, the noise covariance between $D^{XY}_\ell(\nu_1,\nu_2)$ and $D^{X^\prime Y^\prime}_{\ell^\prime}(\nu_1^\prime,\nu_2^\prime)$ is nonzero only if $XY=X^\prime Y^\prime$ and $(\nu_1, \nu_2) = (\nu_1^\prime, \nu_2^\prime)$. This substantially reduces the degrees of freedom and improves the accuracy of covariance estimation.
+
 
 \subsection{Likelihood for map-level component separation \label{sec:sgld_like}}
 
