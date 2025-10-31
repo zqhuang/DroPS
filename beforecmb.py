@@ -210,7 +210,7 @@ def corr_nb(n):
     elif(n == 5):
         return 1./np.sqrt(3.)
     elif(n == 6):
-        return 2./3.-np.sqrt(28.)/3*np.cos(np.acos(1/np.sqrt(28.))/3+np.pi/3)
+        return 2./3.-np.sqrt(28.)/3*np.cos(np.arccos(1/np.sqrt(28.))/3+np.pi/3)
     elif(n == 7):
         return np.sqrt( (2.-np.sqrt(2.))/2.)
     else:

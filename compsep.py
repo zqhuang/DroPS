@@ -39,8 +39,10 @@ else:
 
 class compsep_BMH:
     
-    def __init__(self, lmax = 160, vary_beta = False, snapshot=None):
+    def __init__(self, lmax = 160, batch_size = 100, vary_beta = False, snapshot=None):
+        assert(lmax > 1 and batch_size > 1)        
         self.lmax = lmax
+        self.batch_size = batch_size
         self.almsize = hp.Alm.getsize(lmax = lmax)
         self.current_ind = 0
         self.n_accept = 0
@@ -121,19 +123,21 @@ class compsep_BMH:
             self.clean_alms_mzero()
         if(len(argv) > 4):
             self.load_pp(lmin = int(argv[3]), lmax=int(argv[4]))
+            print('gradient template done')
+            exit()
         else:
             self.load_pp(2, 20)            
 
 
 
-    def load_pp(self, lmin, lmax, batch_size=200):
+    def load_pp(self, lmin, lmax):
         print("loading pp for l between ", lmin, " and ", lmax)
         assert(lmin >1 and lmax<= self.lmax and lmin < lmax)
         self.pp_lmin = lmin
         self.pp_lmax = lmax
         self.pp_size = hp.Alm.getsize(lmax = self.pp_lmax) - hp.Alm.getsize(lmax = self.pp_lmin-1)
         assert(self.pp_size * self.almsize * sim.num_freqs < 1.35e8) 
-        self.pp_batch_size = min(batch_size, self.pp_size // 2)
+        self.pp_batch_size = min(self.batch_size, self.pp_size // 2)
         self.pp_rr = np.empty((self.pp_size, 2,  sim.num_freqs, 2, self.almsize))
         self.pp_ri = np.empty((self.pp_size, 2,  sim.num_freqs, 2, self.almsize)) #input.real; output.imag
         self.pp_ir = np.empty((self.pp_size, 2,  sim.num_freqs, 2, self.almsize)) #input.imag; output.real
@@ -203,11 +207,11 @@ class compsep_BMH:
             hp.smoothalm(alms = alms_in[i, :], fwhm=sim.fwhms_rad[ifreq], inplace=True)
         return self.pseudo_alms(sim.filtering.project_map(mask = sim.smoothed_mask, maps = alm_to_map(alms_in, nside=sim.nside, lmax=lmax_in), want_wof = False))
 
-    def make_freq_maps(self, ifreq, alms_in, lmax_in):
+    def make_freq_maps(self, ifreq, alms, lmax_in):
+        alms_in = alms.copy()
         for i in range(2):
             hp.smoothalm(alms = alms_in[i, :], fwhm=sim.fwhms_rad[ifreq], inplace=True)
-        return sim.filtering.project_map(mask = sim.smoothed_mask, maps = alm_to_map(alms_in, nside=sim.nside, lmax=lmax_in), want_wof = False)
-        
+        return sim.filtering.project_map(mask = sim.smoothed_mask, maps = alm_to_map(alms_in, nside=sim.nside, lmax=lmax_in), want_wof = True)
     
     def get_noise_alms_theory(self, dust_weights, sync_weights):
         for ifreq in range(sim.num_freqs):
@@ -272,12 +276,12 @@ class compsep_BMH:
                 self.dust_rms[:, self.pp_idx[batch_indices]] *= 1.005
                 self.sync_rms[:, self.pp_idx[batch_indices]] *= 1.005
                 self.cmb_rms[:, self.pp_idx[batch_indices]] *= 1.005
-                eps *= 1.03
+                eps *= 1.05
             elif(self.lnlike[self.current_ind]-lnlike_save < abs(lnlike_save)*1.e-5 ):
                 self.dust_rms[:, self.pp_idx[batch_indices]] *= 1.002
                 self.sync_rms[:, self.pp_idx[batch_indices]] *= 1.002
                 self.cmb_rms[:, self.pp_idx[batch_indices]] *= 1.002
-                eps *= 1.02                
+                eps *= 1.03                
             elif(self.lnlike[self.current_ind]-lnlike_save < abs(lnlike_save)*1.e-4 ):
                 self.dust_rms[:, self.pp_idx[batch_indices]] *= 1.001
                 self.sync_rms[:, self.pp_idx[batch_indices]] *= 1.001
@@ -482,20 +486,20 @@ class compsep_BMH:
         return dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms
 
 if(path.exists(filedir + r'burn_in_lnlike.txt')):
-    cs = compsep_BMH(snapshot = filedir + r'burn_in')
+    cs = compsep_BMH(batch_size=200, snapshot = filedir + r'burn_in')
 else:
-    cs = compsep_BMH(snapshot=None)
-if(len(argv) < 4):  #this is only for computing gradient templates
-    print("gradient templates are done")
-    exit()
-dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms = cs.sample(n_iter = 3000,  eps = 2.5e-5, noise_factor = 1.e-6, snapshot=filedir + r'burn_in') 
+    cs = compsep_BMH(batch_size=200, snapshot=None)
+dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms = cs.sample(n_iter = 3000,  eps = 1.e-4, noise_factor = 1.e-6, snapshot=filedir + r'burn_in') 
 np.save(filedir + r'cmb_mean_alms.npy', cmb_mean)
 np.save(filedir + r'sync_mean_alms.npy', sync_mean)
 np.save(filedir + r'dust_mean_alms.npy', dust_mean)
 for ifreq in range(sim.num_freqs):
-    sim.save_map(filedir + r'cmb_'+str(sim.freqnames[ifreq])+r'.npy', cs.make_freq_maps(ifreq, cmb_mean, cs.lmax), True)
-    sim.save_map(filedir + r'sync_'+str(sim.freqnames[ifreq])+r'.npy', cs.make_freq_maps(ifreq, sync_mean, cs.lmax), True)
-    sim.save_map(filedir + r'dust_'+str(sim.freqnames[ifreq])+r'.npy', cs.make_freq_maps(ifreq, dust_mean, cs.lmax), True)    
+    m_wof, m = cs.make_freq_maps(ifreq, cmb_mean, cs.lmax)
+    sim.save_map(filedir + r'cmb_'+str(sim.freqnames[ifreq])+r'.npy', m_wof, True)
+    sim.save_map(filedir + r'cmbf_'+str(sim.freqnames[ifreq])+r'.npy', m, True)
+    m_wof, m = cs.make_freq_maps(ifreq, sync_mean+dust_mean, cs.lmax)    
+    sim.save_map(filedir + r'fg_'+str(sim.freqnames[ifreq])+r'.npy', m_wof, True)
+    sim.save_map(filedir + r'fgf_'+str(sim.freqnames[ifreq])+r'.npy', m, True)
 
 
 if(cs.vary_beta):

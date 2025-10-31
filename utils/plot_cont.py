@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from mcmc import *
-import corner
+import sys
 import os
-from sys import argv
+sys.path.insert(0, os.getcwd())
+from mcmc import *
 import getdist
 from ast import literal_eval
 from getdist import plots, MCSamples, loadMCSamples
@@ -24,24 +24,17 @@ def load_samples(root):
 
 
 
-samples0 = loadMCSamples(r'/home/zqhuang/work/CobayaRuns/chains/lcdm_PAS', settings={'ignore_rows':0.2})
-samples1 = loadMCSamples(r'/home/zqhuang/work/CobayaRuns/chains/PI_PAS', settings={'ignore_rows':0.05})
-samples2 = loadMCSamples(r'/home/zqhuang/work/CobayaRuns/chains/PIt_PAS', settings={'ignore_rows':0.05})
+samples0 = load_samples(r'AliCPT/results/AliCPT_r1_d0s0_5_')
+samples1 = load_samples(r'AliCPT/results_l1/AliCPT_r1_d0s0_5_')
+samples2 = load_samples(r'AliCPT/results_l2/AliCPT_r1_d0s0_5_')
 
-rdlabel=r'hr_d\;[\mathrm{Mpc}]'
-
-
-samples0.addDerived(paramVec = samples0.getParams().rdrag * samples0.getParams().H0 / 100., name = 'hrd', label=rdlabel, comment='h time r_d', range=[50., 200.])
-samples1.addDerived(paramVec = samples1.getParams().rdrag * samples1.getParams().H0 / 100., name = 'hrd', label=rdlabel, comment='h time r_d', range=[50., 200.])
-samples2.addDerived(paramVec = samples2.getParams().rdrag * samples2.getParams().H0 / 100., name = 'hrd', label=rdlabel, comment='h time r_d', range=[50., 200.])
-#
-samples_bao = load_samples(r'lcdm_DESIDR2_')
 
 g = plots.get_single_plotter(width_inch = 7.2)
 
-g.plot_2d( [samples_bao, samples0, samples1, samples2] , 'hrd', 'omegam' ,  lims = [96.7, 103.5, 0.276,  0.334], filled=[True, True, False, False], alphas = 0.6, colors=mycolors[0:4], ls=['solid', 'solid', 'dashed', 'dotted'])
+g.plot_2d( [samples0, samples1, samples2] , 'beta_d', 'r' ,  lims = [1.2, 1.8, -0.01, 0.03],  filled=[True, False, False], alphas = 0.6, colors=mycolors[0:3], ls=['solid', 'dashed', 'dotted'])
 
-
-g.add_legend([r'BAO', r'CMB, no-step', r'CMB, $\mathrm{erf}$', r'CMB, $\tanh$'], legend_loc = 'lower left')
-plt.savefig('rdomm.png')
+g.add_x_marker(1.54, color="lightgray", ls='dotted', lw=1.)
+g.add_y_marker(0.01, color="lightgray", ls='dotted', lw=1.)
+g.add_legend([r'ell_cross_range=0', r'ell_cross_range=1', r'ell_cross_range=2'], legend_loc = 'upper left')
+plt.savefig('AliCPT_ell_cross_range.png')
 plt.show()
