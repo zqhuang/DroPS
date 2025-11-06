@@ -31,7 +31,7 @@ samples2 = load_samples(r'AliCPT/results_l2/AliCPT_r1_d0s0_5_')
 
 g = plots.get_single_plotter(width_inch = 7.2)
 
-g.plot_2d( [samples0, samples1, samples2] , 'beta_d', 'r' ,  lims = [1.2, 1.8, -0.01, 0.03],  filled=[True, False, False], alphas = 0.6, colors=mycolors[0:3], ls=['solid', 'dashed', 'dotted'])
+g.plot_2d( [samples0, samples1, samples2] , 'beta_d', 'r' ,  lims = [1.2, 1.8, -0.01, 0.03], filled=[True, False, False], alphas = 0.6, colors=mycolors[0:3], ls=['solid', 'dashed', 'dotted'])
 
 g.add_x_marker(1.54, color="lightgray", ls='dotted', lw=1.)
 g.add_y_marker(0.01, color="lightgray", ls='dotted', lw=1.)

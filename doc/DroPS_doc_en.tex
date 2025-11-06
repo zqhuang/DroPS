@@ -1,6 +1,5 @@
-\documentclass[12pt, a4paper]{ctexart} % 使用ctexart文档类，支持中文
+\documentclass[12pt, a4paper]{ctexart} 
 
-%%%%%%%%% 页边距设置 %%%%%%%%%
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage[english]{babel}
@@ -9,36 +8,28 @@
 \usepackage{amssymb}
 \usepackage{tcolorbox}
 \usepackage{listings}
-%\usepackage{hyperref}
 \input{journal_macros.tex}
 \def\tbox#1{\begin{tcolorbox}#1\end{tcolorbox}}
 \def\dsymb{~\mathrm{d}}
-\geometry{a4paper, left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm} % 设置A4纸和页边距
+\geometry{a4paper, left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm} 
 
-%%%%%%%%% 页眉页脚设置 %%%%%%%%%
 \pagestyle{headings}
-
-%%%%%%%%% 超链接设置（使目录可点击） %%%%%%%%%
 \usepackage[colorlinks, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
 
-%%%%%%%%% 文档开始 %%%%%%%%%
 \begin{document}
 \thispagestyle{empty}
-%%%%%%%%% 标题区域 %%%%%%%%%
 \title{\Huge \textbf{DroPS}  \\ \huge {\color{blue}D}eriving {\color{blue} $r$} fr{\color{blue}o}m {\color{blue}P}ower {\color{blue}S}pectra}
 \author{Zhiqi Huang \\
 huangzhq25@mail.sysu.edu.cn}
-\date{\today} % 自动显示当前日期，若不需要可改为 \date{}
-\maketitle % 生成标题
+\date{\today} 
+\maketitle 
 
-\thispagestyle{empty} % 标题页不显示页眉页脚
+\thispagestyle{empty} 
 \newpage
 
-%%%%%%%%% 生成目录 %%%%%%%%%
 \tableofcontents
-\newpage % 目录后换页
+\newpage 
 
-%%%%%%%%% 正文内容 %%%%%%%%%
 \section{Introduction}
 
 
@@ -53,7 +44,7 @@ and
 \begin{equation}
 \mathcal{P}_T(k) = r A_s \left(\frac{k}{k{\mathrm{pivot}}}\right)^{n_t}.
 \end{equation}
-The scalar amplitude $A_s$ and spectral tilt $n_s$ have been tightly constrained by CMB experiments~\cite{Planck18Params}. In most viable inflationary scenarios, the tensor tilt $n_t$ is very small; it is typically either fixed to zero or set to the slow-roll prediction $n_t = -r/8$. The tensor-to-scalar ratio $r$ at the pivot scale, however, remains poorly measured. As of this writing, the best 95\% confidence-level (CL) upper limit is $r < 0.032$~\cite{Tristram22}. Nevertheless, a broad range of inflationary models remains consistent with $0 < r < 0.032$.  
+The scalar amplitude $A_s$ and spectral tilt $n_s$ have been tightly constrained by CMB experiments~\cite{Planck18Params}. In most viable inflationary scenarios, the tensor tilt $n_t$ is very small; it is typically either fixed to zero or set to the slow-roll prediction $n_t = -r/8$. The tensor-to-scalar ratio $r$ at the pivot scale, however, remains poorly measured. As of this writing, the best 95\% confidence-level (CL) upper limit is $r < 0.032$~\cite{Tristram22}. A broad range of inflationary models remains consistent with $0 < r < 0.032$~\cite{Inflation23}.  
 
 \subsection{CMB B-polarization and $r$}
 
@@ -170,7 +161,7 @@ A critical step in processing data from ground-based CMB experiments is the remo
 If you are not keen about simulating precise filtering effect for a specific experiment, you may use the ``mock filtering'' tool that comes with DroPS to generate a filtering matrix:
 \tbox{python mock\_filtering.py}
 
-Follow the prompt and enter the healpix resolution (nside, 128 for testing, 256/512 for serious simulations) and the file name for the filtering matrix (e.g. filter\_128.pickle). You may also refine the model by entering the parameters $\ell_{\rm cut}$, $f_{\rm low}$, $f_{\rm high}$, $\alpha_{\rm low}$, $\theta_\ell$, $\theta_m$ that are defined in Section~\ref{sec:TOD}. 
+Follow the prompt and enter the healpix resolution (nside, 128 for testing, 256/512 for serious simulations) and the file name for the filtering matrix (e.g. filter\_128.pickle). You may also refine the model by entering the parameters $\ell_{\rm cut}$, $f_{\rm low}$, $f_{\rm high}$, $\alpha_{\rm low}$, $\theta_\ell$, $\theta_m$ that are defined in Sec.~\ref{sec:TOD}. 
 
 
 \subsubsection{Generating base simulations}
@@ -179,11 +170,11 @@ In this section, we run ``base simulations'' to obtain the statistics of the sky
 
 \begin{table}
   \centering
-  \caption{Key configurations of DroPS demo-experiments \label{tab:config}}
+  \caption{Key configurations of DroPS demo-experiments; $\ell_{\rm knee}$ and $\alpha_{\rm knee}$ are defined in Sec.~\ref{sec:noise} \label{tab:config}}
   \begin{tabular}{l|lllll}
     \hline
     \hline
-    & frequency & beam FWHM & temperature noise  & $\ell_{\rm knee}$ & $\alpha_{\rm knee}$ \\
+    & frequency & beam FWHM & noise-level $\sigma_{\rm white}$  & $\ell_{\rm knee}$ & $\alpha_{\rm knee}$ \\
     & (GHz) & (arcmin) & ($\mathrm{\mu K}$-arcmin) & & \\
     \hline
   Test   & $30$  & $60$ & $1$ & $60$ & $-1.7$ \\
@@ -280,7 +271,7 @@ If the bias of $r$-measurement is small, the mean of reconstructed mean values o
 
 \subsubsection{How to apply on real data}
 
-A real experiment comes with its own pipeline of noise simulations and TOD filtering, and provides the actually observed sky maps. To analyze the real data, you can simply replace the base simulations with the maps from the simulation pipeline of the experiment, and replace the realization of sky with the actually observed ones.
+A real experiment comes with its own map making and noise simulation pipelines, and provides base simulations and the actually observed sky maps. To analyze the real data, you can simply replace the base simulations with the maps from the simulation pipeline of the experiment, and replace the realization of sky with the actually observed maps.
 
 
 \subsubsection{Comparison with other pipelines}
@@ -312,7 +303,7 @@ The above script takes the base simulation \#0 and adds the filtered foreground 
 Now we do component separation
 \tbox{python compsep.py AliCPT/AliCPT\_sim\_config.txt maps/r3AliCPT0\_}
 
-The code uses Stochastic Gradient Langevin Dynamics (SGLD) method to search the maximum of the likelihood described in Section~\ref{sec:sgld_like}. It typically takes a few days to run compsep.py for the first time, on a personal laptop. When the gradient templates are built, the code runs much faster, typically takes only a few hours on a personal laptop. Typically you need to run it multiple times to obtain a well converged CMB B-mode map. Figure~\ref{fig:compsep} shows the result for the 40GHz channel maps simulated with AliCPT/AliCPT\_sim\_config.txt. The $E$ maps are recovered very well. While significant residual noises remain in the $B$ maps.
+The code uses Stochastic Gradient Langevin Dynamics (SGLD) method to search the maximum of the likelihood described in Sec.~\ref{sec:sgld_like}. It typically takes a few days to run compsep.py for the first time, on a personal laptop. When the gradient templates are built, the code runs much faster, typically takes only a few hours on a personal laptop. Typically you need to run it multiple times to obtain a well converged CMB B-mode map. Figure~\ref{fig:compsep} shows the result for the 40GHz channel maps simulated with AliCPT/AliCPT\_sim\_config.txt. The $E$ maps are recovered very well. While significant residual noises remain in the $B$ maps.
 
 \begin{figure}
   \includegraphics[width=0.5\textwidth]{AliCPT_original_Emap.png}%
@@ -352,7 +343,28 @@ To display E/B components, use utils/viewEB.py.
 
 \section{Technical Details}
 
-In this section I assume the reader is familiar with Healpix and has the basic knowledge of cosmology and spherical harmonic transform.
+In this section I assume the reader is familiar with Healpix~\cite{Healpix} and has the basic knowledge of cosmology and spherical harmonic transform.
+
+
+DroPS divides the multipole range of interest into a few $\ell$ bins and evaluates band powers\footnote{A band power is the average power spectrum in an $\ell$ bin} of masked maps with NaMaster~\cite{NaMaster}. For measurement of $r$, we typically use a few $\ell$ bins at $20\lesssim \ell \lesssim 200$. Maps with nside = 256 are sufficient for such analyses, and nside = 128 are often good enough for quick estimations. However, if you are changing resolution of maps or rotating them to a different coordinate system, caution should be taken. These operations often leads to extra E-B leakage in low-resolution maps. We recommend nside = 512 for analyses that involve these operations.
+
+The compressed data vector involved in the likelihood analysis is the band powers of filtered sky maps. The band powers between different frequency channels are computed directly from the frequency maps, while for a single frequency channel the band power is computed with pairs of season maps in this channel. In all cases, the expectation values of noise band powers all vanish, thereby avoiding bias due to inaccurate noise modeling. This is a standard treatment in modern CMB data analyses. 
+
+We will assume that the number of $\ell$-bins is $n_{\rm bin}$, the number of frequency channels is $n_\nu$, and the number of fields (e.g. TT, TE, EE, BB) is $n_{\rm fld}$. The compressed data vector can be written as $D^{XY}_\ell(\nu_1,\nu_2)$, where $XY$ ranges over the fields, $\ell$ ranges over the central value of the $\ell$-bins, and $(\nu_1, \nu_2)$ ranges over all possible  ranked ($\nu_1\le \nu_2$) pairs of the central frequencies of the frequency channels. Note that when $\nu_1=\nu_2$, the band powers $D^{XY}_\ell(\nu_1,\nu_2)$ are computed by averaging all band powers between season maps,  as we mentioned earlier. The number of ranked frequency pairs is $n_\nu(n_\nu+1)/2$. Therefore, the length of the data vector is $N_d=\frac{1}{2} n_{\rm fld} n_{\rm bin} n_\nu(n_\nu+1)$. For the purpose of measuring $r$ and if computing/storage resources are limited, it is recommended to just use the $BB$ band powers ($n_{\rm fld} = 1$), which contain almost all of the information about $r$.
+
+
+The basic idea is then to compare the observed data vector $D^{XY}_\ell(\nu_1,\nu_2)$ (abstractly written as $D^{\rm obs}$) with the theoretical predictions (abstractly written as $D^{\rm model}$). The likelihood can be abstractly written as
+\begin{equation}
+  \mathcal{L} = \frac{1}{(2\pi)^{N_d/2}\sqrt{\det\mathrm{Cov}}} \exp{\left[-\frac{1}{2}(D^{\rm obs} - D^{\rm model})^T\mathrm{Cov}^{-1}(D^{\rm obs} - D^{\rm model})\right]},
+\end{equation}
+The model band powers $D^{\rm model}$ can be written as
+\begin{equation}
+  D^{\rm model} = D^{\rm CMB} + D^{\rm fg},
+\end{equation}
+where $D^{\rm CMB}$ and $D^{\rm fg}$ are expectation values of band powers of CMB maps and foreground maps, respectively. The expectation value of noise band powers vanishes as DroPS only takes cross correlations between different frequency bands or between different season maps in a same frequency band. The covariance $\mathrm{Cov}$ contains the contribution from all components (noise, foreground and CMB).
+
+This section is organized as follows. Sec.~\ref{sec:TOD} introduces the ``map-making'' simulators used in base simulations, and how the TOD filtering is modeled in the data analysis step.  Sec.~(\ref{sec:noise}-\ref{sec:fg}) describes the noise model, CMB model and foreground model. Sec.~\ref{sec:cov} introduces how $\mathrm{Cov}$ is calculated. 
+
 
 \subsection{TOD filtering and map making \label{sec:TOD}}
 
@@ -387,35 +399,63 @@ The ``map-making'' simulator takes much less computing resources than any real m
 
 In the data analyses, DroPS is blind to what has been used in the simulation. It models the filtering effect with a coupling matrix $F_{\ell\ell^\prime}$, whose main diagonal elements describe the suppression effect, the first off-diagonal elements describe the coupling between adjacent bins, and all other elements are assumed to be zero. By default, DroPS estimate $F_{\ell\ell'}$ by comparing the band powers of filtered and unfiltered noise maps of the base simulations\footnote{A least square fit is done here.}.
 
-Note that, however, strictly speaking, TOD filtering is a linear operation on the map, but not on the power spectra. The linear modeling may not be very accurate. For this reason,  DroPS tends to minimize the usage of the $F_{\ell\ell^\prime}$ matrix, as described in Section~\ref{sec:bandpower_like}.
+Note that, however, strictly speaking, TOD filtering is a linear operation on the map, but not on the power spectra. The linear modeling may not be very accurate. For this reason,  DroPS tends to minimize the usage of the $F_{\ell\ell^\prime}$ matrix, as described in Sec.~\ref{sec:cmb}. 
 
-\subsection{Delensing}
+
+\subsection{Noise model \label{sec:noise}}
+
+Following Refs.~\cite{SO2019, SO-SAT}, DroPS models the noise temperature power spectrum as
+\begin{equation}
+  N_\ell = N_{\rm white}\left[1+\left(\frac{\ell}{\ell_{\rm knee}}\right)^{\alpha_{\rm knee}}\right]. \label{eq:noise_model}
+\end{equation}
+The parameters $k_{\rm knee}$ and $\alpha_{\rm knee}$ describe the contribution from $1/f$ noise. The white-noise component $N_{\rm white}$ is related to the ``noise-level'' parameter $\sigma_{\rm white}$ in Table~\ref{tab:config} via
+\begin{equation}
+  N_{\rm white} = \sigma_{\rm white}^2, \label{eq:Nwhite}
+\end{equation}
+where $\sigma_{\rm white}$ should be written in unit $\mu$K-radian\footnote{A factor $\frac{\pi}{10800}$ should be multiplied when converting $\sigma_{\rm white}$ from $\mu$K-arcmin to $\mu$K-radian}.
+
+For the demo-experiments, DroPS simply assumes that the polarization ($EE$ and $BB$) power spectra of noise statisfies $N_\ell^{EE} = N_\ell^{BB} = 2N_{\ell}^{TT}$. This relation does not hold exactly in real experiments, but is a not-too-bad approximation in most cases.
+
+
+The noise model~\eqref{eq:noise_model} is only used for base simulations. In data anlyses, DroPS directly use the base simulations to compute the data covariance. The expected mean of noise power spectra always vanish, as in the data analyses DroPS only uses cross power spectra between maps from different frequency channels/observation seasons, the so-called noise-debiased power spectra.
+
+\subsection{CMB model \label{sec:cmb}}
+
+\subsubsection{Cosmology}
+Unlike the statistics of noise  that can be directly drawn from base simulations, the statistics of CMB relies on the cosmological parameters that are unknown. 
+
+DroPS assumes standard Lambda cold dark matter ($\Lambda$CDM) with an additional parameter $r$. For the demo experiments, the default cosmological parameters for base simulations are shown in Table~\ref{tab:cosmo}. 
+
+\begin{table}
+  \centering
+  \caption{Default cosmological parameters for base simulations \label{tab:cosmo}}
+  \begin{tabular}{lll}
+    \hline
+    \hline
+    parameter & definition & default value \\
+    \hline
+    $\Omega_bh^2$ & baryon density & $0.02242$ \\
+    $\Omega_ch^2$ & cold dark matter density & $0.11933$ \\
+    $\theta_{\rm MC}$ & angular extension of sound horizon & $0.0104101$ \\
+    $\tau_{\rm re}$  & reionization optical depth & $0.0561$ \\
+    $\ln\left(10^{10}A_s\right)$ & logarithm amplitude of primordial scalar power & $3.047$  \\
+    $n_s$ & spectral index of primordial scalar power & $0.9665$ \\
+    $r$ & tensor-to-scalar ratio & $r_0=0$ or $r_1=0.03$ \\
+    \hline
+  \end{tabular}
+\end{table}
+
+
+\subsubsection{Delensing \label{sec:delens}}
 
 
 Gravitational lensing by large-scale structure subtly distorts the pristine CMB, smoothing its acoustic peaks and generating a spurious B-mode polarization signal that obscures the far weaker primordial signature. The expectation of CMB lensing B-mode power can be computed from theory and subtracted if the other cosmological parameters are known. However, for actual realization of the universe, the lensing BB power randomly deviate from its expectation value. Such random deviation, often called cosmic variance, which cannot be predicted from the theory may contaminate the measurement of $r$ if we are targeting at $\sigma_r \lesssim 10^{-3}$. Delensing is the process of statistically reconstructing this actual lensing distortion (rather than the theoretical expectation) from high-resolution CMB data itself or from external tracers of the matter distribution, and then removing its effect from the observed CMB map. By cleaning this cosmic foreground, delensing sharpens the CMB's original features and significantly reduces the confounding lensing B-mode power, thereby dramatically improving the sensitivity of experiments to detect the faint imprints of inflation.
 
 DroPS assumes that an ideal lensing potential map is obtained from external sources (high-resolution CMB experiments or large scale structure surveys). Although the ideal lensing potential map allows to remove all the lensing effect, we will not be able to do so in practice. By setting the delensing efficiency $\epsilon_{\rm delens}$ (delens\_fac in configuration file, e.g., AliCPT/AliCPT\_ana\_config.txt), you can specify how much lensing effect you want to remove. More concretely, delensing is done by rescaling the lensing potential map by a factor of $(1-\epsilon_{\rm delens})$.
 
-\subsection{Likelihood for band powers~\label{sec:bandpower_like}}
+\subsubsection{Cosmological parameter inference}
 
-DroPS evaluates band powers (average power spectra in $\ell$ bins) of masked maps with NaMaster~\cite{NaMaster}. For measurement of $r$, we typically use a few $\ell$ bins at $20\lesssim \ell \lesssim 200$. Maps with nside = 256 are sufficient for such analyses, and nside = 128 are often good enough for quick estimations. However, if you are changing resolution of maps or rotating them to a different coordinate system, caution should be taken. These operations often leads to extra E-B leakage in low-resolution maps. We recommend nside = 512 for analyses that involve these operations.
-
-The data vector is the band powers of filtered sky maps. The cross correlation between different frequency maps are computed directly, while the auto correlation of a frequency map is computed with pairs of season maps. In all cases, the expectation value of noise band powers are zero. DroPS avoids using auto-correlation of a same map, as the auto correlation of noise can be biased. This is a standard treatment in modern CMB data analyses. 
-
-We will assume that the number of $\ell$-bins is $n_{\rm bin}$, the number of frequency channels is $n_f$, and the number of fields is $n_{XY}$. The data vector is a collection of  band powers $D^{XY}_\ell(\nu_1,\nu_2)$, where $XY$ ranges over the fields ($XY = TT, TE, TB, EE, EB, BB$), $\ell$ ranges over the central value of the $n_{\rm bin}$ $\ell$-bins, and $(\nu_1, \nu_2)$ ranges over all possible  ranked ($\nu_1\le \nu_2$) pairs of the central frequencies of the $n_f$ frequency channels. Note that when $\nu_1=\nu_2$, the band powers $D^{XY}_\ell(\nu_1,\nu_2)$ are computed by averaging all band powers between season maps,  as we mentioned earlier. The number of ranked frequency pairs is $n_f(n_f+1)/2$. Therefore, the length of the data vector is $N_d=\frac{1}{2} n_{XY} n_{\rm bin} n_f(n_f+1)$. For the purpose of measuring $r$ and if computing/storage resources are limited, it is recommended to just use the $BB$ band powers ($n_{XY} = 1$), which contain most of the information about $r$.
-
-
-The basic idea is then to compare the data vector with the theory, which include cosmological, foreground, and noise models. The likelihood can be abstractly written as
-\begin{equation}
-  \mathcal{L} = \frac{1}{(2\pi)^{N_d/2}\sqrt{\det\mathrm{Cov}}} \exp{\left[-\frac{1}{2}(D^{\rm obs} - D^{\rm model})^T\mathrm{Cov}^{-1}(D^{\rm obs} - D^{\rm model})\right]},
-\end{equation}
-where $D^{\rm obs}$ is the data vector (band powers of observed maps). The model band powers $D^{\rm model}$ can be written as
-\begin{equation}
-  D^{\rm model} = D^{\rm CMB} + D^{\rm fg},
-\end{equation}
-where $D^{\rm CMB}$ and $D^{\rm fg}$ are expectation values of band powers of CMB maps and foreground maps, respectively. (The expectation value of noise band powers vanishes as DroPS only takes cross correlations between different frequency bands or between different season maps in a same frequency band.) The covariance $\mathrm{Cov}$ contains the contribution from noise, foreground and CMB.
-
-\subsubsection{CMB band powers}
+For parameter inference, DroPS by default only allows $r$ to vary. Variation of other cosmological parameters can be turned on by setting vary\_cosmology to be True in the configuration file. In this case,  because in general cosmology is poorly constrained by ground-based SATs, DroPS uses a Planck+BAO prior~\cite{Planck18Params} to keep the parameters in a reasonable range\footnote{The Planck+BAO prior can be turned off by modifying mainpipe.py, but this may lead to poor convergence of Monte Carlo chains or even instability of the code.}.
 
 The base simulations provide band powers for (filtered and delensed) CMB maps with fiducial $r=0$ and $r=r_1>0$, respectively. The recommended value of $r_1$ is $0.03$ (roughly current $90\%$CL upperbound), but you can change it in the configuration file, e.g., AliCPT/AliCPT\_sim\_config.txt. Averaging over the base simulations, we obtain the expectation values of CMB band powers $\langle D^{\rm CMB}_\ell(r=0)\rangle $ and $\langle D^{\rm CMB}_\ell(r=r_1)\rangle$.
 
@@ -432,11 +472,167 @@ In other words, DroPS takes the linear interpolation from simulations, which con
 
 
 
-\subsubsection{Covariance matrix}
+\subsection{Foreground model \label{sec:fg}}
 
-The covariance matrix of band powers (of filtered sky maps) can be, in principle, blindly estimated from simulations. In practice, however, the covariance typically contains $\gtrsim 10^3$ free elements, which do not converge well with a few hundred simulations that we typically have. DroPS solves this problem by doing ``noise cleaning'' and ignoring correlations between $\ell$ bins that are mutually far away.
+\subsubsection{Thermal dust emission and synchrotron radiation}
 
-DroPS decomposes the covariance matrix into three components: the noise covariance, the signal covariance, and the signal$\times$noise covariance. The advantage of doing so is that noise covariance can be ``cleaned'' with the piror knowledge that noise in different frequency channels are uncorrelated. DroPS also assumes that the noise $T$, $E$, $B$ are mutually uncorrelated\footnote{In the default settings where $BB$ band powers are used, this assumption is unecessary.}. Consequently, the noise covariance between $D^{XY}_\ell(\nu_1,\nu_2)$ and $D^{X^\prime Y^\prime}_{\ell^\prime}(\nu_1^\prime,\nu_2^\prime)$ is nonzero only if $XY=X^\prime Y^\prime$ and $(\nu_1, \nu_2) = (\nu_1^\prime, \nu_2^\prime)$. This substantially reduces the degrees of freedom and improves the accuracy of noise covariance estimation.
+The dominant diffuse foreground for CMB polarization are the Galactic thermal dust emission and synchrotron radiation. Their spectral energy distribution (SED) are different from the CMB (blackbody). Clearly, at least three frequency channels are needed to separate the three major components (dust, synchrotron and CMB) with different SEDs.
+
+The frequency dependence of dust temperature fluctuation is modeled as a modified black-body (MBB) spectrum, which converted to the CMB $\mu$K unit is
+\begin{equation}
+  W_d(\nu; \nu_{\rm ref}, \beta_d) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_d-1}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2 \left(\frac{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm MBB}}}-1}{e^{\frac{h\nu}{k_BT_{\rm MBB}}}-1}\right), \label{eq:dust_w}
+\end{equation}
+where $T_{\rm MBB}\approx 20\,\mathrm{K}$ is the effective temperature of MBB spectrum, $T_{\rm CMB}\approx 2.726\,\mathrm{K}$ is the CMB temperature, $\beta_d$ is the frequency spectral index, and $\nu_{\rm ref}$ is an arbitrarily chosen reference frequency. Because thermal dust emission dominates the high-frequency bands, we often choose a high freference frequency, e.g.,  $\nu_{\rm ref,dust} \sim 300\,\mathrm{GHz}$. 
+
+The frequency dependence of synchrotron temperature fluctuation is modeled as a power-law spectrum, which converted to the CMB $\mu$K unit is
+\begin{equation}
+  W_s(\nu; \nu_{\rm ref}, \beta_s) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_s-2}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2, \label{eq:sync_w}
+\end{equation}
+where  $\beta_s$ is the frequency spectral index, and $\nu_{\rm ref}$ is an arbitrarily chosen reference frequency. Because thermal syncrotron radiation dominates the low-frequency bands, we often choose a low freference frequency, e.g.,  $\nu_{\rm ref,sync} \sim 30\,\mathrm{GHz}$.
+
+
+When there is no risk of confusion, we may write $W_d(\nu; \nu_{\rm ref}, \beta_d)$ as $W_d(\nu)$, and $W_s(\nu; \nu_{\rm ref}, \beta_d)$ as $W_s(\nu)$. When $\beta_d$ ($\beta_s$) is known, we can convert a dust (synchrotron) map at frequency $\nu_1$ to map at frequency $\nu_2$ with a scaling factor $\frac{W_d(\nu_2)}{W_d(\nu_1)}$ ( $\frac{W_s(\nu_2)}{W_{s,2}}$). (Note that this ratio does not depend on the choice of reference frequency.) Finally, for a frequency band with (normalized) frequency distribution $f(\nu)$, $W_d(\nu)$ should be replaced with averaged weight $\int W_d(\nu) f(\nu)\dsymb\nu$. 
+
+By default DroPS treats the band powers of {\it filtered} dust and synchrotron maps as free parameters. The advantage of doing so is two folds. First, we do not need to worry about the accuracy of $F_{\ell\ell^\prime}$ modeling, as we are directly modeling the band powers of filtered maps. Second, although the average dust/synchrotron power spectra is likely to be smooth, their power spectra in a small sky area may have random ``cosmic variance'', which is taken into account in the free-bandpower parametrization. The disadvantage of abandoning the smoothness assumption on foreground band powers is that it degrades the constraining power on $r$. However, this extra uncertainty is physical, as it correctly reflects that the foreground band powers in a small patch of sky can have random fluctuations around a smooth model.
+
+A blind parametrization of the dust-dust, dust-synchrotron, and synchrotron-synchrotron band powers involves $3n_{\rm fld} n_{\rm bin}+2$ independent parameters. Here $+2$ corresponds to $\beta_d$ and $\beta_s$. Even in the case where only $XY=BB$ is used, the number of foreground parameters is typically $\gtrsim 20$. This poses some challenge to the convergence of Monte Carlo Markov Chain (MCMC) simulations, which is used in DroPS for parameter inference. However, when the data contain a high-frequency channel and a low-frequency channel, which respectively give good ``initial guesses'' of the dust and synchrotron band powers, we empirically find the MCMC runs can reach good convergence.
+
+If the number of available frequency channel is small or the noise is large (target $\sigma_r\gtrsim 0.01$), however, smooth parameterization of foreground power is recommended. The reason is that the ``cosmic variance'' of foreground becomes a tiny effect compared to noise, filter modeling uncertainty, and uncertainties due to parameter degeneracy. The smooth model of foreground band powers - which is modeled as a qudratic function of $\ell$ - can be turned on in the configuration file by setting analytic\_fg = True.
+
+\subsubsection{Spatially varying foreground: moment expansion method}
+
+The above discussion is based on the assumption of constant $\beta_d$ and $\beta_s$. For experiments that covers a significant portion of the sky, however, it is unlikely that $\beta_d$ ($\beta_s$) will be strictly a constant~\cite{Ade25} across a large area of the sky.  DroPS deals with the spatial variation of foreground spectral indices with moment expansion approximation~\cite{ME} or Taylor expansion methods, which can be switched on by setting freq\_decorr\_model=``ME'' or freq\_decorr\_model=``Taylor'' in the configuration file. Set freq\_decorr\_model=None if strictly $\beta_d$ and $\beta_s$ are wanted. By default, DroPS uses the moment expansion method, details of which are given below.
+
+We take thermal dust emission B-mode map for example. At frequency $\nu$, the map is 
+\begin{equation}
+  B(\nu, \mathbf{n}) = W_d(\nu; \nu_{\rm ref}, \beta_d)B(\nu_{\rm ref}, \mathbf{n}),
+\end{equation}
+if there were no spatial variation of $\beta_d$. Here $\mathbf{n}$ is the map pixel vector, and $B(\nu_{\rm ref}, \mathbf{n})$ is the map at reference frequency (reference map). Now consider small spatial variation $\delta\beta_d(\mathbf{n})$ and expand to second order of $\delta\beta_d(\mathbf{n})$
+\begin{equation}
+  B(\nu, \mathbf{n}) = \left\{W_d(\nu; \nu_{\rm ref}, \beta_d) + \frac{\partial W_d}{\partial \beta_d} \delta\beta_d(\mathbf{n}) + \frac{1}{2}\frac{\partial^2 W_d}{\partial \beta_d^2} \left[\delta\beta_d(\mathbf{n})\right]^2\right\}B(\nu_{\rm ref}, \mathbf{n}).  \label{eq:ME_eq1}
+\end{equation}
+Since $W_d\propto \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_d}$, Eq.~\eqref{eq:ME_eq1} can be explicitly written as
+\begin{equation}
+  B(\nu, \mathbf{n}) = W_d(\nu; \nu_{\rm ref}, \beta_d) \left\{1 +  \delta\beta_d(\mathbf{n})\ln\frac{\nu}{\nu_{\rm ref}} + \frac{1}{2} \left[\delta\beta_d(\mathbf{n}) \ln\frac{\nu}{\nu_{\rm ref}}\right]^2\right\}B(\nu_{\rm ref}, \mathbf{n}).
+\end{equation}
+
+
+We first consider the full-sky case and do spherical harmonic transform. Assuming $\delta \beta_d(\mathbf{n}) = \sum \beta_{\ell m}Y_{\ell m}(\mathbf{n})$ and $B(\nu, \mathbf{n}) = \sum a_{\ell m}(\nu) Y_{\ell m}(\mathbf{n})$.
+
+\begin{eqnarray}
+  a_{\ell m}(\nu) &=& W_d(\nu; \nu_{\rm ref}, \beta_d) \int Y_{\ell m}^*(\mathbf{n})   \left\{1 +  \delta\beta_d(\mathbf{n})\ln\frac{\nu}{\nu_{\rm ref}} + \frac{1}{2} \left[\delta\beta_d(\mathbf{n}) \ln\frac{\nu}{\nu_{\rm ref}}\right]^2\right\}B(\nu_{\rm ref}, \mathbf{n}) \dsymb^2\mathbf{n} \nonumber \\
+  &=& W_d(\nu; \nu_{\rm ref}, \beta_d) \left[a_{\ell m}^{\rm ref} +  \ln\frac{\nu}{\nu_{\rm ref}} g_{\ell m}^{\rm ref} +  \left(\ln\frac{\nu}{\nu_{\rm ref}}\right)^2 h_{\ell m}^{\rm ref}\right]
+\end{eqnarray}
+where
+\begin{equation}
+  a_{\ell m}^{\rm ref} = a_{\ell m}(\nu_{\rm ref}),
+\end{equation}
+\begin{equation}
+  g_{\ell m}^{\rm ref} = (-1)^m \sqrt{\frac{2\ell+1}{4\pi}}\sum_{\ell_1, m_1, \ell_2, m_2}a_{\ell_1, m_1}^{\rm ref}\beta_{\ell_2, m_2}\sqrt{(2\ell_1+1)(2\ell_2+1)}\begin{pmatrix} \ell_1 & \ell_2 & \ell \\ 0 & 0 & 0 \end{pmatrix}\begin{pmatrix} \ell_1 & \ell_2 & \ell \\ m_1 & m_2 & -m \end{pmatrix},
+\end{equation}
+and
+\begin{small}
+\begin{eqnarray}
+  h_{\ell m}^{\rm ref} &=&  (-1)^{m}\frac{\sqrt{2\ell+1}}{8\pi}\sum_{\ell_1, m_1, \ell_2,m_2, \ell_3 m_3}a_{\ell_1, m_1}^{\rm ref}\beta_{\ell_2, m_2}\beta_{\ell_3, m_3}\sqrt{(2\ell_1+1)(2\ell_2+1)(2\ell_3+1)} \nonumber \\
+  &\times &   \sum_{\ell_4, m_4}(-1)^{m_4}(2\ell_4+1)\begin{pmatrix} \ell_2 & \ell_3 & \ell_4\\ m_2 & m_3 & -m_4 \end{pmatrix}\begin{pmatrix} \ell_2 & \ell_3 & \ell_4 \\ 0 & 0 & 0 \end{pmatrix}\begin{pmatrix} \ell_4 & \ell_1 & \ell \\ 0 & 0 & 0 \end{pmatrix}\begin{pmatrix} \ell_4 & \ell_1 & \ell \\ m_4 & m_1 & -m \end{pmatrix}. \nonumber \\
+  \label{eq:hlm1}
+\end{eqnarray}
+\end{small}
+
+Assuming $\delta \beta_d(\mathbf{n})$ is a random Gaussian field that is uncorrelated with the reference map $B(\nu_{\rm ref}, \mathbf{n})$ and keeping only up to second order of $\delta \beta_d$, we have
+\begin{equation}
+  \langle (a_{\ell  m}^{\rm ref})^* g_{\ell m}^{\rm ref} \rangle = 0,
+\end{equation}
+\begin{equation}
+  \langle (h_{\ell  m}^{\rm ref})^* g_{\ell m}^{\rm ref} \rangle = 0,
+\end{equation}
+and
+\begin{equation}
+ \langle (h_{\ell  m}^{\rm ref})^* h_{\ell m}^{\rm ref} \rangle = 0.
+\end{equation}
+Here $\langle \cdot \rangle$ represents cosmic expectation value.
+
+Further approximately treating $B(\nu_{\rm ref}, \mathbf{n})$ a random Gaussian field, we may also use the power spectra $C_\ell^{\rm ref} \equiv \langle (a^{\rm ref}_{\ell m})^*a_{\ell m}^{\rm ref} \rangle$ and $S_\ell \equiv \langle (\beta_{\ell m})^*\beta_{\ell m} \rangle$ to express some non-zero expectation values. Specifically, they are
+\begin{equation}
+  \langle (g_{\ell  m}^{\rm ref})^* g_{\ell m}^{\rm ref} \rangle = \frac{1}{4\pi}\sum_{\ell_1, \ell_2} C_{\ell_1}^{\rm ref}S_{\ell_2}(2\ell_1+1)(2\ell_2+1)\begin{pmatrix} \ell_1 & \ell_2 & \ell \\ 0 & 0 & 0 \end{pmatrix}^2, \label{eq:glmglm}
+\end{equation}
+and 
+\begin{equation}
+  \langle (a_{\ell  m}^{\rm ref})^* h_{\ell m}^{\rm ref} \rangle = \frac{1}{8\pi}C_\ell^{\rm ref} \sum_{\ell_2}(2\ell_2+1)S_{\ell_2}. \label{eq:almhlm}
+\end{equation}
+To derive Eq.~\eqref{eq:glmglm}, we have used the identity
+\begin{equation}
+  \sum_{m_1, m_2}\begin{pmatrix} \ell_1 & \ell_2 & \ell_3 \\ m_1 & m_2 & m_3 \end{pmatrix} \begin{pmatrix} \ell_1 & \ell_2 & \ell_3^\prime \\ m_1 & m_2 & m_3^\prime \end{pmatrix} = \left\{
+  \begin{array}{ll}
+    \frac{1}{2\ell_3+1}, & \text{if } |\ell_1-\ell_2| \le \ell_3 \le \ell_1+\ell_2 \text{, } \ell_3 = \ell_3^\prime \text{, } m_3 = m_3^\prime \\
+    0, & \text{otherwise}
+  \end{array}\right.,
+\end{equation}
+namely the orthogonal property of 3-$j$ symbol.
+To derive Eq.~\eqref{eq:almhlm}, we have used the identity
+\begin{equation}
+  \sum_{m} (-1)^{\ell - m}
+  \begin{pmatrix}
+  \ell & \ell & n  \\
+  m & -m & 0
+  \end{pmatrix}
+  = \left\{
+  \begin{array}{ll}
+    \sqrt{2\ell +1}, &\text{if } n = 0 \\
+    0, & \text{else}
+  \end{array}
+  \right. .
+\end{equation}
+
+The power spectrum between two frequency maps $B(\nu, \mathbf{n})$ and $B(\nu^\prime, \mathbf{n})$ is then
+\begin{eqnarray}
+  C_\ell(\nu, \nu^\prime) &=& \langle a_{\ell m}(\nu) a_{\ell m}(\nu^\prime)\rangle \nonumber \\
+  &=& W_d(\nu; \nu_{\rm ref}, \beta_d) W_d(\nu^\prime; \nu_{\rm ref}, \beta_d)\nonumber \\
+  && \times \left\{C_\ell^{\rm ref}  +  \langle (g_{\ell  m}^{\rm ref})^* g_{\ell m}^{\rm ref} \rangle \ln\frac{\nu}{\nu_{\rm ref}}\, \ln\frac{\nu^\prime}{\nu_{\rm ref}} +   \langle (a_{\ell  m}^{\rm ref})^* h_{\ell m}^{\rm ref} \rangle \left[\left(\ln\frac{\nu}{\nu_{\rm ref}}\right)^2 + \left(\ln\frac{\nu^\prime}{\nu_{\rm ref}}\right)^2 \right] \right\}. \nonumber \\
+  &=& W_d(\nu; \nu_{\rm ref}, \beta_d) W_d(\nu^\prime; \nu_{\rm ref}, \beta_d) \nonumber \\
+  && \times \left\{ C_\ell^{\rm ref}\left[1+ \frac{1}{8\pi}\left(\ln^2\frac{\nu}{\nu_{\rm ref}} + \ln^2\frac{\nu^\prime}{\nu_{\rm ref}} \right)\sum_{\ell_2}(2\ell_2+1)S_{\ell_2} \right] \right. \nonumber \\
+  && + \left.\frac{1}{4\pi}\ln\frac{\nu}{\nu_{\rm ref}}\, \ln\frac{\nu^\prime}{\nu_{\rm ref}} \sum_{\ell_1, \ell_2} C_{\ell_1}^{\rm ref}S_{\ell_2}(2\ell_1+1)(2\ell_2+1)\begin{pmatrix} \ell_1 & \ell_2 & \ell \\ 0 & 0 & 0 \end{pmatrix}^2  \right\},
+\end{eqnarray}
+
+
+
+The above result can be written in a more compact way
+\begin{equation}
+  C_\ell(\nu, \nu^\prime) = W_d(\nu) W_d(\nu^\prime) \left\{ C_\ell^{\rm ref}\left[1+  \mu \left(\ln^2\frac{\nu}{\nu_{\rm ref}} + \ln^2\frac{\nu^\prime}{\nu_{\rm ref}} \right) \right] + \varepsilon_{\ell} \ln\frac{\nu}{\nu_{\rm ref}}\, \ln\frac{\nu^\prime}{\nu_{\rm ref}}\right\}, \label{eq:ME}
+\end{equation}
+where
+\begin{equation}
+  \mu \equiv \frac{1}{8\pi}\sum_{\ell_2}(2\ell_2+1)S_{\ell_2} \label{eq:ME_mu}
+\end{equation}
+is proportional to the variance of $\delta\beta_d$, and
+\begin{equation}
+  \varepsilon_\ell \equiv \frac{1}{4\pi} \sum_{\ell_1, \ell_2} C_{\ell_1}^{\rm ref}S_{\ell_2}(2\ell_1+1)(2\ell_2+1)\begin{pmatrix} \ell_1 & \ell_2 & \ell \\ 0 & 0 & 0 \end{pmatrix}^2 \label{eq:ME_eps}
+\end{equation}
+is proportional to the convolution between $\beta_d$ and the reference map.
+
+The minimal parameterization then involve two unknown spectra $S_\ell$ and $C_\ell$, from which $\mu$ can be dervied.
+
+
+In general we deal with maps in a mask with sky fraction $f_{\rm sky}$. If the variance of $\delta \beta_d$ is dominated by small-scale fluctuations, we may still use Eqs.~(\ref{eq:ME}) as an approximation and replace $S_{\ell_2}$ with $S_{\ell_2}f_{\rm fsky}$ in Eq.~\eqref{eq:ME_mu} and Eq.~\eqref{eq:ME_eps}. However, this approximation may not work very well, for the following two reasons.
+\begin{enumerate}
+\item{Large-scale variation of $\beta_d$ has been observed~\cite{Ade25}, while small-scale variation of $\beta_d$ remains a conjecture. Therefore, it is possible that the variance of $\delta\beta_d$ may be dominated by large-scale power.}
+\item{For masked sky we are dealing with band powers with limited scale coverage, from which we cannot accurately evaluate the convolution in $\epsilon_\ell$.}
+\end{enumerate}
+The net effect is then the relation between $\mu$, $C_\ell$  (in form of band powers)  and $S_\ell$  (also in form of band powers) becomes vague in the masked-sky case. For this reason, DroPS directly take $\mu$ and $\varepsilon_\ell$ (in form of band powers) as independent parameters. Another advantage of doing so is that the evaluation of convolution - which is computationally expensive - is avoided.
+
+At the time of writing, there is no observational confirmation or rejection of spatial variation of $\beta_d$ on small scales. Eqs.~(\ref{eq:ME_mu},\ref{eq:ME_eps}) imply that $\varepsilon_\ell$ and $\mu$ are all positive parameters, however, applying this physical prior can bias the $r$ measurement if indeed there is no spatial variation of $\beta_d$. Therefore, by default DroPS does not apply this positiveness prior. To turn on this piror, the user can set ME\_is\_positive = True in the configuration file.
+
+The treatment of synchrotron is exactly the same, as the dependence of $W_d$ on $\beta_d$ and $W_s$ on $\beta_s$ is identical ($W_d\propto (\nu/\nu_{\rm ref})^{\beta_d}$ and $W_s\propto (\nu/\nu_{\rm ref})^{\beta_s}$). To keep the model minimal, we have ignored many complexities that may emerge in reality, such as possible correlation between $\delta \beta_d$, $\delta\beta_s$ and the reference map. Therefore, the moment expansion method may be a good tool to describe small perturbations of the base model (constant $\beta_d$ and $\beta_s$), but may fail for more complex foreground.
+
+\subsubsection{Frequency decorrelation: Talor expansion method}
+
+For foreground with spatially varying SED, the spectrum does not follow the scaling $\left[C_\ell(\nu, \nu^\prime)\right]^2 = C_\ell(\nu, \nu) C_\ell(\nu^\prime, \nu^\prime)$.
+
+\subsection{Covariance matrix of band powers \label{sec:cov}}
+
+The covariance matrix of band powers (of filtered sky maps) can be, in principle, blindly estimated from simulations. In practice, however, the covariance typically contains $\gtrsim 10^3$ free elements, which do not converge well with a few hundred simulations that we typically have. DroPS solves this problem by doing ``noise cleaning'' (ignoring noise correlation in different channels/seasons) and ``scale separation'' (ignoring correlations between $\ell$ bins that are mutually far away).
+
+DroPS decomposes the covariance matrix into three components: the noise covariance, the signal covariance, and the signal$\times$noise covariance. The advantage of doing so is that noise covariance can be ``cleaned'' with the piror knowledge that noise in different frequency channels are uncorrelated. DroPS also assumes that the noise $T$, $E$, $B$ are mutually uncorrelated\footnote{In the default settings where $BB$ band powers are used, this assumption is not used.}. Consequently, the noise covariance between $D^{XY}_\ell(\nu_1,\nu_2)$ and $D^{X^\prime Y^\prime}_{\ell^\prime}(\nu_1^\prime,\nu_2^\prime)$ is nonzero only if $XY=X^\prime Y^\prime$ and $(\nu_1, \nu_2) = (\nu_1^\prime, \nu_2^\prime)$. This substantially reduces the degrees of freedom and improves the accuracy of noise covariance estimation.
 
 By default DroPS ignores correlation between different $\ell$ bins (ell\_cross\_range  = 0 in the configuration file). Optionally  DroPS can can include {\it some} correlations between adjacent or next-to-adjacent $\ell$ bins (ell\_cross\_range = 1, 2 in the configurationfile). We emphasize ``some'' here,  because keeping only diagonal and the first off-diagonal blocks (or also the second off-diagonals if required) of a positive definite matrix may introduce unphysical ghost modes (negative eigen values introduced by this numeric approximation) that lead to catastrophic overfitting. Therefore, DroPS trades part of the information in the correlations between adjacent $\ell$ bins (and next-to-adjacent $\ell$ bins if they are included)  with numeric stabilit. Technically, this is realized by multiplying the non-diagonal blocks with some suppression factors. Table~\ref{tab:sup_mat} lists the optimal suppression factors, which are either analytically derived (if the number of $\ell$ bins is small) or numerically evaluated (if the number of $\ell$ bins is big). When only correlations of adjacent bins are included (ell\_cross\_range=1), the first off-diagonal blocks are multiplied by $f_1$ in the second column of Table~\ref{tab:sup_mat}. While correlations of the next-to-adjacent bins are included (ell\_cross\_range = 2), the first off-diagonal blocks and the second off-diagonal blocks are multiplied by $f_1$ and $f_2$ in the third column of Table~\ref{tab:sup_mat}, respectively.
 
@@ -485,53 +681,17 @@ Emprical tests show that the correlations between adjacent $\ell$ bins and next-
 The signal and signal$\times$noise covariance matrices relies on the fiducial cosmology. DroPS evaluates them at $r=0$ and $r=r_1$. For $0<r<r_1$, because the signal variation linearly scales with $r$, the signal covariance is interpolated linearly in $r^2$, and the signal$\times$noise covariance is interpolated linearly in $r$. For $r>r_1$, DroPS uses the covariance evaluated at $r_1$. We do not do extrapolation, which typically introduce unphysical ghost modes that lead to catastrophic overfitting. 
 
 
-\subsection{Foreground model}
 
 
-By default DroPS treats the band powers of {\it filtered} dust and synchrotron maps as free parameters. The advantage of doing so is two folds. First, we do not need to worry about the accuracy of $F_{\ell\ell^\prime}$ modeling, as we are directly modeling the band powers of filtered maps. Second, although the average dust/synchrotron power spectra is likely to be smooth, their power spectra in a small sky area may have random ``cosmic variance'', which is taken into account in the free-bandpower parametrization. The disadvantage of abandoning the smoothness assumption on foreground band powers is that it degrades the constraining power on $r$. However, this extra uncertainty is physical, as it correctly reflects that the foreground band powers in a small patch of sky can have random fluctuations around a smooth model.
 
-If the number of available frequency channel is small (less than five) or the noise is large (target $\sigma_r\gtrsim 0.01$), however, smooth parameterization of foreground power is recommended. The reason is that the ``cosmic variance'' of foreground becomes a tiny effect compared to noise, filter modeling uncertainty, and uncertainties due to parameter degeneracy. The smooth model of foreground band powers - which is modeled as a qudratic function of $\ell$ - can be turned on in the configuration file by setting analytic\_fg = True.
-
-
-\subsubsection{Thermal dust emission}
-
-The frequency dependence of dust temperature fluctuation is modeled as a modified black-body spectrum, which converted to the CMB $\mu K$ unit is
-\begin{equation}
-  W_d(\nu) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_d-1}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2 \left(\frac{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm MBB}}}-1}{e^{\frac{h\nu}{k_BT_{\rm MBB}}}-1}\right). \label{eq:dust_w}
-\end{equation}
-To convert a dust map (in CMB $\mu K$ unit) of frequency $\nu_1$ to dust map at frequency $\nu_2$, a scaling factor $\frac{W_d(\nu_2)}{W_d(\nu_1)}$ is applied.
-
-
-\subsubsection{Synchrotron emission}
-
-The frequency dependence of synchrotron temperature fluctuation is modeled as a power-law spectrum, which converted to the CMB $\mu K$ unit is
-\begin{equation}
-  W_s(\nu) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_s-2}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2. \label{eq:sync_w}
-\end{equation}
-To convert a synchrotron map (in CMB $\mu K$ unit) of frequency $\nu_1$ to dust map at frequency $\nu_2$, a scaling factor $\frac{W_s(\nu_2)}{W_s(\nu_1)}$ is applied. Consequently, a blind parametrization of the dust band powers involves $n_{XY} n_{\rm bin}+1$ independent parameters. (Here $+1$ corresponds to the dust frequency spectral index $\beta_d$.) 
-
-
-\subsubsection{Correlation between thermal dust and synchrotron}
-
-Synchrotron emission dominates the low-frequency bands, while thermal-dust emission dominates the high-frequency bands.
-
-
-\subsubsection{Spatially-varying SED: moment expansion method}
-
-While a constant SED ($\beta_d$ for dust and $\beta_s$ for synchrotron) may be a good approximation for a small patch of sky, the spatial variation SEDs may not be neglected for experiments targeting at larger fraction of sky (e.g., AliCPT, SO-SAT). By default DroPS deals with spatial variation of foreground with moment expansion method~\cite{Chluba17} (freq\_decorr\_model=``ME'' in the configuration file). This feature can be turned off, though, by setting freq\_decorr\_model=None.
-
-
-Another option to deal with spatially-varying SED is to use phenomenological Taylor expansion of the SED on frequency and on decorrelation (freq\_decorr\_model = ``Taylor'').
-
-\subsection{Likelihood for map-level component separation \label{sec:sgld_like}}
-
+\subsection{Component separation}
 The likelihood $\mathcal{L}\propto e^{-\chi^2/2}$ is based on a Gaussian noise model
 \begin{equation}
   \chi^2 = v_{\rm noise}^TN^{-1}v_{\rm noise},
 \end{equation}
-where $v_{\rm noise}$ is the noise frequency maps inferred from a sky model and the observed frequency maps, and $N$ is the covariance of $v_{\rm noise}$. In pixel space, the size of each vector is $n_{\rm pix} n_f$, i.e., product of the number of pixels and the number of frequency channels. For AliCPT or SO-SAT and maps with degree-scale resolution, we typically have $n_{\rm pixel} n_{\rm frequency} \gtrsim 10^4$. The number of elements in the covariance matrix $N$ is $\gtrsim 10^8$, which is difficult to estimate with simulations and also difficult to invert. The BICEP/Keck analysis~\cite{BKmap} only considers pixel auto-correlation, that is, the diagonal approximation of $N$ in pixel space. A better approximation, which will be used in DroPS, is a diagonal form of $N$ in harmonic space.
+where $v_{\rm noise}$ is the noise frequency maps inferred from a sky model and the observed frequency maps, and $N$ is the covariance of $v_{\rm noise}$. In pixel space, the size of each vector is $n_{\rm pix} n_\nu$, i.e., product of the number of pixels and the number of frequency channels. For AliCPT or SO-SAT and maps with degree-scale resolution, we typically have $n_{\rm pixel} n_{\rm frequency} \gtrsim 10^4$. The number of elements in the covariance matrix $N$ is $\gtrsim 10^8$, which is difficult to estimate with simulations and also difficult to invert. The BICEP/Keck analysis~\cite{BKmap} only considers pixel auto-correlation, that is, the diagonal approximation of $N$ in pixel space. A better approximation, which will be used in DroPS, is a diagonal form of $N$ in harmonic space.
 
-We label a pixel with index $j$ ($j=1, 2, \ldots, n_{\rm pix}$), and frequency channels with index $k$ ($k = 1, 2, \ldots, n_f$). The CMB maps are identical in all frequency channels, and are modeled as
+We label a pixel with index $j$ ($j=1, 2, \ldots, n_{\rm pix}$), and frequency channels with index $k$ ($k = 1, 2, \ldots, n_\nu$). The CMB maps are identical in all frequency channels, and are modeled as
 \begin{equation}
   (Q\pm \mathrm{i}U)_{\rm CMB, j, k} = -\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (c_{\ell m}^E\pm \mathrm{i} c_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j), \label{eq:CMB_comp}
 \end{equation}
@@ -561,8 +721,10 @@ On the other hand, we can calculate $\tilde{n}_{\ell m}^E$ and $\tilde{n}_{\ell 
 
 
 
-
 \bibliographystyle{unsrt}
 \bibliography{refs} 
 
 \end{document}
+
+
+
