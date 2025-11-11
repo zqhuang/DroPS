@@ -8,10 +8,27 @@
 \usepackage{amssymb}
 \usepackage{tcolorbox}
 \usepackage{listings}
-\input{journal_macros.tex}
+
+\def\physrep{Physics Reports}
+\def\aap{Astronomy \& Astrophysics}
+\def\aj{Astronomical Journal}
+\def\apjl{Astrophysical Journal Letters}
+\def\apjs{Astrophysical Journal Supplement Series}
+\def\mnras{MNRAS}
+\def\jcap{JCAP}
+\def\prd{Physical Review D}
+\def\prl{Physical Review Letters}
+\def\apj{Astrophysical Journal}
+\def\nar{New Astronomy Reviews}
+\def\na{New Astronomy}
+\def\nat{Nature}
+
 \def\tbox#1{\begin{tcolorbox}#1\end{tcolorbox}}
 \def\dsymb{~\mathrm{d}}
 \geometry{a4paper, left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm} 
+
+
+\graphicspath{{figures/}}
 
 \pagestyle{headings}
 \usepackage[colorlinks, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
@@ -21,7 +38,7 @@
 \title{\Huge \textbf{DroPS}  \\ \huge {\color{blue}D}eriving {\color{blue} $r$} fr{\color{blue}o}m {\color{blue}P}ower {\color{blue}S}pectra}
 \author{Zhiqi Huang \\
 huangzhq25@mail.sysu.edu.cn}
-\date{\today} 
+\date{November 2025} 
 \maketitle 
 
 \thispagestyle{empty} 
@@ -677,7 +694,7 @@ where $\beta_d$ and $\gamma_d$ are the average SED and the frequency running of 
 
 \begin{figure}
   \includegraphics[width=\textwidth]{method_compare.png}
-  \caption{Comparison between base model (None), moment expansion method (ME) and Taylor expansion method(Taylor). Simulations are obtained with SO/SO\_sim\_config.txt. \label{fig:compare_methods}}
+  \caption{Comparison between base model (None), moment expansion method (ME) and Taylor expansion method (Taylor).\label{fig:compare_methods}}
 \end{figure}
 
 The moment expansion and Taylor expansion methods typically induce shifts of $r$ on the order of a few $\times 10^{−4}$. We use the more precise demo-experiment SO to highlight the impact of foreground modeling. Figure~\ref{fig:compare_methods} compares the reconstructed $r$ using the base model (constant SED), the moment expansion, and the Taylor expansion methods. Each data point and error bar represent the mean and standard deviation, respectively, averaged over 250 random realizations of the "observed sky." Our analysis shows that the moment expansion method remains nearly unbiased across all tested scenarios, albeit at the cost of a modest increase in uncertainty. The Taylor expansion method also performs robustly in the presence of foreground frequency decorrelation. However, in the absence of such decorrelation, it tends to systematically underestimate the value of $r$.
