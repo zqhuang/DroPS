@@ -527,7 +527,7 @@ If the number of available frequency channel is small or the noise is large (tar
 
 \subsubsection{Spatially varying foreground: moment expansion method}
 
-The above discussion is based on the assumption of constant $\beta_d$ and $\beta_s$. For experiments that covers a significant portion of the sky, however, it is unlikely that $\beta_d$ ($\beta_s$) will be strictly a constant across a large area of the sky~\cite{Ade25} .  DroPS deals with the spatial variation of foreground spectral indices with moment expansion approximation~\cite{ME} or Taylor expansion methods, which can be switched on by setting freq\_decorr\_model=``ME'' or freq\_decorr\_model=``Taylor'' in the configuration file. Set freq\_decorr\_model=None if strictly $\beta_d$ and $\beta_s$ are wanted. By default, DroPS uses the moment expansion method, details of which are given below.
+The above discussion is based on the assumption of constant $\beta_d$ and $\beta_s$. For experiments that covers a significant portion of the sky, however, it is unlikely that $\beta_d$ ($\beta_s$) will be strictly a constant across a large area of the sky~\cite{Ade25} .  DroPS deals with the spatial variation of foreground spectral indices with moment expansion approximation~\cite{ME} or Taylor expansion methods, which can be switched on by setting freq\_decorr\_model=``ME'' or freq\_decorr\_model=``Taylor'' in the configuration file. Set freq\_decorr\_model=None if strictly constant $\beta_d$ and $\beta_s$ are wanted. By default, DroPS uses the moment expansion method, details of which are given below.
 
 We take thermal dust emission B-mode map for example. At frequency $\nu$, the map is 
 \begin{equation}
@@ -680,7 +680,7 @@ where $\beta_d$ and $\gamma_d$ are the average SED and the frequency running of 
   \caption{Comparison between base model (None), moment expansion method (ME) and Taylor expansion method(Taylor). Simulations are obtained with SO/SO\_sim\_config.txt. \label{fig:compare_methods}}
 \end{figure}
 
-The moment expansion method and Taylor expansion method typically have a  few $\times 10^{-4}$ impact on $r$. Figure~\ref{fig:compare_methods} compares the base model (constant SED), moment expansion method, and Taylor expansion method. Simulations are obtained with SO/SO\_sim\_config.txt.
+The moment expansion and Taylor expansion methods typically induce shifts of $r$ on the order of a few $\times 10^{−4}$. We use the more precise demo-experiment SO to highlight the impact of foreground modeling. Figure~\ref{fig:compare_methods} compares the reconstructed $r$ using the base model (constant SED), the moment expansion, and the Taylor expansion methods. Each data point and error bar represent the mean and standard deviation, respectively, averaged over 250 random realizations of the "observed sky." Our analysis shows that the moment expansion method remains nearly unbiased across all tested scenarios, albeit at the cost of a modest increase in uncertainty. The Taylor expansion method also performs robustly in the presence of foreground frequency decorrelation. However, in the absence of such decorrelation, it tends to systematically underestimate the value of $r$.
 
 \subsection{Covariance matrix of band powers \label{sec:cov}}
 
@@ -688,8 +688,13 @@ While the covariance matrix of the band powers could, in principle, be estimated
 
 DroPS decomposes the covariance matrix into three components: the noise covariance, the signal covariance, and the signal$\times$noise covariance. The advantage of doing so is that noise covariance can be ``cleaned'' with the prior knowledge that noise in different frequency channels (or observation seasons) are uncorrelated. DroPS also assumes that the noise $T$, $E$, $B$ are mutually uncorrelated\footnote{In the default settings where $BB$ band powers are used, this assumption is not used.}. Consequently, the noise covariance between $D^{XY}_\ell(\nu_1,\nu_2)$ and $D^{X^\prime Y^\prime}_{\ell^\prime}(\nu_1^\prime,\nu_2^\prime)$ is nonzero only if $XY=X^\prime Y^\prime$ and $(\nu_1, \nu_2) = (\nu_1^\prime, \nu_2^\prime)$. This substantially reduces the degrees of freedom and improves the accuracy of noise covariance estimation.
 
-By default DroPS ignores correlation between different $\ell$ bins (ell\_cross\_range  = 0 in the configuration file). Optionally  DroPS can can include {\it some} correlations between adjacent or next-to-adjacent $\ell$ bins (ell\_cross\_range = 1, 2 in the configuration file). We emphasize ``some'' here,  because keeping only diagonal and the first off-diagonal blocks (or also the second off-diagonals if required) of a positive definite matrix may introduce unphysical ghost modes (negative eigen values introduced by this numeric approximation) that lead to catastrophic overfitting. Therefore, DroPS trades part of the information in the correlations between adjacent $\ell$ bins (and next-to-adjacent $\ell$ bins if they are included)  with numeric stability. Technically, this is realized by multiplying the non-diagonal blocks with some suppression factors. Table~\ref{tab:sup_mat} lists the optimal suppression factors, which are either analytically derived (if the number of $\ell$ bins is small) or numerically evaluated (if the number of $\ell$ bins is big). When only correlations of adjacent bins are included (ell\_cross\_range=1), the first off-diagonal blocks are multiplied by $f_1$ in the second column of Table~\ref{tab:sup_mat}. While correlations of the next-to-adjacent bins are included (ell\_cross\_range = 2), the first off-diagonal blocks and the second off-diagonal blocks are multiplied by $f_1$ and $f_2$ in the third column of Table~\ref{tab:sup_mat}, respectively.
 
+By default, DroPS assumes no correlation between different multipole bins (ell\_cross\_range = 0 in the configuration file). Optionally, it can model correlations between adjacent (ell\_cross\_range = 1) or next-to-adjacent bins (ell\_cross\_range = 2). However, simply truncating the covariance matrix to these limited off-diagonal blocks can violate its positive-definite property, introducing unphysical "ghost modes" with negative eigenvalues that lead to catastrophic overfitting. To balance information retention with numerical stability, DroPS applies suppression factors to the off-diagonal $\ell$ blocks. The optimal factors, listed in Table~\ref{tab:sup_mat}, are derived analytically for a small number of bins or numerically for a larger set. Specifically:
+\begin{itemize}
+  \item{For ell\_cross\_range = 1, the first off-diagonal blocks are multiplied by a factor $f_1$.}
+  \item{For ell\_cross\_range = 2, the first and second off-diagonal blocks are multiplied by factors $f_1$​ and $f_2$​, respectively.}
+\end{itemize}
+        
 \begin{table}
   \centering
   \caption{suppression factors ($f_1$ for adjacent and $f_2$ for next-to-adjacent bins) \label{tab:sup_mat}}
@@ -733,26 +738,27 @@ Empirical tests show that the correlations between adjacent $\ell$ bins and next
   \caption{Impact of the correlations between adjacent $\ell$ bins and next-to-adjacent $\ell$ bins\label{fig:ell_cross_range}}
 \end{figure}
 
-The signal and signal$\times$noise covariance matrices relies on the fiducial cosmology. DroPS evaluates them at $r=0$ and $r=r_1$. For $0<r<r_1$, because the signal variation linearly scales with $r$, the signal covariance is interpolated linearly in $r^2$, and the signal$\times$noise covariance is interpolated linearly in $r$. For $r>r_1$, DroPS uses the covariance evaluated at $r_1$. We do not do extrapolation, which typically introduce unphysical ghost modes that lead to catastrophic overfitting. 
 
-
-
+The signal and signal$\times$noise covariance matrices are cosmology-dependent. DroPS pre-computes them at the two fiducial points, $r=0$ and $r=r_1$​, from the base simulations. Within the interval $0<r<r_1$, the covariances are interpolated according to their known scaling with $r$: the signal covariance scales with $r^2$ and is thus interpolated linearly in $r^2$, while the signal$\times$noise covariance scales with $r$ and is interpolated linearly in $r$. For values $|r|>r_1$​, DroPS uses the covariance evaluated at $r=r_1$​, deliberately avoiding any extrapolation to prevent the introduction of unphysical modes and catastrophic overfitting.
 
 
 \subsection{Component separation \label{sec:sgld_like}}
-The likelihood $\mathcal{L}\propto e^{-\chi^2/2}$ is based on a Gaussian noise model
+
+For map-level component separation, the likelihood  $\mathcal{L}\propto e^{-\chi^2/2}$ is constructed under a Gaussian noise model, where
 \begin{equation}
   \chi^2 = v_{\rm noise}^TN^{-1}v_{\rm noise},
 \end{equation}
-where $v_{\rm noise}$ is the noise frequency maps inferred from a sky model and the observed frequency maps, and $N$ is the covariance of $v_{\rm noise}$. In pixel space, the size of each vector is $n_{\rm pix} n_\nu$, i.e., product of the number of pixels and the number of frequency channels. For AliCPT or SO-SAT and maps with degree-scale resolution, we typically have $n_{\rm pixel} n_{\rm frequency} \gtrsim 10^4$. The number of elements in the covariance matrix $N$ is $\gtrsim 10^8$, which is difficult to estimate with simulations and also difficult to invert. The BICEP/Keck analysis~\cite{BKmap} only considers pixel auto-correlation, that is, the diagonal approximation of $N$ in pixel space. A better approximation, which will be used in DroPS, is a diagonal form of $N$ in harmonic space.
+Here, $v_{\rm noise}$ represents the noise frequency maps, and $N$ is their covariance matrix. In pixel space, the dimension of $v_{\rm noise}$​ is $n_{\rm pix} n_\nu$, which for experiments like AliCPT or SO-SAT with $\gtrsim 10\%$ sky coverage typically exceeds $10^4$. This makes the covariance matrix $N$, with $10^8$ elements, prohibitively large to estimate robustly from simulations and to invert efficiently.
+
+To overcome this, the BICEP/Keck analysis~\cite{BKmap} adopts a diagonal approximation of $N$ in pixel space, considering only pixel auto-correlations. DroPS employs a more accurate approximation by assuming $N$ is diagonal in harmonic space. This approach better captures the correlations inherent in the data while remaining computationally tractable.
 
 We label a pixel with index $j$ ($j=1, 2, \ldots, n_{\rm pix}$), and frequency channels with index $k$ ($k = 1, 2, \ldots, n_\nu$). The CMB maps are identical in all frequency channels, and are modeled as
 \begin{equation}
   (Q\pm \mathrm{i}U)_{\rm CMB, j, k} = -\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (c_{\ell m}^E\pm \mathrm{i} c_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j), \label{eq:CMB_comp}
 \end{equation}
-where $\mathbf{n}_j$ is the directional vector of the $j$-th pixel. Note that here $c_{\ell m}^E$ and $c_{\ell m}^B$ are harmonic coefficients of the full-sky CMB map. Degeneracy between these parameters are expected for partial sky observations. 
+where $\mathbf{n}_j$ is the directional vector of the $j$-th pixel. The expansion bases $_{\pm 2}Y_{\ell m}$ are spin-weighted spherical harmonics. Note that here $c_{\ell m}^E$ and $c_{\ell m}^B$ are harmonic coefficients of the full-sky CMB map. Degeneracy between these parameters are expected for partial sky observations. 
 
-Due to limited frequency resolution, BICEP/Keck model $v_{\rm FG}$ as a single component (thermal dust). DroPS takes a more accurate two-component model with emission from Galactic synchrotron and thermal dust. The dust maps are modeled as
+Due to limited frequency resolution, BICEP/Keck analysis models the foreground maps ($v_{\rm FG}$) as a single component (thermal dust). DroPS takes a more accurate two-component model with emission from Galactic synchrotron and thermal dust. The dust maps are modeled as
 \begin{equation}
   (Q\pm \mathrm{i}U)_{\rm dust, j, k} =  -\int W_d(\nu) f_k(\nu) \dsymb\nu \,\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (d_{\ell m}^E\pm \mathrm{i}  d_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j),  \label{eq:dust_comp}
 \end{equation}
@@ -769,7 +775,7 @@ The sky model $(Q+iU)_{\rm sky}$ is the sum of Eqs.~(\ref{eq:CMB_comp}, \ref{eq:
 \end{equation}
 Here $M_j$ is pixel value of a smoothed mask, whose edges are apodized using a C2-type kernel  with an apodization scale of 2 degrees~\cite{Grain09}.  The purpose of introducing such a smoothed mask is to suppress unphysical modes due to sharp-edge and to reduce $E$-to-$B$ leakage.
 
-On the other hand, we can calculate $\tilde{n}_{\ell m}^E$ and $\tilde{n}_{\ell m}^B$ from the filtered noise maps in the base simulations, and compute their diagonal covariance $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle $ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^B|^2\rangle $. For most mask shapes, the $m$-dependencies of $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2$ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2$ are very weak, and mostly reflect the statistic fluctuations due to finite sampling. Therefore, DroPS uses the $m$-averaged pseudo power spectra $\tilde{N}_\ell^E$ and $\tilde{N}_\ell^B$ to construct the likelihood in harmonic space. The likelihood $\propto e^{-\chi^2/2}$ is given by
+On the other hand, we can calculate $\tilde{n}_{\ell m}^E$ and $\tilde{n}_{\ell m}^B$ from the filtered noise maps in the base simulations, and compute their diagonal covariance $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle $ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^B|^2\rangle $. For most mask shapes, the $m$-dependencies of $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle$ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle$ are very weak, and mostly reflect the statistic fluctuations due to finite sampling. Therefore, DroPS uses the $m$-averaged pseudo power spectra $\tilde{N}_\ell^E$ and $\tilde{N}_\ell^B$ to construct the likelihood in harmonic space. The likelihood $\propto e^{-\chi^2/2}$ is given by
 \begin{equation}
   \chi^2 = f_{\rm sky}\sum_{\ell = 0}^{\ell_{\max}} \sum_{m=-\ell}^\ell \frac{|\tilde{n}_{\ell m}|^2}{N_{\ell}}.
 \end{equation}
