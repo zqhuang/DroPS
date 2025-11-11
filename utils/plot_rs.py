@@ -28,17 +28,22 @@ if(len(argv) > 2):
     r_fid = float(argv[2])
     plt.axhline(y = r_fid, ls = "solid", linewidth=1.5, color=colors[1], label="input")
 
-
-num = plot_data(filename=argv[1], fmt='o', color=colors[0], mean_ls = 'dotted', mean_label=r'mean of mean')
-
+if(len(argv)>5):
+    num = int(argv[5])
+else:
+    num = None
 
 if(len(argv)>3):
     if(argv[3] != "NULL"):
-        plot_data(filename=argv[3], fmt='s', color="lightgray", mean_ls = 'dashed', mean_label=r'mean of mean', xshift = 0.15, max_num=num, alpha = 0.5)
+        plot_data(filename=argv[3], fmt='s', color=colors[1], mean_ls = 'dashed', mean_label=r'Taylor', xshift = -0.15, max_num=num, alpha = 0.3)
+if(len(argv)>4):
+    if(argv[4] != "NULL"):
+        plot_data(filename=argv[4], fmt='s', color=colors[2], mean_ls = 'dashdot', mean_label=r'None', xshift = 0.15, max_num=num, alpha = 0.3)
 
+plot_data(filename=argv[1], fmt='o', color=colors[0], mean_ls = 'dotted', mean_label=r'ME', max_num = num)
 
 plt.legend()
 plt.tight_layout()
-if(len(argv) > 4):
-    plt.savefig(argv[4])    
+#if(len(argv) > 6):
+#    plt.savefig(argv[6])    
 plt.show()

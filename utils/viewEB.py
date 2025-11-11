@@ -57,6 +57,6 @@ else:
     xmin = float(argv[6])
     xmax = float(argv[7])
 
-hp.mollview(ms, rot = (180., 0., 0.), coord=('G', 'C'), min = xmin, max = xmax, title=title)
+hp.mollview(ms, min = xmin, max = xmax, title=title)
 plt.show()
     

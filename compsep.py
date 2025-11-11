@@ -126,7 +126,7 @@ class compsep_BMH:
             print('gradient template done')
             exit()
         else:
-            self.load_pp(2, 20)            
+            self.load_pp(2, 30)            
 
 
 
@@ -207,11 +207,20 @@ class compsep_BMH:
             hp.smoothalm(alms = alms_in[i, :], fwhm=sim.fwhms_rad[ifreq], inplace=True)
         return self.pseudo_alms(sim.filtering.project_map(mask = sim.smoothed_mask, maps = alm_to_map(alms_in, nside=sim.nside, lmax=lmax_in), want_wof = False))
 
-    def make_freq_maps(self, ifreq, alms, lmax_in):
+    def make_cmb_maps(self, ifreq, alms, lmax_in):
         alms_in = alms.copy()
         for i in range(2):
             hp.smoothalm(alms = alms_in[i, :], fwhm=sim.fwhms_rad[ifreq], inplace=True)
-        return sim.filtering.project_map(mask = sim.smoothed_mask, maps = alm_to_map(alms_in, nside=sim.nside, lmax=lmax_in), want_wof = True)
+        return alm_to_map(alms_in, nside=sim.nside, lmax=lmax_in)
+
+
+    def make_fg_maps(self, ifreq, alms_dust, alms_sync, beta_d, beta_s, lmax_in):
+        dust_weights, sync_weights = sim.fg_band_weights(beta_d = beta_d, beta_s = beta_s) 
+        alms_in = alms_dust * dust_weights[ifreq] + alms_sync * sync_weights[ifreq]
+        for i in range(2):
+            hp.smoothalm(alms = alms_in[i, :], fwhm=sim.fwhms_rad[ifreq], inplace=True)
+        return alm_to_map(alms_in, nside=sim.nside, lmax=lmax_in)
+    
     
     def get_noise_alms_theory(self, dust_weights, sync_weights):
         for ifreq in range(sim.num_freqs):
@@ -446,10 +455,16 @@ class compsep_BMH:
         dust_rms = np.zeros((2, self.almsize))
         sync_mean = np.zeros( (2, self.almsize), dtype=np.complex128 )
         sync_rms = np.zeros((2, self.almsize))
-        beta_d_mean = 0.
-        beta_d_rms = 0.
-        beta_s_mean = 0.
-        beta_s_rms = 0.
+        if(self.vary_beta):        
+            beta_d_mean = 0.
+            beta_d_rms = 0.
+            beta_s_mean = 0.
+            beta_s_rms = 0.
+        else:
+            beta_d_mean = 1.54
+            beta_d_rms = 0.
+            beta_s_mean = -3.
+            beta_s_rms = 0.
         for istep in range(n_iter):
             eps, noise_factor = self.sgld_step(eps = eps, noise_factor = noise_factor, adaptive=True)
             cmb_mean += self.cmb_alms[self.current_ind,:,:]
@@ -477,11 +492,12 @@ class compsep_BMH:
             beta_s_mean /= n_iter
             beta_s_rms = np.sqrt(beta_s_rms/n_iter - beta_s_mean**2)
         cmb_mean /=  n_iter
-        self.cmb_rms =  np.sqrt(1.e-6 + cmb_rms/n_iter-cmb_mean.real**2-cmb_mean.imag**2)
         dust_mean /=  n_iter
-        self.dust_rms =  np.sqrt(1.e-6 + dust_rms/n_iter-dust_mean.real**2-dust_mean.imag**2)
-        sync_mean /=  n_iter
-        self.sync_rms =  np.sqrt(1.e-6 + sync_rms/n_iter-sync_mean.real**2-sync_mean.imag**2)
+        sync_mean /=  n_iter        
+        if(n_iter > 1000): #use the random walks to estimate rms
+            self.cmb_rms =  np.sqrt(1.e-6 + cmb_rms/n_iter-cmb_mean.real**2-cmb_mean.imag**2) 
+            self.dust_rms =  np.sqrt(1.e-6 + dust_rms/n_iter-dust_mean.real**2-dust_mean.imag**2)
+            self.sync_rms =  np.sqrt(1.e-6 + sync_rms/n_iter-sync_mean.real**2-sync_mean.imag**2)            
         self.save_snapshot(snapshot)                
         return dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms
 
@@ -489,17 +505,15 @@ if(path.exists(filedir + r'burn_in_lnlike.txt')):
     cs = compsep_BMH(batch_size=200, snapshot = filedir + r'burn_in')
 else:
     cs = compsep_BMH(batch_size=200, snapshot=None)
-dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms = cs.sample(n_iter = 3000,  eps = 1.e-4, noise_factor = 1.e-6, snapshot=filedir + r'burn_in') 
+dust_mean, sync_mean, cmb_mean, beta_d_mean, beta_d_rms, beta_s_mean, beta_s_rms = cs.sample(n_iter = 10,  eps = 3.e-4, noise_factor = 1.e-6, snapshot=filedir + r'burn_in') 
 np.save(filedir + r'cmb_mean_alms.npy', cmb_mean)
 np.save(filedir + r'sync_mean_alms.npy', sync_mean)
 np.save(filedir + r'dust_mean_alms.npy', dust_mean)
 for ifreq in range(sim.num_freqs):
-    m_wof, m = cs.make_freq_maps(ifreq, cmb_mean, cs.lmax)
-    sim.save_map(filedir + r'cmb_'+str(sim.freqnames[ifreq])+r'.npy', m_wof, True)
-    sim.save_map(filedir + r'cmbf_'+str(sim.freqnames[ifreq])+r'.npy', m, True)
-    m_wof, m = cs.make_freq_maps(ifreq, sync_mean+dust_mean, cs.lmax)    
-    sim.save_map(filedir + r'fg_'+str(sim.freqnames[ifreq])+r'.npy', m_wof, True)
-    sim.save_map(filedir + r'fgf_'+str(sim.freqnames[ifreq])+r'.npy', m, True)
+    m = cs.make_cmb_maps(ifreq, cmb_mean, cs.lmax)
+    sim.save_map(filedir + r'cmb_'+str(sim.freqnames[ifreq])+r'.npy', m, True)
+    m = cs.make_fg_maps(ifreq, dust_mean, sync_mean, beta_d_mean, beta_s_mean, cs.lmax)    
+    sim.save_map(filedir + r'fg_'+str(sim.freqnames[ifreq])+r'.npy', m, True)
 
 
 if(cs.vary_beta):
