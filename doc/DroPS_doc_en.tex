@@ -35,9 +35,11 @@
 
 \begin{document}
 \thispagestyle{empty}
-\title{\Huge \textbf{DroPS}  \\ \huge {\color{blue}D}eriving {\color{blue} $r$} fr{\color{blue}o}m {\color{blue}P}ower {\color{blue}S}pectra}
+\title{\Huge \textbf{DroPS}  \\ \huge {\color{blue}D}eriving {\color{blue} $r$} fr{\color{blue}o}m {\color{blue}P}ower {\color{blue}S}pectra }
 \author{Zhiqi Huang \\
-huangzhq25@mail.sysu.edu.cn}
+  {\small huangzhq25@mail.sysu.edu.cn}  \\
+  {\small supported by: National key R\&D Program of China (2020YFC2201602)}
+}
 \date{November 2025} 
 \maketitle 
 
@@ -89,6 +91,8 @@ Designed for efficiency, DroPS has minimal hardware requirements. The analyses p
 
 While this guide has been tested on Ubuntu 24.04 LTS, the process is generally straightforward on other Linux distributions. For Windows and macOS users, some steps may require slight modifications, particularly regarding environment setup or package installation.
 
+Hereafter we assume the user works within a bash terminal.
+
 \subsubsection{Installing tools and libraries}
 
 Install the following packages and libraries with Synaptic Package Manager or ``sudo apt install'':
@@ -112,8 +116,10 @@ Install the following packages and libraries with Synaptic Package Manager or ``
 
 \subsubsection{Set up a Python virtual environment}
 
-Create a directory for Python virtual environment in your work path (hereafter denoted as YourWorkPath)
+Create a directory for your Python virtual environment within your work path (referred to as YourWorkPath):
 \tbox{mkdir YourWorkPath/.work}
+The name .work is just an example—you can choose any directory name. However, it is a good practice to start the name with a dot (.), which makes the directory hidden by default. This helps prevent accidentally deleting the Python packages installed in the virtual environment.
+
 
 Create the Python virtual environment
 \tbox{python  -m  venv YourWorkPath/.work}
@@ -135,7 +141,6 @@ If you are not working with other Python projects. You may want to activate the 
 
 \subsubsection{Install requirements}
 
-
 Activate the virtual environment either manually or automatically as described in the previous subsection.
 
 Upgrade pip for the latest information of packages:
@@ -148,16 +153,19 @@ Get the DroPS repository
 
 Now enter the DroPS directory
 \tbox{cd DroPS}
-Install all dependencies
+Install all dependencies with pip
 \tbox{pip install -r requirements.txt}
 
 \subsubsection{Hacking pysm3}
+
+We are going to hack pysm3, which is one of the packages we just installed with pip. Its main function is to simulate the sky with given foreground and cosmology models.
 
 While hacking a Python package is generally not recommended, we have made a pragmatic choice to do so for significant gains in the efficiency of large-scale CMB simulations. Note that this step is entirely optional and is only required for simulation work; users who solely wish to analyze existing sky maps can safely skip it.
 
 
 Enter the DroPS directory
 \tbox{cd YourWorkPath/DroPS}
+
 Move the cmb.py file in the pysm3 package to somewhere else
 \tbox{mv PATH\_TO\_pysm3/models/cmb.py cmb\_backup.py}
 and replace it with the cmb.py file that comes with DroPS
@@ -172,11 +180,11 @@ and
 \tbox{locate pysm3}
 
 
-\subsection{Base simulations}
+\subsection{Reference simulations}
 
-    Before analyzing real or simulated sky maps, it is necessary to first generate the base simulations—a set of simulated CMB, noise, and foreground components. These simulations represent our best-informed model of reality, encapsulating our current understanding of the cosmology, instrument, noise, and foregrounds. As such, they serve a role analogous to ``training data'' in machine learning\footnote{Note that this is purely a conceptual analogy; DroPS does not employ ML techniques.}. Nevertheless, systematic offsets may persist between these simulations and the actual observations.
+Before analyzing the observed sky maps (whether simulated or real), it is necessary to generate a reference dataset of simulated CMB, noise, and foreground signals. These baseline simulations represent our current best-informed model of reality (incorporating instrument characteristics, noise statistics, foreground properties, etc.). Conceptually, this reference dataset can be likened to the "training samples" used in machine learning\footnote{Note that this is purely an analogy; DroPS does not employ advanced machine learning techniques like deep learning.}. However, it is important to note that systematic offsets may still exist between these baseline simulations and the actual observations. Minimizing the potential impact of such discrepancies is a key optimization objective in the design of DroPS.
 
-\subsubsection{Generate a TOD filtering model}
+\subsubsection{Generating a TOD filtering model}
 
 A critical step in processing data from ground-based CMB experiments is the mitigation of ground and atmospheric contamination in the time-ordered data (TOD). Accurately simulating this filtering process necessitates detailed knowledge of the survey strategy, which is often unavailable during the forecasting stage. Fortunately, the overall effect is well-understood: it suppresses large-scale power (low multipoles) in the final maps and introduces non-Gaussian correlations by mixing Fourier modes. For use cases that do not require a precise, survey-specific simulation, DroPS provides a "mock filtering" tool to generate an approximate filtering matrix.
 
@@ -185,9 +193,9 @@ To generate the TOD filtering matrix, run:
 and follow the prompts. Enter the healpix resolution (nside, 128 for testing, 256/512 for serious simulations) and the file name for the filtering matrix (e.g. filter\_128.pickle). You may also refine the model by entering the parameters $\ell_{\rm cut}$, $f_{\rm low}$, $f_{\rm high}$, $\alpha_{\rm low}$, $\theta_\ell$, $\theta_m$ that are defined in Sec.~\ref{sec:TOD}. 
 
 
-\subsubsection{Generating base simulations}
+\subsubsection{Generating reference simulations}
 
-Now we are ready to generate the base simulations for given experiments.  DroPS comes with four ``demo-experiments'': Test, AliCPT, SO, and CMBS4.  The ``Test'' demo-experiment is just for testing purpose and does not have a counterpart in reality. The configurations (sky coverage, noise level etc., see Table~\ref{tab:config}) of the latter three demo-experiments (AliCPT, SO, CMBS4) are similar, but not identical to their counterparts in reality (AliCPT~\cite{AliCPT}, SO-SAT~\cite{SO-SAT} and CMB-S4-SAT~\cite{CMB-S4-SAT}). In this documentation we will mainly use the ``AliCPT'' experiment as examples. We will also use SO for comparison between different foreground modeling and between DroPS and other pipelines in the literature~\cite{SO-SAT}.
+Now we are ready to generate the reference simulations for given experiments.  DroPS comes with four ``demo-experiments'': Test, AliCPT, SO, and CMBS4.  The ``Test'' demo-experiment is just for testing purpose and does not have a counterpart in reality. The configurations (sky coverage, noise level etc., see Table~\ref{tab:config}) of the latter three demo-experiments (AliCPT, SO, CMBS4) are similar, but not identical to their counterparts in reality (AliCPT~\cite{AliCPT}, SO-SAT~\cite{SO-SAT} and CMB-S4-SAT~\cite{CMB-S4-SAT}). In this documentation we will mainly use the ``AliCPT'' experiment as examples. We will also use SO for comparison between different foreground modeling and between DroPS and other pipelines in the literature~\cite{SO-SAT}.
 
 \begin{table}
   \centering
@@ -231,14 +239,14 @@ Now we are ready to generate the base simulations for given experiments.  DroPS 
 To begin with, you can simulate noise/cmb/foreground maps for the demo-experiment AliCPT.
 
 \tbox{python simulate.py AliCPT/AliCPT\_sim\_config.txt}
-Compare the content of configuration file AliCPT/AliCPT\_sim\_config.txt with Table~\ref{tab:config} to understand how the configurations are passed to the script. When no other command-line arguments are passed to simulate.py, it only produces base simulations, that are, a lot of realizations of noise and CMB maps based on the noise model and cosmology that are specified in the configuration file. The foreground maps are only produced once, as we do not yet have a reliable model to describe the ``cosmic variance'' of foreground emissions.
-By default, the base simulations use the foreground model ['d0', 's0'] with fixed spectral indices ($\beta_d=1.54$ for thermal dust, $\beta_s=-3$ for synchrotron). This ['d0', 's0'] foreground map only captures the gross feature of the Galactic emission. The ``actual foreground'' that we will analyze in the next section can be different from the one used in the base simulations. A robust $r$ measurement pipeline must be insensitive to the finer details of the foreground modeling.
+Compare the content of configuration file AliCPT/AliCPT\_sim\_config.txt with Table~\ref{tab:config} to understand how the configurations are passed to the script. When no other command-line arguments are passed to simulate.py, it only produces reference simulations, that are, a lot of realizations of noise and CMB maps based on the noise model and cosmology that are specified in the configuration file. The foreground maps are only produced once, as we do not yet have a reliable model to describe the ``cosmic variance'' of foreground emissions.
+By default, the reference simulations use the foreground model ['d0', 's0'] with fixed spectral indices ($\beta_d=1.54$ for thermal dust, $\beta_s=-3$ for synchrotron). This ['d0', 's0'] foreground map only captures the gross feature of the Galactic emission. The ``actual foreground'' that we will analyze in the next section can be different from the one used in the reference simulations. A robust $r$ measurement pipeline must be insensitive to the finer details of the foreground modeling.
 
 To further understand how the foreground models are defined in pysm3, you may follow its documentation at \url{https://pysm3.readthedocs.io/}. 
 
 \subsection{Analyzing the sky maps}
 
-In the previous section, we generated a set of base simulations. These serve as a reference library, constructed from a specific noise model, the foreground model ['d0', 's0'], and a set of fiducial $r$ values within a $\Lambda$CDM cosmology. Now we can simulate an "observed sky" map. This mock observation uses the same noise model but can employ a different foreground model and, crucially, an $r$ value that is independent of those in the base simulations. DroPS will determine the value of $r$ in this "observed sky" by statistically comparing it against the base simulation library. Conceptually, this "observed sky" is analogous to a ``test sample'' in machine learning. We may also generate many realizations of the ``observed sky'' to assess the average offset (bias) between the reconstructed and input $r$ values.
+In the previous section, we generated a set of reference simulations. These serve as a reference library, constructed from a specific noise model, the foreground model ['d0', 's0'], and a set of fiducial $r$ values within a $\Lambda$CDM cosmology. Now we can simulate an "observed sky" map. This mock observation uses the same noise model but can employ a different foreground model and, crucially, an $r$ value that is independent of those in the reference simulations. DroPS will determine the value of $r$ in this "observed sky" by statistically comparing it against the reference simulation library. Conceptually, this "observed sky" is analogous to a ``test sample'' in machine learning. We may also generate many realizations of the ``observed sky'' to assess the average offset (bias) between the reconstructed and input $r$ values.
 
 \subsubsection{Analyzing one realization of sky}
 
@@ -286,13 +294,13 @@ If the bias of $r$-measurement is small, the mean of reconstructed mean values o
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{r1_logfile_d1s1.png}
-  \caption{Reconstructed $r$ for 100 realizations of sky with different random seeds. For each sky, the $r$ value is reconstructed by comparing the sky with 300 base simulations. The 100 realizations of sky are simulated with foreground model ['d1','s1'] (spatially varying SED of synchrotron and dust emission), while  ['d0', 's0'] (fixed SED) is used in the 300 base simulations. \label{fig:r_logs}}
+  \caption{Reconstructed $r$ for 100 realizations of sky with different random seeds. For each sky, the $r$ value is reconstructed by comparing the sky with 300 reference simulations. The 100 realizations of sky are simulated with foreground model ['d1','s1'] (spatially varying SED of synchrotron and dust emission), while  ['d0', 's0'] (fixed SED) is used in the 300 reference simulations. \label{fig:r_logs}}
 \end{figure}
 
 
 \subsubsection{How to apply on real data}
 
-A real experiment comes with its own map making and noise simulation pipelines, and provides base simulations and the actually observed sky maps. To analyze the real data, you can simply replace the base simulations with the maps from the simulation pipeline of the experiment, and replace the realization of sky with the actually observed frequency maps.
+A real experiment comes with its own map making and noise simulation pipelines, and provides reference simulations and the actually observed sky maps. To analyze the real data, you can simply replace the reference simulations with the maps from the simulation pipeline of the experiment, and replace the realization of sky with the actually observed frequency maps.
 
 
 \subsubsection{Comparison with other pipelines}
@@ -317,9 +325,9 @@ The most well known method of component separation is probably the internal line
 
 For ground-based CMB experiments, however, a key challenge of ILC or ILC-like methods is that TOD filtering and beam convolution are non commutative operations. Consequently, smoothing frequency maps to a common resolution inevitably alters their spectral energy distributions. This inherent limitation explains why, despite its popularity in simulations that neglect TOD filtering effects~\cite{SO-SAT}, ILC is often superseded by more computationally intensive, likelihood-based methods in real-world analyses, such as those conducted by BICEP/Keck~\cite{BKmap}.
 
-DroPS also provides a map-level component separation code. To demonstrate how the code works, we generate a sky realization from the base simulation \#0:
+DroPS also provides a map-level component separation code. To demonstrate how the code works, we generate a sky realization from the reference simulation \#0:
 \tbox{{\small python utils/combine\_sim.py AliCPT/AliCPT\_sim\_config.txt maps/r3AliCPT0\_  0}}
-The above script takes the base simulation \#0 and adds the filtered foreground maps, filtered noise maps and filtered CMB maps into sky frequency maps with root name maps/r3AliCPT0\_.
+The above script takes the reference simulation \#0 and adds the filtered foreground maps, filtered noise maps and filtered CMB maps into sky frequency maps with root name maps/r3AliCPT0\_.
 
 Now we do component separation
 \tbox{ python compsep.py AliCPT/AliCPT\_sim\_config.txt maps/r3AliCPT0\_}
@@ -344,9 +352,9 @@ Thus, with parallel I/O that is commonly supported in modern architectures, the 
 
 
 
-\subsubsection{Displaying the maps}
+\subsubsection{Visualization of partial-sky maps}
 
-DroPS provides a few tools to display the maps on the screen.
+To save disk space, masked maps are saved in npy files, in which only unmasked pixels are saved. These partial sky maps cannot be directly displayed on the screen with the standard Healpix tools. DroPS provides a few tools to display them.
 
 The script utils/viewfits.py displays the fits maps.
 
@@ -357,7 +365,7 @@ If you have a map example\_IQU.fits with stokes I, Q, U components, you can run
 with mapind = 0, 1, 2 for I, Q, U components, respectively.
 
 
-DroPS often saves partial-sky maps in npy format. Now suppose the mask file is mask.fits. To display these masked-sky maps, use utils/viewnpy.py:
+Now suppose the mask file is mask.fits. To display the masked-sky maps in npy format, using utils/viewnpy.py:
 
 \tbox{python utils/viewnpy.py mask.fits example\_IQU.npy mapind}
 with mapind = 0, 1, 2 for I, Q, U components, respectively.
@@ -397,7 +405,7 @@ Let $n_{\rm bin}$ be the number of $\ell$-bins, $n_\nu$ the number of frequency 
  where $D^{\rm CMB}$ and $D^{\rm fg}$ are the expected band powers from the CMB and foregrounds. The noise expectation is zero due to the exclusive use of cross-correlations. The total covariance $\mathrm{Cov}$ encompasses all variance from noise, foregrounds, and CMB.
 
 
- Prior to discussing the specific noise, CMB, and foreground models or the technical estimation of $\mathrm{Cov}$, we will outline two key components: the map-making simulators for the base simulations, and how the TOD filtering is modeled throughout the pipeline. 
+ Prior to discussing the specific noise, CMB, and foreground models or the technical estimation of $\mathrm{Cov}$, we will outline two key components: the map-making simulators for the reference simulations, and how the TOD filtering is modeled throughout the pipeline. 
 
 
 
@@ -435,7 +443,7 @@ When simulating maps, the pickle file is specified in the configuration file (e.
 
 The ``map-making'' simulator is designed for computational efficiency, requiring far fewer resources than a full pipeline that processes actual time-ordered data. It is a simplified model whose purpose is not to replicate every detail, but to capture the dominant large-scale effects of TOD filtering—namely, power suppression and mode mixing—for simulation-based studies.
 
-In the analysis stage, DroPS operates without prior knowledge of the specific TOD filtering applied in the simulations. It phenomenologically models the net filtering effect using a coupling matrix $F_{\ell\ell^\prime}$. This matrix is structured such that its main diagonal captures the power suppression in each multipole bin, while the first off-diagonals capture the mode coupling between adjacent bins; all other elements are set to zero. By default, this matrix is calibrated empirically by performing a least-squares fit that compares the band powers of filtered versus unfiltered noise maps from the base simulations.
+In the analysis stage, DroPS operates without prior knowledge of the specific TOD filtering applied in the simulations. It phenomenologically models the net filtering effect using a coupling matrix $F_{\ell\ell^\prime}$. This matrix is structured such that its main diagonal captures the power suppression in each multipole bin, while the first off-diagonals capture the mode coupling between adjacent bins; all other elements are set to zero. By default, this matrix is calibrated empirically by performing a least-squares fit that compares the band powers of filtered versus unfiltered noise maps from the reference simulations.
 
 An important caveat is that while TOD filtering is a linear operation on the map, its effect on the power spectrum is not strictly linear. The band-diagonal coupling matrix $F_{\ell\ell^\prime}$​ is therefore a simplified model. Consequently, the design of DroPS intentionally minimizes reliance on this approximate model to ensure robustness. (See Sec.~\ref{sec:cmb} for more details.)
 
@@ -454,18 +462,18 @@ where $\sigma_{\rm white}$ must be in units of $\mu$K-radian\footnote{To convert
 
 For the demo-experiments, the polarization noise spectra are simplified to $N_\ell^{EE} = N_\ell^{BB} = 2N_{\ell}^{TT}$. While this relation is not exact for real instruments, it provides a reasonable approximation in many cases.
 
-It is important to note that the analytic model in Eq.~\eqref{eq:noise_model} is used exclusively for generating the base simulations. During the data analysis stage, DroPS bypasses this model and computes the noise covariance directly from the base simulations themselves. Furthermore, the expectation value of the noise power spectrum is always zero in the analysis because DroPS exclusively employs cross-power spectra between different frequency channels or observation seasons, thereby inherently deriving noise-debiased power spectra.
+It is important to note that the analytic model in Eq.~\eqref{eq:noise_model} is used exclusively for generating the reference simulations. During the data analysis stage, DroPS bypasses this model and computes the noise covariance directly from the reference simulations themselves. Furthermore, the expectation value of the noise power spectrum is always zero in the analysis because DroPS exclusively employs cross-power spectra between different frequency channels or observation seasons, thereby inherently deriving noise-debiased power spectra.
 
     
 \subsection{CMB model \label{sec:cmb}}
 
 \subsubsection{Cosmology}
 
-DroPS assumes standard Lambda cold dark matter ($\Lambda$CDM) with an additional parameter $r$. For the demo experiments, the default cosmological parameters for base simulations are listed in Table~\ref{tab:cosmo}. 
+DroPS assumes standard Lambda cold dark matter ($\Lambda$CDM) with an additional parameter $r$. For the demo experiments, the default cosmological parameters for reference simulations are listed in Table~\ref{tab:cosmo}. 
 
 \begin{table}
   \centering
-  \caption{Default cosmological parameters for base simulations \label{tab:cosmo}}
+  \caption{Default cosmological parameters for reference simulations \label{tab:cosmo}}
   \begin{tabular}{lll}
     \hline
     \hline
@@ -482,7 +490,7 @@ DroPS assumes standard Lambda cold dark matter ($\Lambda$CDM) with an additional
   \end{tabular}
 \end{table}
 
- Unlike the noise statistics, which can be empirically derived from the base simulations, the CMB statistics depend on underlying cosmological parameters—most notably the unknown tensor-to-scalar ratio rr. This fundamental difference necessitates a more sophisticated approach for modeling the CMB band powers and their contribution to the signal covariance matrix.
+ Unlike the noise statistics, which can be empirically derived from the reference simulations, the CMB statistics depend on underlying cosmological parameters—most notably the unknown tensor-to-scalar ratio rr. This fundamental difference necessitates a more sophisticated approach for modeling the CMB band powers and their contribution to the signal covariance matrix.
 
 
 \subsubsection{Delensing \label{sec:delens}}
@@ -499,7 +507,7 @@ DroPS assumes standard Lambda cold dark matter ($\Lambda$CDM) with an additional
     The primary goal of DroPS is to infer the tensor-to-scalar ratio rr, which is by default the only free cosmological parameter. Users can choose to vary the full set of standard ΛΛCDM parameters by setting vary\_cosmology = True in the configuration file. However, since the large-scale polarization data from ground-base SATs alone provide weak constraints on the background cosmology, DroPS applies a Gaussian prior based on Planck+BAO results~\cite{Planck18Params} to ensure the parameters remain within physically reasonable ranges\footnote{This prior can be disabled by modifying mainpipe.py, but doing so may lead to poor convergence in the Monte Carlo sampling or numerical instability.}.
 
 
-The base simulations are generated with two fiducial values of the tensor-to-scalar ratio: $r=0$ and $r=r_1>0$. By averaging over these simulations, we obtain the expected CMB band powers, $\langle D^{\rm CMB}_\ell(r=0)\rangle $ and $\langle D^{\rm CMB}_\ell(r=r_1)\rangle$. The recommended value for $r_1$​ is $0.03$ (approximately the current 90\% confidence level upper limit), which is user-configurable.    
+The reference simulations are generated with two fiducial values of the tensor-to-scalar ratio: $r=0$ and $r=r_1>0$. By averaging over these simulations, we obtain the expected CMB band powers, $\langle D^{\rm CMB}_\ell(r=0)\rangle $ and $\langle D^{\rm CMB}_\ell(r=r_1)\rangle$. The recommended value for $r_1$​ is $0.03$ (approximately the current 90\% confidence level upper limit), which is user-configurable.    
 
 Under the standard cosmological model, and assuming other parameters $\theta$ are fixed to their fiducial values $\theta_{\rm fid}$​, the CMB band powers exhibit an approximately linear response to rr. DroPS leverages this by modeling the CMB band powers as a linear interpolation between the two simulated benchmarks, which inherently includes all instrumental effects:
 \begin{equation}
@@ -517,7 +525,7 @@ This design is highly efficient for the most likely scenario in next-generation 
 
 \subsection{Foreground model \label{sec:fg}}
 
-\subsubsection{Thermal dust emission and synchrotron radiation}
+\subsubsection{Thermal dust emission and synchrotron radiation: base model}
 
 The primary diffuse foregrounds in CMB polarization—Galactic thermal dust and synchrotron radiation—possess spectral energy distributions (SEDs) that are distinctly different from the CMB's blackbody spectrum. This spectral distinction is the basis for component separation, which necessitates a minimum of three frequency channels to disentangle the CMB, dust, and synchrotron signals.
 
@@ -756,7 +764,7 @@ Empirical tests show that the correlations between adjacent $\ell$ bins and next
 \end{figure}
 
 
-The signal and signal$\times$noise covariance matrices are cosmology-dependent. DroPS pre-computes them at the two fiducial points, $r=0$ and $r=r_1$​, from the base simulations. Within the interval $0<r<r_1$, the covariances are interpolated according to their known scaling with $r$: the signal covariance scales with $r^2$ and is thus interpolated linearly in $r^2$, while the signal$\times$noise covariance scales with $r$ and is interpolated linearly in $r$. For values $|r|>r_1$​, DroPS uses the covariance evaluated at $r=r_1$​, deliberately avoiding any extrapolation to prevent the introduction of unphysical modes and catastrophic overfitting.
+The signal and signal$\times$noise covariance matrices are cosmology-dependent. DroPS pre-computes them at the two fiducial points, $r=0$ and $r=r_1$​, from the reference simulations. Within the interval $0<r<r_1$, the covariances are interpolated according to their known scaling with $r$: the signal covariance scales with $r^2$ and is thus interpolated linearly in $r^2$, while the signal$\times$noise covariance scales with $r$ and is interpolated linearly in $r$. For values $|r|>r_1$​, DroPS uses the covariance evaluated at $r=r_1$​, deliberately avoiding any extrapolation to prevent the introduction of unphysical modes and catastrophic overfitting.
 
 
 \subsection{Component separation \label{sec:sgld_like}}
@@ -792,11 +800,11 @@ The sky model $(Q+iU)_{\rm sky}$ is the sum of Eqs.~(\ref{eq:CMB_comp}, \ref{eq:
 \end{equation}
 Here $M_j$ is pixel value of a smoothed mask, whose edges are apodized using a C2-type kernel  with an apodization scale of 2 degrees~\cite{Grain09}.  The purpose of introducing such a smoothed mask is to suppress unphysical modes due to sharp-edge and to reduce $E$-to-$B$ leakage.
 
-On the other hand, we can calculate $\tilde{n}_{\ell m}^E$ and $\tilde{n}_{\ell m}^B$ from the filtered noise maps in the base simulations, and compute their diagonal covariance $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle $ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^B|^2\rangle $. For most mask shapes, the $m$-dependencies of $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle$ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle$ are very weak, and mostly reflect the statistic fluctuations due to finite sampling. Therefore, DroPS uses the $m$-averaged pseudo power spectra $\tilde{N}_\ell^E$ and $\tilde{N}_\ell^B$ to construct the likelihood in harmonic space. The likelihood $\propto e^{-\chi^2/2}$ is given by
+On the other hand, we can calculate $\tilde{n}_{\ell m}^E$ and $\tilde{n}_{\ell m}^B$ from the filtered noise maps in the reference simulations, and compute their diagonal covariance $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle $ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^B|^2\rangle $. For most mask shapes, the $m$-dependencies of $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle$ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle$ are very weak, and mostly reflect the statistic fluctuations due to finite sampling. Therefore, DroPS uses the $m$-averaged pseudo power spectra $\tilde{N}_\ell^E$ and $\tilde{N}_\ell^B$ to construct the likelihood in harmonic space. The likelihood $\propto e^{-\chi^2/2}$ is given by
 \begin{equation}
   \chi^2 = f_{\rm sky}\sum_{\ell = 0}^{\ell_{\max}} \sum_{m=-\ell}^\ell \frac{|\tilde{n}_{\ell m}|^2}{N_{\ell}}.
 \end{equation}
-
+Because the dependencies of $\tilde{n}_{\ell m}$ on $c_{\ell m}$, $d_{\ell m}$ and $s_{\ell m}$ are all linear, a gradient template can be pre-computed for given mask and map-making pipeline. The task of computing the gradient template, which involves map-making from time-ordered data, is computationally demanding. However, since the processing for each individual $\ell, m$ mode is independent, this task is highly parallelizable and can be efficiently executed on a computing cluster.
 
 
 \bibliographystyle{unsrt}

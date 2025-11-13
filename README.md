@@ -1,7 +1,7 @@
 DroPS
 Deriving r from Power Spectra (DroPS):  measuring primordial gravitational wave (tensor-to-scalar ratio r) from CMB maps.
 
-This is a quick-start documentation. For more details see DroPS_doc.pdf
+This is a quick-start documentation. For more details see doc/DroPS_doc_en.pdf
 
 INSTALL:
 --------------------------------------------------------

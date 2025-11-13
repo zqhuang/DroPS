@@ -36,7 +36,9 @@
 \thispagestyle{empty}
 \title{\Huge \textbf{DroPS 说明文档中文版} }
 \author{黄志琦 \\
-  huangzhq25@mail.sysu.edu.cn}
+  {\small huangzhq25@mail.sysu.edu.cn} \\
+  {\small 支撑项目：国家重点研发计划2020YFC2201602}
+}
 \date{2025年11月} 
 \maketitle 
 
@@ -59,39 +61,42 @@
 \end{equation}
 和
 \begin{equation}
-\mathcal{P}_T(k) = r A_s \left(\frac{k}{k{\mathrm{pivot}}}\right)^{n_t}.
+\mathcal{P}_T(k) = r A_s \left(\frac{k}{k{\mathrm{pivot}}}\right)^{n_t}.\label{eq:PT}
 \end{equation}
 
 现有的CMB实验已经对标量功率谱参数 $A_s$ 和 $n_s$ 给出了很强的观测限制~\cite{Planck18Params}. 在大多数暴胀模型中，张量功率谱的斜率 $n_t$ 都很小，所以在实际数据分析中它或者被近似成零，或者按照单场满滚模型的预言处理（$n_t = -r/8$）. 而剩下的刻画在选定的特征尺度 $k_{\rm pivot}$ 上的张量-标量-比（简称张标比）的参数  $r$， 目前仍然没有观测到它的下限。 现在最好的观测上限是 $r < 0.032$ （95\%置信度）~\cite{Tristram22}。虽然这个上限已经排除掉了一些暴胀模型，但是仍然有大量的模型和 $0<r<0.032$ 兼容~\cite{Inflation23}.  
 
-\subsection{CMB B-polarization and $r$}
+\subsection{CMB B模式极化和张标比 $r$}
 
 在CMB中探寻原初引力波信号（测量 $r$）是现代宇宙学的最重要科学目标之一。这项探索聚焦于一个独特的可观测量：B模式偏振图样。
 
-CMB光子在其散射早期宇宙中的自由电子时发生了偏振。这个过程在光线上印刻了方向性的偏好，从而产生了两种独特的模式：E模式（其模式无旋，如同电荷周围的电场）和B模式（其模式具有旋性）。虽然原初等离子体中的密度涨落（标量扰动）能够产生E模式，并能通过引力透镜效应产生少量的B模式（即所谓的透镜化B模式），但它们无法产生原初B模式所特有的、大尺度的旋性图样。 这正是原初引力波发挥作用之处。理论上产生于暴胀时期的原初引力波在早期宇宙中传播时，会周期性地拉伸和挤压空间，给等离子体施加了一种独特的、旋性的畸变，从而在CMB中产生了一种本质上具有旋转特性的偏振模式。
+CMB光子在其散射早期宇宙中的自由电子时发生了偏振。这个过程在光线上印刻了方向性的偏好，从而产生了两种独特的模式：E模式（类似于静电荷产生的电场\footnote{这仅仅是一个类比。实际上 $E$ 本身是一个标量场；和电场进行类比的极化矢量由 $E$ 的二阶空间导数构造出来}，标量扰动和张量扰动都可以产生）和B模式（类似于磁场\footnote{这也仅是类比。实际上 $B$ 是一个赝标量场；和磁场类比的极化矢量由 $B$ 的二阶空间导数构造出来。}）。虽然原初等离子体中的密度涨落（标量扰动）能够产生E模式，并能通过引力透镜效应产生少量的B模式（即所谓的透镜化B模式），但它们无法产生原初B模式所特有的、大尺度的旋性图样。 这正是原初引力波发挥作用之处。理论上产生于暴胀时期的原初引力波在早期宇宙中传播时，会周期性地拉伸和挤压空间，给等离子体施加了一种独特的、旋性的畸变，从而在CMB中产生了一种本质上具有旋转特性的偏振模式。
 
-因此，CMB在大角尺度上的B模式功率谱可以作为这些原初引力波的直接示踪物，为我们窥探极早期宇宙最的物理提供了一扇独一无二的窗口。
+因此，CMB在大角尺度上的B模式功率谱可以作为这些原初引力波的直接示踪物；探测到 CMB 中的大角尺度 B 模式功率谱几乎就等价于测到了原初引力波。 因为 $A_s\approx 2.1\times 10^{-9}$ 几乎是已经被确定的数，\eqref{eq:PT} 给出的原初引力波的功率谱大小直接正比于参数 $r$。 用 CMB 的大角尺度 B 模式的观测数据限制 $r$，就成为窥探极早期物理，探索引力的量子特性的重要窗口。 
+
+\subsection{地面小口径CMB望远镜}
 
 
-\subsection{Ground-based CMB experiments with small-aperture telescopes}
-
-
-A key objective of many ground-based, small-aperture telescope (SAT) CMB experiments—including BICEP/Keck~\cite{BICEP}, AliCPT~\cite{AliCPT, Zhang24, AliCPT25}, the Simons Observatory SATs~\cite{SO-SAT, SO-SAT-improve}, and the initially planned CMB-S4 SATs~\cite{CMB-S4-Intro, CMB-S4-SAT}\footnote{At the time of writing, unfortunately CMB-S4 is no longer financially supported.}—is to measure the degree-scale CMB B-mode polarization, the unique signature of primordial gravitational waves. These telescopes observe the polarized sky emission across a wide frequency range (typically ~30–300 GHz), where the raw data is a complex mixture of the CMB signal, pervasive Galactic foregrounds, atmospheric emission, and instrumental noise. Disentangling the faint primordial B-mode signal from these dominant contaminants presents a significant data challenge, necessitating sophisticated component-separation and analysis software. Our software, DroPS, is designed specifically to meet this need, providing a robust framework for inferring the tensor-to-scalar ratio $r$ from the polarization data acquired by ground-based SATs.
+地面小口径的望远镜（SAT）CMB 实验， 包括 BICEP/Keck~\cite{BICEP}, AliCPT~\cite{AliCPT, Zhang24, AliCPT25}, Simons Observatory SATs~\cite{SO-SAT, SO-SAT-improve}, 以及曾计划的 CMB-S4 SATs~\cite{CMB-S4-Intro, CMB-S4-SAT}\footnote{目前CMB-S4计划已取消。}等，都有一个共同的目标：从 CMB 中寻找原初引力波的独有信号。这些望远镜在(大致在30–300 GHz范围内的)多个频段观测前景相对较弱的部分天区。但即使是这些比较“干净”的天区，前景依然远强于待测的信号。观测的原始数据将是 CMB 信号，银河系前景，大气辐射，仪器噪声等的叠加。要把微弱的原初引力波信号从数据中提取出来（即测量 $r$），需要十分复杂的成分分离技术。这个文档对应的软件, DroPS ({\color{blue}D}eriving {\color{blue} $r$} fr{\color{blue}o}m {\color{blue}P}ower {\color{blue}S}pectra 的缩写)，就是为实现这个目标而设计。
 
 
 \newpage
 
-\section{Software Documentation}
+\section{软件使用说明}
 
-Designed for efficiency, DroPS has minimal hardware requirements. The analyses presented in this documentation were performed efficiently on a conventional laptop. A typical setup for running DroPS is a standard personal computer with a few hundred gigabytes of free storage.
+如果不涉及具体的从时序数据制作天图的流程，而直接从已有的天图出发限制 $r$，由于分析的是大角尺度（低分辨率）的CMB统计，所需要的计算资源并不多\footnote{DroPS也提供“天图制作”的快速模拟器，但是该模拟器仅仅是一种近似，而非是针对某个具体实验的真实时序数据处理。}。只有在处理真实数据，需要把DroPS连接到具体实验对应的天图制作数据管线时，才会涉及大量的计算资源。
 
-\subsection{Installing DroPS}
+因此，为了实现下面的教程的测试例子，用户只需准备一个有几百GB硬盘空间的个人电脑。
 
-While this guide has been tested on Ubuntu 24.04 LTS, the process is generally straightforward on other Linux distributions. For Windows and macOS users, some steps may require slight modifications, particularly regarding environment setup or package installation.
+\subsection{安装DroPS}
 
-\subsubsection{Installing tools and libraries}
+这个教程是在 Ubuntu 24.04 LTS 系统上测试的，但应该很容易通过微调在其他linux系统上实现。如果用户使用的是Windows或者MacOS系统，很多例子就可能需要较大的改动才能实现——如果环境的调试过于困难，一般的建议是安装一个Ubuntu 24.04LTS 的子系统。
 
-Install the following packages and libraries with Synaptic Package Manager or ``sudo apt install'':
+下面的文档假设用户是在一个bash终端（bash terminal）里工作的。
+
+\subsubsection{安装系统环境}
+
+用 Synaptic Package Manager 或者 ``sudo apt install'' 安装下面的系统软件包:
 
 \begin{itemize}
   \item{git}
@@ -110,73 +115,79 @@ Install the following packages and libraries with Synaptic Package Manager or ``
   \item{libhealpix-dev}
 \end{itemize}
 
-\subsubsection{Set up a Python virtual environment}
+\subsubsection{建立Python虚拟环境}
 
-Create a directory for Python virtual environment in your work path (hereafter denoted as YourWorkPath)
+在常用的工作目录（后面用 YourWorkPath 代替）下建立一个Python虚拟环境目录：
 \tbox{mkdir YourWorkPath/.work}
+（这里的虚拟环境目录名 .work 是可以随意选取的，但通常建议以 . 开头（默认为隐藏文件夹），以防止日常操作中误删除 Python 包）
 
-Create the Python virtual environment
+然后创立一个 Python 虚拟环境：
 \tbox{python  -m  venv YourWorkPath/.work}
 
-Activate the virtual environment
+激活虚拟环境：
 \tbox{source YourWorkPath/.work/bin/activate}
-On windows you may need to run
+在 Windows 系统里激活虚拟环境可能要在cmd.exe里执行
 \tbox{YourWorkPath/.work/Scripts/activate.bat}
-in cmd.exe or
+或者在 PowerShell里执行
 \tbox{YourWorkPath/.work/Scripts/activate.psl}
-in PowerShell.
 
-When you are done with your work, exit the terminal or use
+
+当工作结束时，用
 \tbox{deactivate}
-to exit the virtual environment.
+来退出 Python 虚拟环境。
 
-If you are not working with other Python projects. You may want to activate the virtual environment automatically with the terminal 
+如果你没有其他的 Python 项目，建议把激活虚拟环境的命令放到.bashrc里
 \tbox{echo ``source YourWorkPath/.work/bin/activate''\ \ $>>$\ \ \$\{HOME\}/.bashrc}
+这样每次启动终端时会自动激活这个虚拟环境。
 
-\subsubsection{Install requirements}
+\subsubsection{安装python依赖}
 
+在激活了上小节安装的 Python 虚拟环境的情况下，我们来安装 DroPS 依赖的 Python 包。
 
-Activate the virtual environment either manually or automatically as described in the previous subsection.
-
-Upgrade pip for the latest information of packages:
+先更新 pip 到最新版以获得 Python 包的正确信息：
 \tbox{pip install -\,-upgrade pip}
 
-Now enter your work path where you want to install DroPS
+进入到工作目录：
 \tbox{cd YourWorkPath}
-Get the DroPS repository
+
+从 Github 上下载 DroPS 的源码：
 \tbox{git clone https://github.com/zqhuang/DroPS}
 
-Now enter the DroPS directory
+然后进入 DroPS 目录
 \tbox{cd DroPS}
-Install all dependencies
+
+用 pip 安装所有依赖包：
 \tbox{pip install -r requirements.txt}
 
-\subsubsection{Hacking pysm3}
+\subsubsection{修改pysm3包}
 
-While hacking a Python package is generally not recommended, we have made a pragmatic choice to do so for significant gains in the efficiency of large-scale CMB simulations. Note that this step is entirely optional and is only required for simulation work; users who solely wish to analyze existing sky maps can safely skip it.
+在上一节安装的依赖包里有一个叫 pysm3 的包，它的功能是模拟前景和 CMB 辐射。我们现在来修改它的源代码来提高模拟效率。虽然修改一个Python包的源码一般来说是不被推荐的操作，但是在效率和规范之间反复权衡之后，我们还是采取了这个“权宜之计”来获得更适合DroPS的高效模拟功能。在未来如果 pysm3 提供了更为灵活的功能，就可以避免这个不太符合Python理念的操作。另外，如果你只准备用 DroPS 的数据分析功能，而不打算使用 DroPS 的天图模拟功能，也可以跳过这小节的操作。
 
 
-Enter the DroPS directory
+进入 DroPS 目录：
 \tbox{cd YourWorkPath/DroPS}
-Move the cmb.py file in the pysm3 package to somewhere else
+
+把 pysm3 安装目录下的文件 models/cmb.py 移动并改名（这是为了备份以保证操作可逆）：
 \tbox{mv PATH\_TO\_pysm3/models/cmb.py cmb\_backup.py}
-and replace it with the cmb.py file that comes with DroPS
+
+然后把 DroPS 目录下的 cmb.py 移动到 pysm3 安装目录的 model 文件夹中：
 \tbox{cp cmb.py PATH\_TO\_pysm3/models/}
-Here PATH\_TO\_pysm3 stands for the path where pysm3 was installed. On Ubuntu 24.04.3LTS, you may find PATH\_TO\_pysm3 to be
+
+这里 PATH\_TO\_pysm3 代表 pysm3 的安装目录，在 Ubuntu 24.04.3LTS 系统里，你可能会发现这个安装目录是
 
 YourWorkPath/.work/lib/python3.12/site-packages/pysm3
 
-If you are not using Ubuntu24.04.3LTS, the pysm3 path may be slightly different. You can find out the path by doing
+在其他系统环境下，这个安装目录可能有所不同。在linux系统下，这个问题比较容易解决：可以先安装plocate，
 \tbox{sudo apt install plocate}
-and
+然后用
 \tbox{locate pysm3}
+就可以找到 pysm3 的安装路径。
 
+\subsection{参照数据组}
 
-\subsection{Base simulations}
+在分析（无论是模拟的还是真实观测得到的）观测天图之前，必须模拟一批CMB、噪音和前景的参照数据组。参照数据组的模拟代表了目前我们对现实（仪器、噪音统计性质、前景统计性质等）的最佳认知。参照数据组可以类比为机器学习中的训练样本\footnote{注意这仅仅是一个类比，DroPS并不使用深度学习等前沿机器学习技术。}。 但无论如何，需要注意参照数据组可能和真实数据之间存在系统性的差别。如何尽可能地避免这些可能的差别带来的影响，是DroPS一个重要的优化指标。
 
-    Before analyzing real or simulated sky maps, it is necessary to first generate the base simulations—a set of simulated CMB, noise, and foreground components. These simulations represent our best-informed model of reality, encapsulating our current understanding of the cosmology, instrument, noise, and foregrounds. As such, they serve a role analogous to ``training data'' in machine learning\footnote{Note that this is purely a conceptual analogy; DroPS does not employ ML techniques.}. Nevertheless, systematic offsets may persist between these simulations and the actual observations.
-
-\subsubsection{Generate a TOD filtering model}
+\subsubsection{生成一个时序数据过滤的模拟器}
 
 A critical step in processing data from ground-based CMB experiments is the mitigation of ground and atmospheric contamination in the time-ordered data (TOD). Accurately simulating this filtering process necessitates detailed knowledge of the survey strategy, which is often unavailable during the forecasting stage. Fortunately, the overall effect is well-understood: it suppresses large-scale power (low multipoles) in the final maps and introduces non-Gaussian correlations by mixing Fourier modes. For use cases that do not require a precise, survey-specific simulation, DroPS provides a "mock filtering" tool to generate an approximate filtering matrix.
 
@@ -185,7 +196,7 @@ To generate the TOD filtering matrix, run:
 and follow the prompts. Enter the healpix resolution (nside, 128 for testing, 256/512 for serious simulations) and the file name for the filtering matrix (e.g. filter\_128.pickle). You may also refine the model by entering the parameters $\ell_{\rm cut}$, $f_{\rm low}$, $f_{\rm high}$, $\alpha_{\rm low}$, $\theta_\ell$, $\theta_m$ that are defined in Sec.~\ref{sec:TOD}. 
 
 
-\subsubsection{Generating base simulations}
+\subsubsection{生成参照数据组}
 
 Now we are ready to generate the base simulations for given experiments.  DroPS comes with four ``demo-experiments'': Test, AliCPT, SO, and CMBS4.  The ``Test'' demo-experiment is just for testing purpose and does not have a counterpart in reality. The configurations (sky coverage, noise level etc., see Table~\ref{tab:config}) of the latter three demo-experiments (AliCPT, SO, CMBS4) are similar, but not identical to their counterparts in reality (AliCPT~\cite{AliCPT}, SO-SAT~\cite{SO-SAT} and CMB-S4-SAT~\cite{CMB-S4-SAT}). In this documentation we will mainly use the ``AliCPT'' experiment as examples. We will also use SO for comparison between different foreground modeling and between DroPS and other pipelines in the literature~\cite{SO-SAT}.
 
@@ -236,11 +247,11 @@ By default, the base simulations use the foreground model ['d0', 's0'] with fixe
 
 To further understand how the foreground models are defined in pysm3, you may follow its documentation at \url{https://pysm3.readthedocs.io/}. 
 
-\subsection{Analyzing the sky maps}
+\subsection{分析天图}
 
 In the previous section, we generated a set of base simulations. These serve as a reference library, constructed from a specific noise model, the foreground model ['d0', 's0'], and a set of fiducial $r$ values within a $\Lambda$CDM cosmology. Now we can simulate an "observed sky" map. This mock observation uses the same noise model but can employ a different foreground model and, crucially, an $r$ value that is independent of those in the base simulations. DroPS will determine the value of $r$ in this "observed sky" by statistically comparing it against the base simulation library. Conceptually, this "observed sky" is analogous to a ``test sample'' in machine learning. We may also generate many realizations of the ``observed sky'' to assess the average offset (bias) between the reconstructed and input $r$ values.
 
-\subsubsection{Analyzing one realization of sky}
+\subsubsection{单次模拟天图的分析}
 
 Generate the ``observed sky'' with, e.g.,
 \tbox{python simulate.py AliCPT/AliCPT\_sim\_config.txt maps/AliCPT\_  0.01 999}
@@ -253,7 +264,7 @@ Read the configuration file AliCPT/AliCPT\_ana\_config.txt to understand how to 
 
 The summary statistics of $r$ and other parameters will be shown on the screen when the analysis is done. More detailed results will be saved in AliCPT/results, a path that is also specified in the configuration file AliCPT/AliCPT\_ana\_config.txt.
 
-\subsubsection{Analyzing multiple realizations of sky}
+\subsubsection{多次模拟天图的分析}
 
 In one simulation, the posterior mean value of $r$ can be above or below the input $r$, and this depends on the random seed. To test whether the $r$-measurement pipeline is biased or not, we need to apply the pipeline on many simulations with different random seeds.
 
@@ -290,12 +301,12 @@ If the bias of $r$-measurement is small, the mean of reconstructed mean values o
 \end{figure}
 
 
-\subsubsection{How to apply on real data}
+\subsubsection{真实观测数据的分析}
 
 A real experiment comes with its own map making and noise simulation pipelines, and provides base simulations and the actually observed sky maps. To analyze the real data, you can simply replace the base simulations with the maps from the simulation pipeline of the experiment, and replace the realization of sky with the actually observed frequency maps.
 
 
-\subsubsection{Comparison with other pipelines}
+\subsubsection{和其他分析管线的比较}
 
 DroPS has been applied on AliCPT data challenge (simulated 14\% sky, 95GHz and 150GHz) and achieved consistent results with other methods~\cite{Zhang24}. Here we further compare DroPS with three pipelines that have been applied on simulation data of SO-SAT (Wolz et al. 2024~\cite{SO-SAT}). We adopt the optimistic configuration of SO-SAT. The input fiducial $r$ is zero, and in the analyses unphysical negative $r$ is allowed\footnote{in DroPS this is realized by setting r\_lowerbound negative in the configuration file}.  The results are shown in Figure~\ref{fig:compare_SO}.  From top to bottom, foreground models ['d0', 's0'], ['d1', 's1'], and ['dm', 'sm'] are used, respectively\footnote{The model ['dm', 'sm'] does not come with pysm3 and needs to be prepared by the user. See~\cite{SO-SAT} for its definition.}. From the left where the reconstructed means of $r$ and the bias (mean of the reconstructed means of $r$) are shown, we find DroPS has negligible biases for all cases and more stable than the three pipelines tested in Wolz et al. The right column shows $\sigma_r$, the statistical uncertainties in $r$. We again find good consistency between DroPS and the other pipelines. 
 
@@ -309,9 +320,9 @@ DroPS has been applied on AliCPT data challenge (simulated 14\% sky, 95GHz and 1
   \caption{Comparing DroPS with three pipelines that are described in Wolf et al.~\cite{SO-SAT}. From top to bottom, foreground models ['d0', 's0'], ['d', 's1'], and ['dm', 'sm'] are used, respectively. Left and right columns are the distribution of reconstructed mean $r$ and $\sigma_r$, respectively.\label{fig:compare_SO}}
 \end{figure}
 
-\subsection{Map-level Operations}
+\subsection{天图成分分离}
 
-\subsubsection{Likelihood-based component separation}
+\subsubsection{基于似然函数的天图成分分离方法}
 
 The most well known method of component separation is probably the internal linear combination (ILC) algorithm and its variations. The basic idea is to isolate a signal - whose frequency dependence is known - by taking linear combination of the frequency maps. To do that in pixel space, the frequency maps have to be smoothed to a common resolution. 
 
@@ -344,7 +355,7 @@ Thus, with parallel I/O that is commonly supported in modern architectures, the 
 
 
 
-\subsubsection{Displaying the maps}
+\subsubsection{可视化}
 
 DroPS provides a few tools to display the maps on the screen.
 
@@ -368,7 +379,7 @@ To display E/B components, use utils/viewEB.py:
 
 \newpage
 
-\section{Technical Details}
+\section{软件技术细节}
 
 In this section I assume the reader has cosmological background and is familiar with Healpix~\cite{Healpix}.
 
@@ -401,7 +412,7 @@ Let $n_{\rm bin}$ be the number of $\ell$-bins, $n_\nu$ the number of frequency 
 
 
 
-\subsection{TOD filtering and map making \label{sec:TOD}}
+\subsection{时序数据过滤和天图制作 \label{sec:TOD}}
 
  A critical preprocessing step in ground-based CMB experiments is the TOD filtering, which isolates the faint CMB signal from dominant, structured ground noise. Observations from the ground are heavily contaminated by low-frequency noise from atmospheric emission and instrumental $1/f$ noise. TOD filtering operates in the time domain to identify and subtract these systematic contaminants, which often exhibit characteristic temporal or scan-synchronous patterns distinct from the CMB. By applying high-pass or more sophisticated modal filters, it suppresses large-scale noise while aiming to preserve the intrinsic CMB signal, enabling the production of high-fidelity sky maps.
 
@@ -440,7 +451,7 @@ In the analysis stage, DroPS operates without prior knowledge of the specific TO
 An important caveat is that while TOD filtering is a linear operation on the map, its effect on the power spectrum is not strictly linear. The band-diagonal coupling matrix $F_{\ell\ell^\prime}$​ is therefore a simplified model. Consequently, the design of DroPS intentionally minimizes reliance on this approximate model to ensure robustness. (See Sec.~\ref{sec:cmb} for more details.)
 
 
-\subsection{Noise model \label{sec:noise}}
+\subsection{噪音模型 \label{sec:noise}}
 
 DroPS adopts a noise model for its temperature power spectrum following the established approach in Refs.~\cite{SO2019, SO-SAT}:
 \begin{equation}
@@ -457,9 +468,9 @@ For the demo-experiments, the polarization noise spectra are simplified to $N_\e
 It is important to note that the analytic model in Eq.~\eqref{eq:noise_model} is used exclusively for generating the base simulations. During the data analysis stage, DroPS bypasses this model and computes the noise covariance directly from the base simulations themselves. Furthermore, the expectation value of the noise power spectrum is always zero in the analysis because DroPS exclusively employs cross-power spectra between different frequency channels or observation seasons, thereby inherently deriving noise-debiased power spectra.
 
     
-\subsection{CMB model \label{sec:cmb}}
+\subsection{CMB 模型 \label{sec:cmb}}
 
-\subsubsection{Cosmology}
+\subsubsection{宇宙学}
 
 DroPS assumes standard Lambda cold dark matter ($\Lambda$CDM) with an additional parameter $r$. For the demo experiments, the default cosmological parameters for base simulations are listed in Table~\ref{tab:cosmo}. 
 
@@ -485,7 +496,7 @@ DroPS assumes standard Lambda cold dark matter ($\Lambda$CDM) with an additional
  Unlike the noise statistics, which can be empirically derived from the base simulations, the CMB statistics depend on underlying cosmological parameters—most notably the unknown tensor-to-scalar ratio rr. This fundamental difference necessitates a more sophisticated approach for modeling the CMB band powers and their contribution to the signal covariance matrix.
 
 
-\subsubsection{Delensing \label{sec:delens}}
+\subsubsection{去透镜化 \label{sec:delens}}
 
     Gravitational lensing by large-scale structure distorts the primordial CMB, smoothing its acoustic peaks and converting a portion of the E-mode polarization into a secondary B-mode signal. This lensing-induced B-mode acts as a dominant foreground on small scales, obscuring the fainter primordial B-modes from inflationary gravitational waves. While the expectation value of this lensing B-mode power can be theoretically predicted and subtracted, the actual lensing potential in our observed Universe randomly fluctuates around this mean—a source of cosmic variance. For measurements targeting an uncertainty of $\sigma_r\lesssim 10^{-3}$, this unpredictable fluctuation becomes a significant contaminant.
 
@@ -494,7 +505,7 @@ DroPS assumes standard Lambda cold dark matter ($\Lambda$CDM) with an additional
     In DroPS, the implementation assumes that an ideal lensing potential map is available from external sources. While such a map would, in principle, allow for complete delensing, practical limitations prevent perfect removal. To model this, DroPS introduces a delensing efficiency parameter $\epsilon_{\rm delens}$ (delens\_fac in the configuration file), which specifies the fraction of the lensing effect to be removed. Concretely, the process is performed by rescaling the input lensing potential map by a factor of $(1-\epsilon_{\rm delens})$ before applying the delensing operation.
     
 
-\subsubsection{Cosmological parameter inference}
+\subsubsection{宇宙学参数限制}
 
     The primary goal of DroPS is to infer the tensor-to-scalar ratio rr, which is by default the only free cosmological parameter. Users can choose to vary the full set of standard ΛΛCDM parameters by setting vary\_cosmology = True in the configuration file. However, since the large-scale polarization data from ground-base SATs alone provide weak constraints on the background cosmology, DroPS applies a Gaussian prior based on Planck+BAO results~\cite{Planck18Params} to ensure the parameters remain within physically reasonable ranges\footnote{This prior can be disabled by modifying mainpipe.py, but doing so may lead to poor convergence in the Monte Carlo sampling or numerical instability.}.
 
@@ -515,9 +526,9 @@ This design is highly efficient for the most likely scenario in next-generation 
 
 
 
-\subsection{Foreground model \label{sec:fg}}
+\subsection{前景模型 \label{sec:fg}}
 
-\subsubsection{Thermal dust emission and synchrotron radiation}
+\subsubsection{尘埃热辐射和同步辐射的基本模型}
 
 The primary diffuse foregrounds in CMB polarization—Galactic thermal dust and synchrotron radiation—possess spectral energy distributions (SEDs) that are distinctly different from the CMB's blackbody spectrum. This spectral distinction is the basis for component separation, which necessitates a minimum of three frequency channels to disentangle the CMB, dust, and synchrotron signals.
 
@@ -542,7 +553,7 @@ A blind parametrization of the dust-dust, dust-synchrotron, and synchrotron-sync
 
 If the number of available frequency channel is small or the noise is large (target $\sigma_r\gtrsim 0.01$), however, smooth parametrization of foreground power is recommended. The reason is that the ``cosmic variance'' of foreground becomes a tiny effect compared to noise and filter modeling uncertainty. The smooth model of foreground band powers - which is modeled as a quadratic function of $\ell$ - can be turned on in the configuration file by setting analytic\_fg = True.
 
-\subsubsection{Spatially varying foreground: moment expansion method}
+\subsubsection{前景能谱的空间变化: 矩展开方法}
 
 The above discussion is based on the assumption of constant $\beta_d$ and $\beta_s$. For experiments that covers a significant portion of the sky, however, it is unlikely that $\beta_d$ ($\beta_s$) will be strictly a constant across a large area of the sky~\cite{Ade25} .  DroPS deals with the spatial variation of foreground spectral indices with moment expansion approximation~\cite{ME} or Taylor expansion methods, which can be switched on by setting freq\_decorr\_model=``ME'' or freq\_decorr\_model=``Taylor'' in the configuration file. Set freq\_decorr\_model=None if strictly constant $\beta_d$ and $\beta_s$ are wanted. By default, DroPS uses the moment expansion method, details of which are given below.
 
@@ -674,7 +685,7 @@ The treatment of synchrotron is exactly the same, as the dependence of $W_d$ on 
 
 In summary, we have generalized the moment expansion method to masked sky, but still have ignored many complexities that may emerge in reality, such as possible correlation between $\delta \beta_d$, $\delta\beta_s$ and the reference map. Although some of the complexities may be absorbed into the free parameters $\mu_\ell$ and $\varepsilon_\ell$, we do not expect Eq.~\eqref{eq:ME_ph} covers all possible degrees of freedom. Nevertheless, at least for small perturbations around the base (constant-SED) model, moment expansion method is a good tool to account for the foreground complexity.
 
-\subsubsection{Frequency decorrelation: Talor expansion method}
+\subsubsection{前景频率去相关: 泰勒展开方法}
 
 
 
@@ -699,7 +710,7 @@ where $\beta_d$ and $\gamma_d$ are the average SED and the frequency running of 
 
 The moment expansion and Taylor expansion methods typically induce shifts of $r$ on the order of a few $\times 10^{−4}$. We use the more precise demo-experiment SO to highlight the impact of foreground modeling. Figure~\ref{fig:compare_methods} compares the reconstructed $r$ using the base model (constant SED), the moment expansion, and the Taylor expansion methods. Each data point and error bar represent the mean and standard deviation, respectively, averaged over 250 random realizations of the "observed sky." Our analysis shows that the moment expansion method remains nearly unbiased across all tested scenarios, albeit at the cost of a modest increase in uncertainty. The Taylor expansion method also performs robustly in the presence of foreground frequency decorrelation. However, in the absence of such decorrelation, it tends to systematically underestimate the value of $r$.
 
-\subsection{Covariance matrix of band powers \label{sec:cov}}
+\subsection{带功率的相关矩阵 \label{sec:cov}}
 
 While the covariance matrix of the band powers could, in principle, be estimated directly from simulations, this approach faces a practical challenge: the covariance matrix typically contains over a thousand free elements, which cannot be robustly constrained by the few hundred simulations typically available. To overcome this, DroPS implements a two-step stabilization procedure: it applies ``noise cleaning'' by neglecting noise correlations across different channels or observation seasons, and enforces ``scale separation'' by ignoring correlations between widely separated multipole bins.
 
@@ -759,7 +770,7 @@ Empirical tests show that the correlations between adjacent $\ell$ bins and next
 The signal and signal$\times$noise covariance matrices are cosmology-dependent. DroPS pre-computes them at the two fiducial points, $r=0$ and $r=r_1$​, from the base simulations. Within the interval $0<r<r_1$, the covariances are interpolated according to their known scaling with $r$: the signal covariance scales with $r^2$ and is thus interpolated linearly in $r^2$, while the signal$\times$noise covariance scales with $r$ and is interpolated linearly in $r$. For values $|r|>r_1$​, DroPS uses the covariance evaluated at $r=r_1$​, deliberately avoiding any extrapolation to prevent the introduction of unphysical modes and catastrophic overfitting.
 
 
-\subsection{Component separation \label{sec:sgld_like}}
+\subsection{天图成分分离的似然函数 \label{sec:sgld_like}}
 
 For map-level component separation, the likelihood  $\mathcal{L}\propto e^{-\chi^2/2}$ is constructed under a Gaussian noise model, where
 \begin{equation}
