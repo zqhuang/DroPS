@@ -40,7 +40,7 @@ if(len(argv)>4):
     if(argv[4] != "NULL"):
         plot_data(filename=argv[4], fmt='s', color=colors[2], mean_ls = 'dashdot', mean_label=r'None', xshift = 0.15, max_num=num, alpha = 0.3)
 
-plot_data(filename=argv[1], fmt='o', color=colors[0], mean_ls = 'dotted', mean_label=r'ME', max_num = num)
+plot_data(filename=argv[1], fmt='o', color=colors[0], mean_ls = 'dotted', mean_label=r'mean of means', max_num = num)
 
 plt.legend()
 plt.tight_layout()

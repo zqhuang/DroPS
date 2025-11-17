@@ -128,13 +128,13 @@ CMB光子在其散射早期宇宙中的自由电子时发生了偏振。这个�
 \tbox{source YourWorkPath/.work/bin/activate}
 在 Windows 系统里激活虚拟环境可能要在cmd.exe里执行
 \tbox{YourWorkPath/.work/Scripts/activate.bat}
-或者在 PowerShell里执行
+\noindent 或者在 PowerShell里执行
 \tbox{YourWorkPath/.work/Scripts/activate.psl}
 
 
 当工作结束时，用
 \tbox{deactivate}
-来退出 Python 虚拟环境。
+\noindent 来退出 Python 虚拟环境。
 
 如果你没有其他的 Python 项目，建议把激活虚拟环境的命令放到.bashrc里
 \tbox{echo ``source YourWorkPath/.work/bin/activate''\ \ $>>$\ \ \$\{HOME\}/.bashrc}
@@ -179,34 +179,34 @@ YourWorkPath/.work/lib/python3.12/site-packages/pysm3
 
 在其他系统环境下，这个安装目录可能有所不同。在linux系统下，这个问题比较容易解决：可以先安装plocate，
 \tbox{sudo apt install plocate}
-然后用
+\noindent 然后用
 \tbox{locate pysm3}
-就可以找到 pysm3 的安装路径。
+\noindent 就可以找到 pysm3 的安装路径。
 
 \subsection{参照数据组}
 
-在分析（无论是模拟的还是真实观测得到的）观测天图之前，必须模拟一批CMB、噪音和前景的参照数据组。参照数据组的模拟代表了目前我们对现实（仪器、噪音统计性质、前景统计性质等）的最佳认知。参照数据组可以类比为机器学习中的训练样本\footnote{注意这仅仅是一个类比，DroPS并不使用深度学习等前沿机器学习技术。}。 但无论如何，需要注意参照数据组可能和真实数据之间存在系统性的差别。如何尽可能地避免这些可能的差别带来的影响，是DroPS一个重要的优化指标。
+在分析（无论是模拟的还是真实观测得到的）观测天图之前，必须模拟一批CMB、噪声和前景的参照数据组。参照数据组的模拟代表了目前我们对现实（仪器、噪声统计性质、前景统计性质等）的最佳认知。参照数据组可以类比为机器学习中的训练样本\footnote{注意这仅仅是一个类比，DroPS并不使用深度学习等前沿机器学习技术。}。 但无论如何，需要注意参照数据组可能和真实数据之间存在系统性的差别。如何尽可能地避免这些可能的差别带来的影响，是DroPS一个重要的优化指标。
 
 \subsubsection{生成一个时序数据过滤的模拟器}
 
-A critical step in processing data from ground-based CMB experiments is the mitigation of ground and atmospheric contamination in the time-ordered data (TOD). Accurately simulating this filtering process necessitates detailed knowledge of the survey strategy, which is often unavailable during the forecasting stage. Fortunately, the overall effect is well-understood: it suppresses large-scale power (low multipoles) in the final maps and introduces non-Gaussian correlations by mixing Fourier modes. For use cases that do not require a precise, survey-specific simulation, DroPS provides a "mock filtering" tool to generate an approximate filtering matrix.
+处理地基CMB实验数据的关键步骤在于抑制时间序列数据中的地面和大气污染。要精确模拟这一滤波过程，需要详尽的巡天策略信息，而这在前期预测阶段往往难以获取。不过，我们对滤波产生的大致效应有充分的理解：该过程会显著抑制最终地图中的大尺度功率（球谐展开中的低阶极矩），并通过混合傅里叶模式引入非高斯关联。对于不需要精确模拟特定巡天策略的应用场景，DroPS提供了一套“模拟滤波”工具来生成具有同样效应的滤波矩阵。注意这个方法是唯象近似，而非从原理上对真实实验的滤波做近似，所以只适合在实验的前期预测阶段对滤波效应的影响做大致的估算。另外，这个方法对计算资源的需求远低于真实滤波过程，所以在对模拟量有很大需求时也适合作为一种平衡计算成本和计算精度的一种选择。
 
-To generate the TOD filtering matrix, run:
+运行
 \tbox{python mock\_filtering.py}
-and follow the prompts. Enter the healpix resolution (nside, 128 for testing, 256/512 for serious simulations) and the file name for the filtering matrix (e.g. filter\_128.pickle). You may also refine the model by entering the parameters $\ell_{\rm cut}$, $f_{\rm low}$, $f_{\rm high}$, $\alpha_{\rm low}$, $\theta_\ell$, $\theta_m$ that are defined in Sec.~\ref{sec:TOD}. 
+\noindent 来获得产生时序数据的滤波矩阵。后续只需要根据提示输入相应的描述滤波矩阵的参数： 主要的两个参数是Healpix天图分辨率(nside, 建议使用128做快速测试, 256或者512做更为精确的测试) 和存储滤波矩阵的以pickle为后缀的文件名 (例如 filter\_128.pickle)。更精细的参数有 $\ell_{\rm cut}$, $f_{\rm low}$, $f_{\rm high}$, $\alpha_{\rm low}$, $\theta_\ell$, $\theta_m$。它们的定义可以在\ref{sec:TOD}节找到。 
 
 
 \subsubsection{生成参照数据组}
 
-Now we are ready to generate the base simulations for given experiments.  DroPS comes with four ``demo-experiments'': Test, AliCPT, SO, and CMBS4.  The ``Test'' demo-experiment is just for testing purpose and does not have a counterpart in reality. The configurations (sky coverage, noise level etc., see Table~\ref{tab:config}) of the latter three demo-experiments (AliCPT, SO, CMBS4) are similar, but not identical to their counterparts in reality (AliCPT~\cite{AliCPT}, SO-SAT~\cite{SO-SAT} and CMB-S4-SAT~\cite{CMB-S4-SAT}). In this documentation we will mainly use the ``AliCPT'' experiment as examples. We will also use SO for comparison between different foreground modeling and between DroPS and other pipelines in the literature~\cite{SO-SAT}.
+有了滤波矩阵，下一步就可以模拟生成参照数据组。不管是参照数据组还是观测数据的模拟，都依赖于观测的策略和仪器精度，因此必须针对某个观测实验进行模拟。DroPS提供了四个“演示实验”: Test, AliCPT, SO, 和 CMBS4。其中Test是一个以快速测试为目的的纯假想实验，仅包含四个频段，以nside=128的低分辨率进行测试。 其他三个演示实验（AliCPT, SO, CMBS4）的参数 (天区面积、频段分布、角分辨率、噪声水平等，可以参考表~\ref{tab:config}）都和同样名称的、已有或计划的实验 (AliCPT~\cite{AliCPT}, SO-SAT~\cite{SO-SAT} and CMB-S4-SAT~\cite{CMB-S4-SAT})相近。在这个文档里我们主要以AliCPT这个演示实验为例子进行使用说明，同时也会以更精确的SO这个演示实验为例来和文献中已经有的其他同类软件~\cite{SO-SAT}做对比。不过要注意的时，在写这个文档的时候，AliCPT和SO这两个实验已经开始投入观测，其实验参数和观测策略和DroPS中对应名称的演示实验不尽相同，因此不能把DroPS的演示实验的测试结果当作真实实验的准确预测。
 
 \begin{table}
   \centering
-  \caption{Key configurations of DroPS demo-experiments; $\ell_{\rm knee}$ and $\alpha_{\rm knee}$ are defined in Sec.~\ref{sec:noise} \label{tab:config}}
+  \caption{DroPS演示实验的关键参数，其中$\ell_{\rm knee}$ and $\alpha_{\rm knee}$在\ref{sec:noise}节里可以找到定义 \label{tab:config}}
   \begin{tabular}{l|lllll}
     \hline
     \hline
-    & frequency & beam FWHM & noise-level $\sigma_{\rm white}$  & $\ell_{\rm knee}$ & $\alpha_{\rm knee}$ \\
+    & 中心频率 & 分辨率（FWHM） & 噪声 $\sigma_{\rm white}$  & $\ell_{\rm knee}$ & $\alpha_{\rm knee}$ \\
     & (GHz) & (arcmin) & ($\mathrm{\mu K}$-arcmin) & & \\
     \hline
   Test   & $30$  & $60$ & $1$ & $60$ & $-1.7$ \\
@@ -239,41 +239,47 @@ Now we are ready to generate the base simulations for given experiments.  DroPS 
   \end{tabular}
 \end{table}
 
-To begin with, you can simulate noise/cmb/foreground maps for the demo-experiment AliCPT.
 
+现在可以运行
 \tbox{python simulate.py AliCPT/AliCPT\_sim\_config.txt}
-Compare the content of configuration file AliCPT/AliCPT\_sim\_config.txt with Table~\ref{tab:config} to understand how the configurations are passed to the script. When no other command-line arguments are passed to simulate.py, it only produces base simulations, that are, a lot of realizations of noise and CMB maps based on the noise model and cosmology that are specified in the configuration file. The foreground maps are only produced once, as we do not yet have a reliable model to describe the ``cosmic variance'' of foreground emissions.
-By default, the base simulations use the foreground model ['d0', 's0'] with fixed spectral indices ($\beta_d=1.54$ for thermal dust, $\beta_s=-3$ for synchrotron). This ['d0', 's0'] foreground map only captures the gross feature of the Galactic emission. The ``actual foreground'' that we will analyze in the next section can be different from the one used in the base simulations. A robust $r$ measurement pipeline must be insensitive to the finer details of the foreground modeling.
+\noindent 来生成演示实验AliCPT的参照数据组。
 
-To further understand how the foreground models are defined in pysm3, you may follow its documentation at \url{https://pysm3.readthedocs.io/}. 
+参照表\ref{tab:config}来阅读模拟的设置文件AliCPT/AliCPT\_sim\_config.txt，理解参数时如何在设置文件里被定义的。 如果在运行 simulate.py 时没有从命令行传入任何其他参数，它仅会产生参照数据组——也就是基于噪声模型和宇宙学分别模拟的大量用不同随机种子生成的噪声和CMB天图，以及基于前景模型产生的一张前景天图。DroPS默认会使用两个不同的 $r$ 值（$r=0$ 以及 $r=r_1=0.03$，其中 $r_1$ 的值允许在设置文件里修改）来生成两组不同的CMB天图。这是为了避免因为对时序数据滤波的建模不准确性带来的系统误差。详细的原因可以参考\ref{sec:cmb}。
+
+在生成参照数据组时，DroPS默认用最简单的 ['d0', 's0'] 模型\footnote{['d0','s0']模型假设固定的尘埃热辐射谱指数 $\beta_d = 1.54$ 以及同步辐射谱指数 $\beta_s = -3$；谱指数的定义见\ref{sec:fg}节。}给出一张固定的前景天图。这反映了目前测量原初引力波所面临的最重要的技术瓶颈：我们既没有一个从第一性原理出发的理论模型、也没有足够的多波段测量数据来建立一个可靠的描述前景能谱涨落的统计模型。一个衡量DroPS以及类似软件的重要指标就是，$r$ 的测量结果不能严重依赖于真实前景和参照数据组中采用的前景模型的差别。对实际观测数据而言，我们无法不依赖于模型地得知天图中包含的“真实前景”。因此对DroPS的性能的测试要依靠前景模型已知（但可以和参照数据采用的['d0','s0']不同）的模拟数据。
+
+下一节我们要展示如何用模拟数据测试DroPS的性能。在此之前，用户可以进一步参考pysm3的官方说明文档 \url{https://pysm3.readthedocs.io/} 来熟悉 ['d0', 's0'] 以及其他前景模型的定义。 
 
 \subsection{分析天图}
 
-In the previous section, we generated a set of base simulations. These serve as a reference library, constructed from a specific noise model, the foreground model ['d0', 's0'], and a set of fiducial $r$ values within a $\Lambda$CDM cosmology. Now we can simulate an "observed sky" map. This mock observation uses the same noise model but can employ a different foreground model and, crucially, an $r$ value that is independent of those in the base simulations. DroPS will determine the value of $r$ in this "observed sky" by statistically comparing it against the base simulation library. Conceptually, this "observed sky" is analogous to a ``test sample'' in machine learning. We may also generate many realizations of the ``observed sky'' to assess the average offset (bias) between the reconstructed and input $r$ values.
+在上一节我们按照噪声模型、宇宙学模型（包括两个不同的 $r$ 值）和 ['d0', 's0'] 前景模型模拟生成了参照数据组。 现在我们要用同一个噪声模型、一个用户假定的宇宙学（用户假定的 $r$ 值是任意的，和参照数据组采用的两个 $r$ 值完全无关）、以及用户指定的前景模型（可以和参照数据组采用的 ['d0', 's0'] 不同）来模拟“观测天图”。 DroPS 的主要功能是在不知道用户输入的宇宙学模型和前景模型的情况下，把“观测天图”和参照数据组做对比，并推断出用户假定的 $r$ 的值。从概念上可以把参照数据组类比为机器学习中的训练样本，而把“观测天图”类比为测试样本。在涉及机器学习的研究中，往往采用大量的测试样本来评估机器学习的准确率。同样地，我们可以用不同的随机种子、宇宙学模型、前景模型来生成多张“观测天图”，来评估DroPS测量的 $r$ 值的系统偏差的大小。
 
-\subsubsection{单次模拟天图的分析}
+\subsubsection{单张模拟观测天图的分析}
 
-Generate the ``observed sky'' with, e.g.,
+我们先来生成一张“观测天图”：
 \tbox{python simulate.py AliCPT/AliCPT\_sim\_config.txt maps/AliCPT\_  0.01 999}
 
-You can replace maps/AliCPT\_ with your preferred prefix for the output maps, $0.01$ with your preferred fiducial $r$ value, and $999$ with your preferred random seed. To test whether DroPS can deal with a spatial variation of the foreground, you may also replace the ['d0', 's0'] foreground model with, e.g., ['d1', 's1'] in the configuration file AliCPT/AliCPT\_sim\_config.txt.
+现在我们从命令行传递给 simulate.py 多个参数。第一个参数仍然是设置文件。第二个参数 maps/AliCPT\_ 是存储观测天图时采用的文件名前缀（例如40GHz的天图将被保存为 AliCPT/maps/AliCPT\_40GHz.npy)。第三个参数 $0.01$ 是用户假设的 $r$ 值。第四个参数 $999$ 是随机种子。如果用户想采用和设置文件中的 ['d0', 's0'] 不同的前景模型，有两种方案：一种是直接修改设置文件，把 ['d0', 's0'] 替换成例如 ['d1', 's1']。另外一种方案是在命令行添加第五个参数，例如 'd1s1'。
 
-Now analyze the ``observed sky'' with
+现在用
 \tbox{python mainpipe.py AliCPT/AliCPT\_ana\_config.txt maps/AliCPT\_}
-Read the configuration file AliCPT/AliCPT\_ana\_config.txt to understand how to analyze the maps with different settings.
+\noindent 来分析我们刚刚生成的“观测天图”。我们传递给mainpipe.py的第一个参数是设置文件，注意它并不包含噪声水平以及用户用于生成“观测天图”所采用的 $r$ 值和前景模型这些信息。DroPS的任务就是利用参照数据组来获得噪声的统计性质，并通过对比参照数据组和“观测天图”来推断用户采用的 $r$ 值。
 
-The summary statistics of $r$ and other parameters will be shown on the screen when the analysis is done. More detailed results will be saved in AliCPT/results, a path that is also specified in the configuration file AliCPT/AliCPT\_ana\_config.txt.
+在这一步，用户可以简单地阅读设置文件 AliCPT/AliCPT\_ana\_config.txt 来获得对DroPS分析天图时涉及的设置参数的大致了解。
 
-\subsubsection{多次模拟天图的分析}
+当计算结束时，张标比 $r$ 以及部分其他宇宙学和前景参数的后验统计将会在屏幕上显示出来。更多的结果会被记录到 AliCPT/results。这个保存结果的路径是在设置文件 AliCPT/AliCPT\_ana\_config.txt 里指定的。
 
-In one simulation, the posterior mean value of $r$ can be above or below the input $r$, and this depends on the random seed. To test whether the $r$-measurement pipeline is biased or not, we need to apply the pipeline on many simulations with different random seeds.
+\subsubsection{多张模拟观测天图的分析}
 
-This time we choose a different foreground model [``d1'', ``s1'']. Now run the simulations and analyze them by running the following shell script (test\_bias.sh in the repository)
+受宇宙学方差的影响，对单张模拟观测天图的分析给出的 $r$ 的后验分布的平均值并不会精确地等于用户输入的 $r$ 值，具体的差异依赖于随机种子和DroPS本身具有的系统误差。要把（我们关心的）DroPS的系统误差和（我们不关心的）宇宙学方差分离开来，就要用不同的随机种子多次重复这种分析，并把大量重建出来的 $r$ 的后验分布平均值的平均（即平均的平均）和用户输入的 $r$ 做比较。
 
+我们打算采用 $r=0.01$，前景模型 [``d1'', ``s1''] 并让随机种子遍历 $1$ 到 $100$。在命令行手动输入100次指令显然不是明智的做法，因此我们用一个DroPS自带的bash脚本 test\_bias.sh 来代劳。直接运行
 \tbox{./test\_bias.sh}
+\noindent 即可完成任务。如果存在运行权限问题，就先用
+\tbox{chmod 700 test\_bias.sh}
+\noindent 修改权限。
 
-The content of test\_bias.sh is shown below.
-
+下面给出 test\_bias.sh 的具体内容
 \begin{tcolorbox}
   \begin{minipage}{0.95\textwidth}
     \begin{scriptsize}
@@ -287,28 +293,39 @@ done
     \end{scriptsize}
 \end{minipage}
 \end{tcolorbox}
-Here $0.01$ is the fiducial $r$ value; the random seed (bash variable \$\{i\}) runs from 1 to 100; maps/s\$\{i\} is the root name (prefix for output files) for each simulation; logfile.txt is the file that saves the reconstructed means and standard deviations of $r$.
+这里的bash变量 \$\{i\} 遍历了 1 到 100。我们额外传递给 simulate.py 一个命令行参数 'd1s1' 来指定前景模型；额外传递给 mainpipe.py 一个命令行参数 logfile.txt 来指定存储结果（每次模拟得到的 $r$ 的后验分布平均和标准差）的文件。
 
-Now plot the saved means and standard deviations of $r$ from logfile.txt, and compare them with the input $r=0.01$.
+当运行bash脚本结束（这在个人电脑上可能要几个小时）后，可以把 logfile.txt 中存储的结果用下述命令画出来
 \tbox{python utils/plot\_rs.py logfile.txt 0.01}
+\noindent 这里我们传递给了画图脚本用户采用的 $r= 0.01$，是为了把它和 logfile.txt 中存储的所有 $r$ 的后验分布平均的平均值做比较。
 
-If the bias of $r$-measurement is small, the mean of reconstructed mean values of $r$ (dotted blue line) is supposed to be close to the fiducial value (solid orange line), as shown in Figure~\ref{fig:r_logs}.
+如果DroPS推断的 $r$ 的值是几乎无偏的（系统偏差远小于统计误差），那么 logfile.txt 中存储的所有 $r$ 的后验分布平均的平均值（mean of means)将和用户采用的 $r$ 值非常接近。这在图\ref{fig:r_logs}中得到体现。
 
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{r1_logfile_d1s1.png}
-  \caption{Reconstructed $r$ for 100 realizations of sky with different random seeds. For each sky, the $r$ value is reconstructed by comparing the sky with 300 base simulations. The 100 realizations of sky are simulated with foreground model ['d1','s1'] (spatially varying SED of synchrotron and dust emission), while  ['d0', 's0'] (fixed SED) is used in the 300 base simulations. \label{fig:r_logs}}
+  \caption{100张不同随机种子产生的模拟观测天图的后验分布（均值和标准差） \label{fig:r_logs}}
 \end{figure}
 
 
-\subsubsection{真实观测数据的分析}
-
-A real experiment comes with its own map making and noise simulation pipelines, and provides base simulations and the actually observed sky maps. To analyze the real data, you can simply replace the base simulations with the maps from the simulation pipeline of the experiment, and replace the realization of sky with the actually observed frequency maps.
+\subsubsection{真实观测数据上的应用}
 
 
-\subsubsection{和其他分析管线的比较}
+每一个实验都有自己的天图制作和噪声模拟数据管线，可以提供噪声和CMB的参照数据组；另外，实验也会提供观测天图。只要把这些文件按照DroPS的命名规则进行命名，就可以用DroPS进行数据分析。
 
-DroPS has been applied on AliCPT data challenge (simulated 14\% sky, 95GHz and 150GHz) and achieved consistent results with other methods~\cite{Zhang24}. Here we further compare DroPS with three pipelines that have been applied on simulation data of SO-SAT (Wolz et al. 2024~\cite{SO-SAT}). We adopt the optimistic configuration of SO-SAT. The input fiducial $r$ is zero, and in the analyses unphysical negative $r$ is allowed\footnote{in DroPS this is realized by setting r\_lowerbound negative in the configuration file}.  The results are shown in Figure~\ref{fig:compare_SO}.  From top to bottom, foreground models ['d0', 's0'], ['d1', 's1'], and ['dm', 'sm'] are used, respectively\footnote{The model ['dm', 'sm'] does not come with pysm3 and needs to be prepared by the user. See~\cite{SO-SAT} for its definition.}. From the left where the reconstructed means of $r$ and the bias (mean of the reconstructed means of $r$) are shown, we find DroPS has negligible biases for all cases and more stable than the three pipelines tested in Wolz et al. The right column shows $\sigma_r$, the statistical uncertainties in $r$. We again find good consistency between DroPS and the other pipelines. 
+在DroPS中默认是有 $r=0$ 和  $r=r_1=0.03$ 的两组CMB参照数据。如果实验仅提供 $r=0$ 的CMB参照数据组，要在分析的设置文件中把 cosmo\_r1 取值为 None。不过，在计算资源允许的情况下，最理想的处理方式还是再生成一组 $r=r_1$ 的CMB参照数据组。
+
+真实实验的每个频段都有一定的带宽，即有一个频率分布函数 $f(\nu)$。在这种情况下，可以在设置文件中定义一个文件夹的路径 band\_weights\_root ，并把每个频段的分布函数存储在这个文件夹下。这些文件的命名和存储格式，可以参考 Test 这个演示实验。
+
+
+\subsubsection{和文献中同类软件的比较}
+
+DroPS曾被用于AliCPT实验的数据挑战并获得了和模拟输入一致的结果~\cite{Zhang24}。
+
+这里我们进一步把 DroPS 和文献中其他同类软件进行比较。在这类测试中，比较有代表性的是对 SO-SAT 的模拟数据的分析和比较 (Wolz et al. 2024~\cite{SO-SAT})。DroPS里自带的演示实验SO对应于SO-SAT在乐观假设下的预测。 在Wolz et al. 2024中，对比了三组不同的数据分析软件对基于 $r=0$ 的模拟数据的分析。在分析中，允许 $r<0$ 的参数范围（在 $r<0$ 时让理论预言的原初B模功率谱反号），DroPS也允许进行这样的分析\footnote{只要在设置文件中取 r\_lowerbound 为一个足够小的负值就行。}。
+
+
+图\ref{fig:compare_SO}展示了对SO的分析结果。从上至下，分别是对基于 ['d0', 's0'], ['d1', 's1'], and ['dm', 'sm'] 三种前景模型的各250张模拟观测天图的分析结果\footnote{这里的 ['dm', 'sm'] 并不是pysm3的自带模型，需要自己按照Wolz et al. 2024~\cite{SO-SAT}的说明生成。}。左侧展示了 $r$ 的后验平均的直方图，以及这些 $r$ 后验平均的平均值（mean of means)；这个平均值和模拟输入 $r=0$ 的差异体现的是DroPS分析方法的系统误差。右侧展示了 $r$ 的后验标准差的直方图。可以看到，在所有情况下DroPS分析方法的系统误差都远小于统计误差，综合表现要稍优于 Wolz et al. 2024中的三种分析方法（pipeline A, pipeline B和 pipeline C）。DroPS得到的标准差的分布也和Wolz et al. 2024中的三种分析方法得到的结果相洽。
 
 \begin{figure}
   \includegraphics[width=0.5\textwidth]{d0s0_mean.png}%
@@ -317,25 +334,30 @@ DroPS has been applied on AliCPT data challenge (simulated 14\% sky, 95GHz and 1
   \includegraphics[width=0.5\textwidth]{d1s1_std.png}
   \includegraphics[width=0.5\textwidth]{dmsm_mean.png}%
   \includegraphics[width=0.5\textwidth]{dmsm_std.png}
-  \caption{Comparing DroPS with three pipelines that are described in Wolf et al.~\cite{SO-SAT}. From top to bottom, foreground models ['d0', 's0'], ['d', 's1'], and ['dm', 'sm'] are used, respectively. Left and right columns are the distribution of reconstructed mean $r$ and $\sigma_r$, respectively.\label{fig:compare_SO}}
+  \caption{DroPS 和 Wolf et al. 2024~\cite{SO-SAT} 中的三种分析方法的比较：从上至下，分别是对基于 ['d0', 's0'], ['d1', 's1'], and ['dm', 'sm'] 三种前景模型的各250张模拟观测天图的分析结果。左侧是 $r$ 的后验平均的直方图；右侧是 $r$ 的后验标准差的直方图。 \label{fig:compare_SO}}
 \end{figure}
 
 \subsection{天图成分分离}
 
+在这一节我们考虑天图的成分分离。目标是从多频段的观测天图中获得CMB的E模和B模天图。
+
 \subsubsection{基于似然函数的天图成分分离方法}
 
-The most well known method of component separation is probably the internal linear combination (ILC) algorithm and its variations. The basic idea is to isolate a signal - whose frequency dependence is known - by taking linear combination of the frequency maps. To do that in pixel space, the frequency maps have to be smoothed to a common resolution. 
+最常见的成分分离方法可能是内部线性组合（Internal Linear Combination, ILC）算法及其各种变体。其基本思想是，通过对多频段天图进行线性组合，来分离出一个频率依赖性已知的信号。若要在像素空间中进行此操作，必须将各频段的天图平滑至一个共同的分辨率。
 
-For ground-based CMB experiments, however, a key challenge of ILC or ILC-like methods is that TOD filtering and beam convolution are non commutative operations. Consequently, smoothing frequency maps to a common resolution inevitably alters their spectral energy distributions. This inherent limitation explains why, despite its popularity in simulations that neglect TOD filtering effects~\cite{SO-SAT}, ILC is often superseded by more computationally intensive, likelihood-based methods in real-world analyses, such as those conducted by BICEP/Keck~\cite{BKmap}.
+然而，对于地基CMB实验，ILC或类ILC方法面临的一个关键挑战在于：时序数据滤波与波束卷积是不可对易的操作。因此，将各频段的天图平滑至共同分辨率，会不可避免地改变它们的光谱能量分布。这一固有的局限性解释了，尽管在忽略时序数据滤波效应的模拟研究中ILC方法非常流行~\cite{SO-SAT}，但在真实数据分析中，例如BICEP/Keck合作组所进行的分析~\cite{BKmap}，它通常会被计算量更大、基于似然分析的方法所取代。
 
-DroPS also provides a map-level component separation code. To demonstrate how the code works, we generate a sky realization from the base simulation \#0:
+DroPS的 compsep.py 脚本提供了天图的成分分离功能。为了展示它如何工作， 我们把前面生成的AliCPT参照数据组的零号模拟的CMB、噪声和前景天图相加来生成一张“观测天图”。这样做的好处是我们知道输入的CMB天图（包括未经过时序数据滤波的原始输入天图）是什么，在完成天图成分分离后有一个“正确答案”可以参考。下面的脚本直接提供了从参照数据组生成观测天图的功能：
 \tbox{{\small python utils/combine\_sim.py AliCPT/AliCPT\_sim\_config.txt maps/r3AliCPT0\_  0}}
-The above script takes the base simulation \#0 and adds the filtered foreground maps, filtered noise maps and filtered CMB maps into sky frequency maps with root name maps/r3AliCPT0\_.
+从命令行传递给脚本的第一个参数是模拟的设置文件（包含了所有关于参照数据组的信息）；第二个参数 maps/r3AliCPT0\_ 是用户指定的生成天图的命名前缀（不要和之前生成过的天图前缀重复）；第三个参数 0 是指使用参照数据组0号模拟。
 
-Now we do component separation
+有了以 maps/r3AliCPT0\_ 为前缀的模拟天图之后，我们用compsep.py 来对它进行成分分离：
 \tbox{ python compsep.py AliCPT/AliCPT\_sim\_config.txt maps/r3AliCPT0\_}
+\noindent 要注意这个步骤需要大约100GB的存储空间和10GB的内存。
 
-The code uses Stochastic Gradient Langevin Dynamics (SGLD) method to search the maximum of the likelihood described in Sec.~\ref{sec:sgld_like}. It typically takes a few days to run compsep.py for the first time, on a personal computer. When the gradient templates are built, the code runs much faster, typically takes only a few hours on a personal computer. Typically you need to run it multiple times to obtain a well converged CMB B-mode map. Figure~\ref{fig:compsep} shows the result for the maps simulated with AliCPT/AliCPT\_sim\_config.txt. The $E$ maps are recovered very well. While significant residual noises remain in the $B$ maps.
+该代码采用随机梯度朗之万动力学方法，用于搜寻第~\ref{sec:sgld_like}节所述似然函数的最大值。在个人计算机上首次运行compsep.py通常需要数天时间。当梯度模板构建完成后，代码运行速度将显著提升，在个人计算机上通常仅需数小时即可完成。一般而言，需要多次运行该程序才能获得充分收敛的CMB B模天图。
+
+图~\ref{fig:compsep}展示了运行结果。其中$E$模天图的还原效果非常理想，而$B$模天图中仍存在显著的残差噪声。另外，时序数据的过滤也使得最大角尺度信息有一定损失\footnote{CMB的E模式在最大角尺度上的功率谱比较低，所以这个效应在CMB的E模式天图中相对不那么明显}。
 
 \begin{figure}
   \includegraphics[width=0.5\textwidth]{AliCPT_original_Emap.png}%
@@ -346,34 +368,30 @@ The code uses Stochastic Gradient Langevin Dynamics (SGLD) method to search the 
   \includegraphics[width=0.5\textwidth]{AliCPT_reconstructed_Bmap_l30.png}
   \includegraphics[width=0.5\textwidth]{FG_original_Bmap.png}%
   \includegraphics[width=0.5\textwidth]{FG_reconstructed_Bmap.png}  
-  \caption{Component separation for maps simulated with AliCPT/AliCPT\_sim\_config.txt. All maps are smoothed with top-hat low-pass filter at $\ell\le 160$. \label{fig:compsep}}
+  \caption{AliCPT模拟观测天图的成分分离结果；为了聚焦于我们感兴趣的大角尺度信息，所有天图都经过光滑（取 $\ell \le 160$ 的截断） \label{fig:compsep}}
 \end{figure}
 
-For real data analyses, the calculation of gradient template involves map making and therefore takes even longer time to built. Fortunately, the gradient template can be built in a parallel way. The template can be built for $\ell \in [\ell_{\min}, \ell_{\max}]$ by running
+在真实数据分析中，梯度模板的计算涉及天图制作流程，因此构建所需时间更为漫长（无法用个人电脑完成）。值得庆幸的是，梯度模板可以通过并行方式进行构建。通过执行以下指令即可构建特定多极矩范围$[\ell_{\min}, \ell_{\max}]$内的模板：
 \tbox{{\small python compsep.py AliCPT/AliCPT\_sim\_config.txt maps/r3AliCPT0\_ lmin lmax}}
-Thus, with parallel I/O that is commonly supported in modern architectures, the task can be decomposed into many sub-tasks with different lmin and lmax. You need $\sim$100GB disk space to store all the gradient templates.
+借助现代架构普遍支持的并行I/O技术，该任务可被分解为多个具有不同lmin与lmax取值的子任务。
 
 
 
 \subsubsection{可视化}
 
-DroPS provides a few tools to display the maps on the screen.
+对于仅观测部分天区的地面CMB实验，为节省磁盘空间，DroPS仅保存观测天区内的像素。这类以npy格式存储的天图无法直接通过标准Healpix工具进行可视化。DroPS提供了专用工具用于显示：
 
-The script utils/viewfits.py displays the fits maps.
-
+脚本utils/viewfits.py可显示fits格式天图：
 \tbox{python utils/viewfits.py NHmask\_G\_128.fits}
 
-If you have a map example\_IQU.fits with stokes I, Q, U components, you can run
+对于包含斯托克斯参量I、Q、U的天图文件example\_IQU.fits，可通过以下命令显示指定分量（mapind=0,1,2分别对应I、Q、U参量）：
 \tbox{python utils/viewfits.py example\_IQU.fits mapind}
-with mapind = 0, 1, 2 for I, Q, U components, respectively.
 
 
-DroPS often saves partial-sky maps in npy format. Now suppose the mask file is mask.fits. To display these masked-sky maps, use utils/viewnpy.py:
-
+若要显示npy格式的掩膜天图（需配合掩膜文件mask.fits），使用utils/viewnpy.py：
 \tbox{python utils/viewnpy.py mask.fits example\_IQU.npy mapind}
-with mapind = 0, 1, 2 for I, Q, U components, respectively.
 
-To display E/B components, use utils/viewEB.py:
+显示E/B模式分量需使用utils/viewEB.py：
 \tbox{python utils/viewEB.py mask.fits example\_IQU.npy E/B}
 
 
@@ -381,210 +399,210 @@ To display E/B components, use utils/viewEB.py:
 
 \section{软件技术细节}
 
-In this section I assume the reader has cosmological background and is familiar with Healpix~\cite{Healpix}.
+在介绍软件的技术细节的这一节，我们假设用户具有一定的宇宙学背景知识，并熟悉常用Healpix~\cite{Healpix}等软件。
+
+DroPS通过将多极矩范围划分为若干的$\ell$ 区间，并利用NaMaster~\cite{NaMaster}计算掩膜天图的带功率\footnote{带功率表示给定$\ell$区间内功率谱的平均值}，以此分析功率谱。在测量张标比$r$时，分析通常聚焦于 $20 \lesssim \ell \lesssim 200$ 的范围。此时 nside=256 的天图分辨率已足够满足需求，甚至 nside=128 的分辨率也可用于快速估算。但需要特别注意，在执行诸如改变天图分辨率（Healpix的ud\_grade）或旋转至不同坐标系等操作时，这些处理可能在低分辨率天图中引发显著的E-B泄漏。对于涉及此类操作的分析，我们建议采用 nside=512 或者更高分辨率。
+
+DroPS用于评估 $r$ 以及其他宇宙学和前景参数的似然分析所用的数据向量由滤波天图得到的带功率构成。其构建方式如下：不同频段间的带功率直接作为交叉功率谱计算，而对单一频段，则通过该频段内不同观测季天图两两间的交叉功率获得。这种设计确保了噪声带功率的期望值在所有情况下均为零，从而有效消除了不完善噪声建模带来的偏差。
 
 
-DroPS analyzes the power spectrum by dividing the multipole range into a few bins and computing the band powers\footnote{A band power represents the average power spectrum within a given $\ell$ bin.} for masked maps using NaMaster~\cite{NaMaster}. For measuring the tensor-to-scalar ratio $r$, the analysis typically focuses on the range $20 \lesssim \ell \lesssim 200$ with a small number of bins. A resolution of nside = 256 is sufficient for this purpose, while nside = 128 may be adequate for quick estimates. However, caution is advised when performing operations such as changing the map resolution or rotating to a different coordinate system, as these can introduce significant E-to-B leakage in low-resolution maps. For any analysis involving these manipulations, we recommend using a higher resolution of nside = 512.
-
-The data vector for the likelihood analysis consists of the band powers derived from the filtered sky maps. These are constructed as follows: band powers between different frequency channels are computed directly as cross-power spectra, while for a single channel, they are obtained from the cross-power of pairs of independent season maps within that channel. This design ensures that the expectation value of the noise band power is zero in all cases, which effectively eliminates bias from imperfect noise modeling. This approach represents a standard in modern CMB analysis.
-
-
-Let $n_{\rm bin}$ be the number of $\ell$-bins, $n_\nu$ the number of frequency channels, and $n_{\rm fld}$ the number of fields (e.g., TT, TE, EE, BB). The data vector comprises the band powers $D^{XY}_\ell(\nu_1,\nu_2)$, indexed by:
+假设有 $n_{\rm bin}$ 个 $\ell$区间, $n_\nu$ 个频段，以及 $n_{\rm fld}$ 种关联场对 (比如温度自关联TT, 温度和E极化关联TE, E极化自关联EE，B极化的自关联BB等)。DroPS所用的数据矢量 $D^{XY}_\ell(\nu_1,\nu_2)$ 依次按下列指标排序：
  \begin{itemize}
- \item{Multipole bin centered at $\ell$;}
- \item{Field $XY$;}
- \item{All ranked frequency pairs $(\nu_1, \nu_2)$ with $\nu_1 \le \nu_2$.}
+ \item{$n_{\rm bin}$ 个 $\ell$ 区间的中心值;}
+ \item{$n_\nu(n_\nu+1)/2$个有序频率对 $(\nu_1, \nu_2)$ （$\nu_1 \le \nu_2$）;}
+ \item{$n_{\rm fld}$关联场对 $XY$。}
  \end{itemize}
- As noted previously, for $\nu_1 = \nu_2$, the band power is computed by averaging over season-map cross-spectra. The total number of ranked frequency pairs is $n_\nu(n_\nu+1)/2$, making the full data vector length $N_d = \frac{1}{2} n_{\rm fld} n_{\rm bin} n_\nu (n_\nu+1)$. For $r$-measurement with limited computing or storage resources, we recommend using only the $BB$ spectra ($n_{\rm fld}=1$), as they contain nearly all the information on $r$.
+ 如前所述， 对 $\nu_1 = \nu_2$， 带功率 $D^{XY}_\ell(\nu_1,\nu_2)$ 是通过对不同观测季之间的天图之间互关联计算平均得到的。
 
- The fundamental approach is to evaluate the likelihood of the observed data vector $D^{XY}_\ell(\nu_1,\nu_2)$ (abstractly written as $D^{\rm obs}$) given a model prediction  (abstractly written as $D^{\rm model}$). Taking a Gaussian approximation, the likelihood is:
+由此可得完整数据向量的总长度为 $N_d = \frac{1}{2} n_{\rm fld} n_{\rm bin} n_\nu (n_\nu+1)$。针对计算或存储资源受限的 $r$ 测量场景，我们建议仅使用 $BB$ 谱（即取 $n_{\rm fld}=1$），因为该谱包含近乎全部的 $r$ 信息。
+
+DroPS评估参数的基本方法是通过评估观测数据向量  $D^{XY}_\ell(\nu_1,\nu_2)$（抽象记为 $D^{\rm obs}$）在给定模型预测（抽象记为 $D^{\rm model}$）条件下的似然度。在高斯近似下，似然函数为：
  \begin{equation}
-   \mathcal{L} = \frac{1}{(2\pi)^{N_d/2}\sqrt{\det\mathbf{\Sigma}}} \exp\left[-\frac{1}{2}(\mathbf{D}^{\rm obs} - \mathbf{D}^{\rm model})^T \mathbf{\Sigma}^{-1} (\mathbf{D}^{\rm obs} - \mathbf{D}^{\rm model})\right],
+   \mathcal{L} = \frac{1}{(2\pi)^{N_d/2}\sqrt{\det\mathrm{Cov}}} \exp\left[-\frac{1}{2}(\mathbf{D}^{\rm obs} - \mathbf{D}^{\rm model})^T \mathrm{Cov}^{-1} (\mathbf{D}^{\rm obs} - \mathbf{D}^{\rm model})\right],
  \end{equation}
- The model is constructed from the signal components:
- \begin{equation}
-   \mathbf{D}^{\rm model} = \mathbf{D}^{\rm CMB} + \mathbf{D}^{\rm fg},
- \end{equation}
- where $D^{\rm CMB}$ and $D^{\rm fg}$ are the expected band powers from the CMB and foregrounds. The noise expectation is zero due to the exclusive use of cross-correlations. The total covariance $\mathrm{Cov}$ encompasses all variance from noise, foregrounds, and CMB.
+模型数据向量又可以拆解为：
+\begin{equation}
+\mathbf{D}^{\rm model} = \mathbf{D}^{\rm CMB} + \mathbf{D}^{\rm fg},
+\end{equation}
+其中 $D^{\rm CMB}$ and $D^{\rm fg}$ 分别表示来自CMB和前景的带功率期望值。由于完全采用交叉关联计算，噪声带功率的期望值为零，所以噪声对 $D^{\rm model}$ 没有贡献。总协方差矩阵 $\mathrm{Cov}$ 包含来自噪声、前景和CMB的所有方差成分。
 
+在介绍噪声、CMB和前景模型以及估计关联矩阵 $\mathrm{Cov}$ 的方法之前，我们先介绍与之密切相关的天图制作流程和时序数据的过滤。
 
- Prior to discussing the specific noise, CMB, and foreground models or the technical estimation of $\mathrm{Cov}$, we will outline two key components: the map-making simulators for the base simulations, and how the TOD filtering is modeled throughout the pipeline. 
+\subsection{天图制作和时序数据过滤 \label{sec:TOD}}
 
+地面观测数据会受到大气辐射和仪器 $1/f$ 噪声等低频干扰的严重污染。地基CMB实验中的一个关键预处理步骤是时序数据滤波，该技术旨在从主导性的、结构化的地面噪声中分离出微弱的CMB信号。时序数据滤波在时域中运行，通过例如三阶多项式拟合等方法扣除时序中的低频成分。该方法在抑制大尺度噪声的同时，力求尽可能保留在小尺度上的 CMB 信号。
 
+虽然这是一个线性过程，但时序数据滤波等效于施加一个稠密矩阵运算，若缺乏实验扫描策略的详细信息则难以建模。因此，DroPS不包含针对特定实验的完整天图制作流程，而是提供简化的“天图制作”模拟器。这些模拟器通过结合像素空间和谐空间中的若干线性操作，根据巡天掩膜和一组描述时序数据滤波核心特征的参数，实现对时序数据滤波的主要物理效应的近似模拟。
 
-\subsection{时序数据过滤和天图制作 \label{sec:TOD}}
-
- A critical preprocessing step in ground-based CMB experiments is the TOD filtering, which isolates the faint CMB signal from dominant, structured ground noise. Observations from the ground are heavily contaminated by low-frequency noise from atmospheric emission and instrumental $1/f$ noise. TOD filtering operates in the time domain to identify and subtract these systematic contaminants, which often exhibit characteristic temporal or scan-synchronous patterns distinct from the CMB. By applying high-pass or more sophisticated modal filters, it suppresses large-scale noise while aiming to preserve the intrinsic CMB signal, enabling the production of high-fidelity sky maps.
-
-Although a linear process, TOD filtering is equivalent to applying a dense matrix that is difficult to model without detailed knowledge of the experiment's scanning strategy. Consequently, DroPS does not include full map-making pipelines for specific experiments. Instead, it provides streamlined ``map-making'' simulators. These simulators approximate the net effect of the pipeline by combining a few linear operations in both pixel and harmonic space, guided by the survey mask and a handful of parameters that capture the essential features of TOD filtering.
-
-Specifically, the simulator applies the following operations to an input map:
+具体而言，模拟器通过下列对输入天图的一系列线性操作来模拟时序数据滤波的主要物理效应：
 \begin{enumerate}
-\item{Generate a filtering matrix (in harmonic space) with six parameters $\ell_{\rm cut}$, $f_{\rm low}$, $f_{\rm high}$, $\alpha$, $\theta_\ell$ and $\theta_m$. Specifically, the matrix is given by $$M_{\ell^\prime m^\prime, \ell m} =
+\item{在谐波空间生成一个过滤矩阵。这个矩阵依赖于用户指定的6个参数： $\ell_{\rm cut}$, $f_{\rm low}$, $f_{\rm high}$, $\alpha$, $\theta_\ell$ 和 $\theta_m$. 具体地说，它是
+  $$M_{\ell^\prime m^\prime, \ell m} =
   \left\{\begin{array}{ll}
-  \sqrt{\left[1-2\left(\theta_\ell + \theta_m\right)\right] F_\ell}, & \text{if } \ell^\prime = \ell, m^\prime = m; \\
-  \sqrt{F_\ell\theta_\ell} G_{\rm random} & \text{if } |\ell^\prime -\ell|=1, m^\prime = m \\
-  \sqrt{F_\ell\theta_m} G_{\rm random} & \text{if } \ell^\prime= \ell, |m^\prime - m|= 1 \\  
-  0, & \text{else}
+  \sqrt{\left[1-2\left(\theta_\ell + \theta_m\right)\right] F_\ell}, & \text{如果 } \ell^\prime = \ell, m^\prime = m; \\
+  \sqrt{F_\ell\theta_\ell} G_{\rm random} & \text{如果 } |\ell^\prime -\ell|=1, m^\prime = m; \\
+  \sqrt{F_\ell\theta_m} G_{\rm random} & \text{如果 } \ell^\prime= \ell, |m^\prime - m|= 1; \\  
+  0, & \text{其他情况}
   \end{array}\right.$$
-  where $$F_\ell \equiv f_{\rm high}\left\{1-f_{\rm low}\exp{\left[-\left(\frac{\ell}{\ell_{\rm cut}}\right)^\alpha\right]}\right\}$$
-and $G_{\rm random}$ is a random Gaussian number. For each matrix element $G_{\rm random}$ is drawn independently.}
-\item{Generate a smoothed mask by apodizing the mask edges using a C2-type kernel  with an apodization scale of 2 degrees~\cite{Grain09}. }  
-\item{PMultiply the input map pixel-wise by the smoothed mask.}
-\item{Perform a spherical harmonic transform to obtain harmonic coefficients $a_{\ell m}$.}
-\item{Apply the filtering matrix 
-$$ a_{\ell^\prime m^\prime} = \sum_{\ell, m} M_{\ell^\prime m^\prime, \ell m} a_{\ell m}.$$}
-\item{Perform an inverse spherical harmonic transform back to a map.}
-\item{Multiply the resulting map pixel-wise by the original (unapodized) mask.}
+  这里的
+  $$F_\ell \equiv f_{\rm high}\left\{1-f_{\rm low}\exp{\left[-\left(\frac{\ell}{\ell_{\rm cut}}\right)^\alpha\right]}\right\},$$
+  $G_{\rm random}$ 是一个（服从标准正态分布的）高斯随机数。 每个矩阵元里的 $G_{\rm random}$ 都独立采样。}
+\item{用2度大小的C2-类卷积核把天区掩膜（mask）的边缘光滑化~\cite{Grain09}。}  
+\item{把输入天图和边缘光滑后的掩膜逐像素相乘。}
+\item{把相乘后的图进行球谐函数展开得到展开系数 $a_{\ell m}$。}
+\item{用第1步中生成的过滤矩阵和球谐展开系数组成的矢量相乘： 
+$$ \tilde{a}_{\ell^\prime m^\prime} = \sum_{\ell, m} M_{\ell^\prime m^\prime, \ell m} a_{\ell m}.$$}
+\item{把 $\tilde{a}_{\ell^\prime m^\prime}$ 球谐逆变换回像素空间。}
+\item{把像素空间的图用原始（未经过边缘光滑的）掩膜覆盖。}
 \end{enumerate}
 
-When
+当运行
 \tbox{python mock\_filtering}
-is called. It generates a pickle file that saves the random numbers ($G_{\rm random}$) in operation 1.
+\noindent 后，会得到一个pickle文件来保存步骤1中的过滤矩阵。
 
-When simulating maps, the pickle file is specified in the configuration file (e.g. AliCPT/AliCPT\_sim\_config.txt). DroPS loads the pickle file and performs ``map making'' (seven linear operations in sequence, as specified above).
+当模拟参照数据组或者“观测天图”时，simulate.py会从设置文件里读取保存过滤矩阵的pickle文件名。然后读取该文件里的过滤矩阵。注意对一个固定的演示实验，过滤矩阵和天空掩膜是固定的。也就是说，步骤1和2仅需要执行一次，真正需要重复对每个天图执行的是步骤3-7。
 
-The ``map-making'' simulator is designed for computational efficiency, requiring far fewer resources than a full pipeline that processes actual time-ordered data. It is a simplified model whose purpose is not to replicate every detail, but to capture the dominant large-scale effects of TOD filtering—namely, power suppression and mode mixing—for simulation-based studies.
+上面描述的天图制作模拟器不涉及对真正时序数据的处理，所以对计算资源的需求远低于真实实验中的天图制作管线。DroPS提供这样的模拟器的目的是唯象地刻画时序数据滤波的主要物理效应（大尺度功率谱的压低和不同球谐模之间的混合），而并不试图精确重现任何具体实验的天图制作管线。
 
-In the analysis stage, DroPS operates without prior knowledge of the specific TOD filtering applied in the simulations. It phenomenologically models the net filtering effect using a coupling matrix $F_{\ell\ell^\prime}$. This matrix is structured such that its main diagonal captures the power suppression in each multipole bin, while the first off-diagonals capture the mode coupling between adjacent bins; all other elements are set to zero. By default, this matrix is calibrated empirically by performing a least-squares fit that compares the band powers of filtered versus unfiltered noise maps from the base simulations.
+在数据分析阶段，DroPS并不要求提供天图制作管线中的滤波矩阵（在真实实验中这是比较困难的），而是通过一个简化的作用于带功率的耦合矩阵 $F_{\ell\ell^\prime}$ 来对滤波净效应进行唯象建模。该矩阵的主对角线元素描述各 $\ell$ 区间内的功率抑制效应，次对角线元素捕捉相邻区间之间的耦合效应，其余矩阵元均假设设为零。在默认设置下，DroPS通过对比基础模拟数据中经过滤波与未经过滤波的噪声天图的带功率来对 $F_{\ell\ell^\prime}$ 进行最小二乘拟合。
 
-An important caveat is that while TOD filtering is a linear operation on the map, its effect on the power spectrum is not strictly linear. The band-diagonal coupling matrix $F_{\ell\ell^\prime}$​ is therefore a simplified model. Consequently, the design of DroPS intentionally minimizes reliance on this approximate model to ensure robustness. (See Sec.~\ref{sec:cmb} for more details.)
+需要重点说明的是：虽然时序数据滤波在天图层面是线性操作，但其对功率谱产生的影响并非严格线性。因此，作用于带功率的耦合矩阵 $F_{\ell\ell^\prime}$ 实质上是一种近似模型。基于此，DroPS在算法设计中刻意降低了对 $F_{\ell\ell^\prime}$ 的依赖程度，以确保分析的稳健性。（更多细节参见第~\ref{sec:cmb}节）。
 
 
-\subsection{噪音模型 \label{sec:noise}}
+\subsection{噪声模型 \label{sec:noise}}
 
-DroPS adopts a noise model for its temperature power spectrum following the established approach in Refs.~\cite{SO2019, SO-SAT}:
+DroPS采用文献中常用的噪声模型~\cite{SO2019, SO-SAT}，其温度噪声为
 \begin{equation}
   N_\ell = N_{\rm white}\left[1+\left(\frac{\ell}{\ell_{\rm knee}}\right)^{\alpha_{\rm knee}}\right]. \label{eq:noise_model}
 \end{equation}
-Here, the $1/f$ noise component is parameterized by the knee multipole $\ell_{\rm knee}$ and the slope $\alpha_{\rm knee}$. The white noise level $N_{\rm white}$ is derived from the configuration parameter $\sigma_{\rm white}$ (see Table~\ref{tab:config}) as
+这里的 $1/f$ 噪声成分由参数 $\ell_{\rm knee}$ 和 $\alpha_{\rm knee}$ 描述。 白噪音水平 $N_{\rm white}$ 和设置文件里给出的 $\sigma_{\rm white}$ (见表\ref{tab:config}) 由下式联系：
 \begin{equation}
   N_{\rm white} = \sigma_{\rm white}^2, \label{eq:Nwhite}
 \end{equation}
-where $\sigma_{\rm white}$ must be in units of $\mu$K-radian\footnote{To convert from $\mu$K-arcmin, multiply by a factor of $\frac{\pi}{10800}$.}.
+但是要注意上式中的 $\sigma_{\rm white}$ 的单位必须转换为 $\mu$K-radian\footnote{单位转换公式为 1 $\mu$K-arcmin = $\frac{\pi}{10800} \mu$K-radian.}.
 
-For the demo-experiments, the polarization noise spectra are simplified to $N_\ell^{EE} = N_\ell^{BB} = 2N_{\ell}^{TT}$. While this relation is not exact for real instruments, it provides a reasonable approximation in many cases.
+DroPS 自带的演示实验中，默认极化噪声功率谱是温度噪声功率谱的2倍，也就是 $N_\ell^{EE} = N_\ell^{BB} = 2N_{\ell}^{TT}$。虽然这对于实际实验未必是完全准确的，不过在大多数情况下近似成立。
 
-It is important to note that the analytic model in Eq.~\eqref{eq:noise_model} is used exclusively for generating the base simulations. During the data analysis stage, DroPS bypasses this model and computes the noise covariance directly from the base simulations themselves. Furthermore, the expectation value of the noise power spectrum is always zero in the analysis because DroPS exclusively employs cross-power spectra between different frequency channels or observation seasons, thereby inherently deriving noise-debiased power spectra.
+注意DroPS仅在生成模拟数据时使用\eqref{eq:noise_model}式给出的噪声模型。在数据分析阶段， DroPS并不对噪声模型做任何模型假设，而是直接从参照数据组中计算噪声带功率的关联矩阵。噪声带功率的理论期待总是为零，因为DroPS只使用不同频段之间的，或者同一频段内不同观测季的天图之间的交叉关联。
 
     
 \subsection{CMB 模型 \label{sec:cmb}}
 
 \subsubsection{宇宙学}
 
-DroPS assumes standard Lambda cold dark matter ($\Lambda$CDM) with an additional parameter $r$. For the demo experiments, the default cosmological parameters for base simulations are listed in Table~\ref{tab:cosmo}. 
+在做宇宙学分析时，DroPS假设标准的Lambda冷暗物质 ($\Lambda$CDM) 模型，但是允许张标比 $r$ 非零。表\ref{tab:cosmo}给出了演示实验中默认使用的宇宙学参数。
 
 \begin{table}
   \centering
-  \caption{Default cosmological parameters for base simulations \label{tab:cosmo}}
+  \caption{DroPS模拟参照数据组时默认使用的宇宙学参数 \label{tab:cosmo}}
   \begin{tabular}{lll}
     \hline
     \hline
-    parameter & definition & default value \\
+    参数 & 定义 & 默认值 \\
     \hline
-    $\Omega_bh^2$ & baryon density & $0.02242$ \\
-    $\Omega_ch^2$ & cold dark matter density & $0.11933$ \\
-    $\theta_{\rm MC}$ & angular extension of sound horizon & $0.0104101$ \\
-    $\tau_{\rm re}$  & reionization optical depth & $0.0561$ \\
-    $\ln\left(10^{10}A_s\right)$ & logarithm amplitude of primordial scalar power & $3.047$  \\
-    $n_s$ & spectral index of primordial scalar power & $0.9665$ \\
-    $r$ & tensor-to-scalar ratio & $r_0=0$ or $r_1=0.03$ \\
+    $\Omega_bh^2$ & 重子密度 & $0.02242$ \\
+    $\Omega_ch^2$ & 冷暗物质密度 & $0.11933$ \\
+    $\theta_{\rm MC}$ & 声视界在最后散射面上的张角 & $0.0104101$ \\
+    $\tau_{\rm re}$  & 再电离光深 & $0.0561$ \\
+    $\ln\left(10^{10}A_s\right)$ & 原初标量扰动大小的对数 & $3.047$  \\
+    $n_s$ & 原初标量扰动的谱指数 & $0.9665$ \\
+    $r$ & 张标比 & $r_0=0$ 和 $r_1=0.03$ \\
     \hline
   \end{tabular}
 \end{table}
 
- Unlike the noise statistics, which can be empirically derived from the base simulations, the CMB statistics depend on underlying cosmological parameters—most notably the unknown tensor-to-scalar ratio rr. This fundamental difference necessitates a more sophisticated approach for modeling the CMB band powers and their contribution to the signal covariance matrix.
+和可以从参照数据组中直接提取的噪声统计不同，CMB的统计依赖于宇宙学参数的真值（而不是参照数据组中采用的默认值），特别是 $r$ 的真值。 这个本质上的差别，再加上CMB透镜效应，导致了 CMB 对带功率关联矩阵的贡献以及CMB带功率的理论模型比噪声要复杂很多。我们先来介绍CMB透镜效应的处理方法。
 
 
 \subsubsection{去透镜化 \label{sec:delens}}
 
-    Gravitational lensing by large-scale structure distorts the primordial CMB, smoothing its acoustic peaks and converting a portion of the E-mode polarization into a secondary B-mode signal. This lensing-induced B-mode acts as a dominant foreground on small scales, obscuring the fainter primordial B-modes from inflationary gravitational waves. While the expectation value of this lensing B-mode power can be theoretically predicted and subtracted, the actual lensing potential in our observed Universe randomly fluctuates around this mean—a source of cosmic variance. For measurements targeting an uncertainty of $\sigma_r\lesssim 10^{-3}$, this unpredictable fluctuation becomes a significant contaminant.
+大尺度结构的引力透镜效应会使原始宇宙微波背景辐射发生畸变，平滑其声学振荡峰，并将部分E模式偏振转化为次级B模式信号。这种透镜效应产生的B模式在小尺度上成为主导前景，掩盖了来自暴胀引力波的更微弱的原初B模式。虽然透镜B模式功率的期望值可以通过理论预测并予以扣除，但我们观测宇宙中的实际透镜势会围绕该均值随机涨落（宇宙学方差的体现）。对于以 $\sigma_r\lesssim 10^{-3}$ 为测量精度的目标而言，这种宇宙学方差造成的、不可预测的涨落将成为不可忽略的污染源。
 
-    Delensing addresses this by statistically reconstructing the actual lensing distortion from high-resolution CMB data or external tracers and removing its specific imprint from the observed maps. This process cleans the cosmic foreground, sharpens the CMB's original features, and suppresses the confounding lensing B-mode power, thereby dramatically enhancing the sensitivity to primordial signals.
+去透镜技术通过从高分辨率CMB数据或外部示踪物中统计重构实际透镜畸变的引力势，并将其产生的光线偏折效应尽可能地从观测天图中移除，从而抑制干扰性的透镜B模式功率，显著增强对原初信号的探测灵敏度。
 
-    In DroPS, the implementation assumes that an ideal lensing potential map is available from external sources. While such a map would, in principle, allow for complete delensing, practical limitations prevent perfect removal. To model this, DroPS introduces a delensing efficiency parameter $\epsilon_{\rm delens}$ (delens\_fac in the configuration file), which specifies the fraction of the lensing effect to be removed. Concretely, the process is performed by rescaling the input lensing potential map by a factor of $(1-\epsilon_{\rm delens})$ before applying the delensing operation.
+在DroPS中，其实现方式假设已有通过外部资源获取的理想透镜势天图。尽管原则上此类天图可实现完全去透镜，但实际限制使得完美去除无法实现。为此，DroPS引入了去透镜效率参数$\epsilon_{\rm delens}$（配置文件中为delens\_fac），用以指定需去除的透镜效应比例。具体而言，该过程通过在实施去透镜操作前，将输入透镜势天图按 $(1-\epsilon_{\rm delens})$ 比例缩放来实现。
     
 
 \subsubsection{宇宙学参数限制}
 
-    The primary goal of DroPS is to infer the tensor-to-scalar ratio rr, which is by default the only free cosmological parameter. Users can choose to vary the full set of standard ΛΛCDM parameters by setting vary\_cosmology = True in the configuration file. However, since the large-scale polarization data from ground-base SATs alone provide weak constraints on the background cosmology, DroPS applies a Gaussian prior based on Planck+BAO results~\cite{Planck18Params} to ensure the parameters remain within physically reasonable ranges\footnote{This prior can be disabled by modifying mainpipe.py, but doing so may lead to poor convergence in the Monte Carlo sampling or numerical instability.}.
+DroPS默认除了张标比 $r$ 之外的宇宙学参数都被其他实验测量得非常准确，从而在限制模型参数时可以让它们固定不动。用户可以在参数文件中设置vary\_cosmology 为 True 来让所有的宇宙学参数变动。不过，一般而言地基小口径望远镜实验的数据无法很好地限制所有宇宙学参数，所以为了避免出现严重的参数简并， DroPS 用一个 Planck+BAO 的关联矩阵~\cite{Planck18Params} 作为先验假设来保证参数都在目前实验允许的范围内跑动\footnote{用户可以修改 mainpipe.py 来取消这个先验假设，但是一般不推荐这样做。}。
 
 
-The base simulations are generated with two fiducial values of the tensor-to-scalar ratio: $r=0$ and $r=r_1>0$. By averaging over these simulations, we obtain the expected CMB band powers, $\langle D^{\rm CMB}_\ell(r=0)\rangle $ and $\langle D^{\rm CMB}_\ell(r=r_1)\rangle$. The recommended value for $r_1$​ is $0.03$ (approximately the current 90\% confidence level upper limit), which is user-configurable.    
+DroPS的 CMB 参照数据组在 $r=0$ 和 $r=r_1>0$ 两种情况下分别生成。通过对参照数据组计算平均，我们可以在这两种情况下计算 CMB 带功率的平均，也就是 $\langle D^{\rm CMB}_\ell(r=0)\rangle $ 和 $\langle D^{\rm CMB}_\ell(r=r_1)\rangle$。DroPS推荐的 $r_1$​ 默认值是 $0.03$ (大约是目前的 90\% 置信度上限)，不过用户可以在设置文件里改变它。
 
-Under the standard cosmological model, and assuming other parameters $\theta$ are fixed to their fiducial values $\theta_{\rm fid}$​, the CMB band powers exhibit an approximately linear response to rr. DroPS leverages this by modeling the CMB band powers as a linear interpolation between the two simulated benchmarks, which inherently includes all instrumental effects:
+在标准模型里，假设除了 $r$ 之外的宇宙学参数是固定的（$\theta = \theta_{\rm fid}$）​，CMB 的带功率就近似地线性依赖于 $r$。因此，DroPS用线性插值的方法来获得CMB带功率的主要部分，然后对剩余部分进行修正。具体就是：
 \begin{equation}
   D^{\rm CMB}_\ell =  (1-w) \langle D^{\rm CMB}_\ell(r=0)\rangle  + w\langle D^{\rm CMB}_\ell(r=r_1) \rangle + \Delta_{\rm correction}.
 \end{equation}
-The interpolation weight $w$ is defined as $w \equiv \max\left[\min\left(\frac{r}{r_1}, 1\right), -1\right]$,  effectively clamping the interpolation for $|r|>r_1$.
+这个插值权重 $w$ 定义为 $w \equiv \max\left[\min\left(\frac{r}{r_1}, 1\right), -1\right]$，也就是在 $|r|>r_1$ 时对插值权重做了截断（不做外插）。因为$\langle D^{\rm CMB}_\ell(r=0)\rangle$ 和 $\langle D^{\rm CMB}_\ell(r=r_1) \rangle$ 已经包含了E到B泄漏等效应，这个插值项就自动包含了所有非宇宙学效应的主要贡献。
 
-The correction term $​\Delta_{\rm correction}$ applies the TOD filtering matrix $F_{\ell\ell^\prime}$ only to the deviation from this fiducial interpolated spectrum:
+修正项 $​\Delta_{\rm correction}$ 体现了其他宇宙学参数的影响，或者 $|r|>r_1$ 情况下的修正。它可以写作：
 \begin{equation}
-  \Delta_{\rm correction} = \sum_{\ell^\prime} F_{\ell \ell^\prime}\left[D^{\rm CMB}_{\ell^\prime}(r, \theta) - (1-w)D_{\ell^\prime}^{\rm CMB}(r=0, \theta_{\rm fid})- wD_{\ell^\prime }^{\rm CMB}(r=r_1, \theta_{\rm fid})\right],  
+  \Delta_{\rm correction} = \sum_{\ell^\prime} F_{\ell \ell^\prime}\left[D^{\rm CMB}_{\ell^\prime}(r, \theta) - (1-w)D_{\ell^\prime}^{\rm CMB}(r=0, \theta_{\rm fid})- wD_{\ell^\prime }^{\rm CMB}(r=r_1, \theta_{\rm fid})\right]. \label{eq: CMB_corr}
 \end{equation}
-This design is highly efficient for the most likely scenario in next-generation experiments, where $|r|<r_1$ and cosmological parameters are well-constrained. In this case, the term inside the brackets is small, and the filtering matrix—whose model might be approximate—is applied only to a residual, thereby minimizing the impact of any inaccuracies in the filtering model on the final result.
+注意上式中的CMB带功率都是用CAMB计算得到的理论值~\cite{CAMB}。
 
+在最为可能的情况（$0<r<r_1$，并且其他宇宙学参数被精确测量）下，上述算法中的修正项比较小。从而尽可能地避免了因时序数据过滤建模（$F_{\ell\ell^\prime}$矩阵）不准确性带来额外的系统误差。
 
 
 \subsection{前景模型 \label{sec:fg}}
 
 \subsubsection{尘埃热辐射和同步辐射的基本模型}
 
-The primary diffuse foregrounds in CMB polarization—Galactic thermal dust and synchrotron radiation—possess spectral energy distributions (SEDs) that are distinctly different from the CMB's blackbody spectrum. This spectral distinction is the basis for component separation, which necessitates a minimum of three frequency channels to disentangle the CMB, dust, and synchrotron signals.
+宇宙微波背景偏振测量中的主要弥漫前景——银河系热尘埃辐射与同步辐射——具有与CMB黑体辐射谱截然不同的能谱分布。该光谱差异构成了成分分离方法的基础。显然，至少需要三个频段的观测数据才能有效分离三种成分（CMB、尘埃辐射与同步辐射）的信号。
 
-The frequency dependence of dust temperature fluctuation is modeled as a modified black-body (MBB) spectrum, which converted to the CMB $\mu$K unit is
+银河系尘埃热辐射近似服从修改黑体辐射（modified black-body，MBB）谱。以CMB背景温度为参照黑体辐射谱来描述等效的温度扰动，MBB 谱可以写作：
 \begin{equation}
   W_d(\nu; \nu_{\rm ref}, \beta_d) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_d-1}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2 \left(\frac{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm MBB}}}-1}{e^{\frac{h\nu}{k_BT_{\rm MBB}}}-1}\right), \label{eq:dust_w}
 \end{equation}
-where $T_{\rm MBB}\approx 20\,\mathrm{K}$ is the effective temperature of MBB spectrum, $T_{\rm CMB}\approx 2.726\,\mathrm{K}$ is the CMB temperature, $\beta_d$ is the frequency spectral index, and $\nu_{\rm ref}$ is an arbitrarily chosen reference frequency. Because thermal dust emission dominates the high-frequency bands, we often choose a high reference frequency, e.g.,  $\nu_{\rm ref,dust} \sim 300\,\mathrm{GHz}$. 
+这里 $T_{\rm MBB}\approx 20\,\mathrm{K}$ 是 MBB 谱的等效温度； $T_{\rm CMB}\approx 2.726\,\mathrm{K}$ 是 CMB 背景温度； $\beta_d$ 是频谱指数； $\nu_{\rm ref}$ 是可以任意指定的参照频率。 因为尘埃热辐射是高频段的主要前景，我们经常选取一个比较高的参照频率，例如  $\nu_{\rm ref,dust} \sim 300\,\mathrm{GHz}$. 
 
-The frequency dependence of synchrotron temperature fluctuation is modeled as a power-law spectrum, which converted to the CMB $\mu$K unit is
+银河系电子同步辐射近似服从幂率谱，以 CMB 背景温度为参照黑体辐射谱来描述等效的温度扰动，幂率谱可以写作：
 \begin{equation}
   W_s(\nu; \nu_{\rm ref}, \beta_s) = \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_s-2}e^{\frac{h(\nu_{\rm ref} - \nu)}{k_BT_{\rm CMB}}}\left(\frac{e^{\frac{h\nu}{k_BT_{\rm CMB}}}-1}{e^{\frac{h\nu_{\rm ref}}{k_BT_{\rm CMB}}}-1}\right)^2, \label{eq:sync_w}
 \end{equation}
-where  $\beta_s$ is the frequency spectral index, and $\nu_{\rm ref}$ is an arbitrarily chosen reference frequency. Because thermal synchrotron radiation dominates the low-frequency bands, we often choose a low reference frequency, e.g.,  $\nu_{\rm ref,sync} \sim 30\,\mathrm{GHz}$.
+这里  $\beta_s$ 是频谱指数； $\nu_{\rm ref}$ 是可以任意指定的参照频率（虽然为了节省篇幅使用了同一个符号，它和尘埃的参照频率不是同一个参数）。因为同步辐射在低频端占主导，我们经常选取一个低的参照频率，例如  $\nu_{\rm ref,sync} \sim 30\,\mathrm{GHz}$.
 
 
-When there is no risk of confusion, we may write $W_d(\nu; \nu_{\rm ref}, \beta_d)$ as $W_d(\nu)$, and $W_s(\nu; \nu_{\rm ref}, \beta_d)$ as $W_s(\nu)$. When $\beta_d$ ($\beta_s$) is known, we can convert a dust (synchrotron) map at frequency $\nu_1$ to map at frequency $\nu_2$ with a scaling factor $\frac{W_d(\nu_2)}{W_d(\nu_1)}$ ( $\frac{W_s(\nu_2)}{W_{s,2}}$). (Note that this ratio does not depend on the choice of reference frequency.) Finally, for a frequency band with (normalized) frequency distribution $f(\nu)$, $W_d(\nu)$ should be replaced with averaged weight $\int W_d(\nu) f(\nu)\dsymb\nu$. 
+如果没有引起混淆的危险，我们有时把 $W_d(\nu; \nu_{\rm ref}, \beta_d)$ 简写为 $W_d(\nu)$，把 $W_s(\nu; \nu_{\rm ref}, \beta_d)$ 简写为 $W_s(\nu)$。如果 $\beta_d$ (或$\beta_s$) 是已知的，我们可以通过乘以  $\frac{W_d(\nu_2)}{W_d(\nu_1)}$ ( $\frac{W_s(\nu_2)}{W_{s,2}}$) 的因子把尘埃（同步辐射）在频率 $\nu_1$ 的天图转化为在频率 $\nu_2$ 的天图。（请注意这个比例因子和参照频率 $\nu_{\rm ref}$ 的选择是无关的。）最后，对一个有限宽的频段（假设归一化的频率分布函数是 $f(\nu)$），应该用积分 $\int W_d(\nu) f(\nu)\dsymb\nu$ 替换 $W_d(\nu)$。 
 
-By default DroPS treats the band powers of {\it filtered} dust and synchrotron maps as free parameters. The advantage of doing so is two folds. First, we do not need to worry about the accuracy of $F_{\ell\ell^\prime}$ modeling, as we are directly modeling the band powers of filtered maps. Second, although the average dust/synchrotron power spectra is likely to be smooth, their power spectra in a small sky area may have random ``cosmic variance'', which is taken into account in the free-bandpower parametrization. The disadvantage of abandoning the smoothness assumption on foreground band powers is that it degrades the constraining power on $r$. However, this extra uncertainty is physical, as it correctly reflects that the foreground band powers in a small patch of sky can have random fluctuations around a smooth model.
+DroPS 默认把时序数据滤波处理的尘埃和同步辐射天图在每个 $\ell$ 区间的的带功率都当作自由参数。这样做有两个好处：第一，我们直接参数化滤波后天图的带功率，跳过了对时序数据滤波的建模 （$F_{\ell\ell^\prime}$），避免了因建模不准确引起的系统误差。第二，虽然足够大天区里的前景功率谱一般是光滑的，在以测量原初 B 模为目的的深度观测小天区里，前景的带功率有可能存在类似于宇宙方差的涨落；在每个 $\ell$ 区间内取独立的带功率就自然地把这种涨落考虑在内了。当然，这样放弃前景功率谱的光滑性假设的方法也有明显的缺陷，就是自由参数变得非常多，降低了对 $r$ 的限制能力。不过，这在某种程度上恰恰体现了前景不确定性带来的系统误差必须被考虑在内。
 
-A blind parametrization of the dust-dust, dust-synchrotron, and synchrotron-synchrotron band powers involves $3n_{\rm fld} n_{\rm bin}+2$ independent parameters. Here $+2$ corresponds to $\beta_d$ and $\beta_s$. Even in the case where only $XY=BB$ is used, the number of foreground parameters is typically $\gtrsim 20$. This poses some challenge to the convergence of Monte Carlo Markov Chain (MCMC) simulations, which is used in DroPS for parameter inference. However, when the data contain a high-frequency channel and a low-frequency channel, which respectively give good ``initial guesses'' of the dust and synchrotron band powers, we empirically find the MCMC runs can reach good convergence.
+对尘埃-尘埃、尘埃-同步辐射及同步辐射-同步辐射带功率进行盲参数化建模时，需要引入$3n_{\rm fld} n_{\rm bin}+2$个独立参数。其中 $+2$ 对应尘埃光谱指数 $\beta_d$ 与同步辐射光谱指数 $\beta_s$。即便仅使用 $XY=BB$ 关联场，前景参数数量通常仍不少于20个。这对DroPS中用于参数推断的马尔可夫链蒙特卡洛模拟的收敛性提出了挑战。然而，当观测数据包含能分别提供尘埃与同步辐射带功率很好的"初始估计值"的高频和低频通道时，我们发现MCMC模拟仍然能够实现良好收敛。
 
-If the number of available frequency channel is small or the noise is large (target $\sigma_r\gtrsim 0.01$), however, smooth parametrization of foreground power is recommended. The reason is that the ``cosmic variance'' of foreground becomes a tiny effect compared to noise and filter modeling uncertainty. The smooth model of foreground band powers - which is modeled as a quadratic function of $\ell$ - can be turned on in the configuration file by setting analytic\_fg = True.
+若可用频段数量有限或噪声水平较高（目标精度$\sigma_r\gtrsim 0.01$），则建议采用平滑参数化方法描述前景功率谱。其原理在于此时前景的“宇宙方差”效应及滤波模型不确定性相较于噪声都已可忽略不计。通过在配置文件中设置 analytic\_fg 为 True，可启用前景带功率的平滑模型——该模型以$\ell$的二次函数形式进行参数化。
 
 \subsubsection{前景能谱的空间变化: 矩展开方法}
 
-The above discussion is based on the assumption of constant $\beta_d$ and $\beta_s$. For experiments that covers a significant portion of the sky, however, it is unlikely that $\beta_d$ ($\beta_s$) will be strictly a constant across a large area of the sky~\cite{Ade25} .  DroPS deals with the spatial variation of foreground spectral indices with moment expansion approximation~\cite{ME} or Taylor expansion methods, which can be switched on by setting freq\_decorr\_model=``ME'' or freq\_decorr\_model=``Taylor'' in the configuration file. Set freq\_decorr\_model=None if strictly constant $\beta_d$ and $\beta_s$ are wanted. By default, DroPS uses the moment expansion method, details of which are given below.
+以上讨论均基于$\beta_d$与$\beta_s$为常数的假设。然而对于覆盖较大天区范围的实验而言，$\beta_d$与$\beta_s$不太可能在整片天区保持严格恒定~\cite{Ade25}。DroPS通过矩展开近似~\cite{ME}或泰勒展开方法处理前景光谱指数的空间变化特性，用户可在配置文件中通过设置freq\_decorr\_model="ME"或freq\_decorr\_model="Taylor"来启用相应功能。若需保持$\beta_d$与$\beta_s$严格恒定，请设置freq\_decorr\_model=None。默认情况下，DroPS采用矩展开方法，具体细节如下所述。
 
-We take thermal dust emission B-mode map for example. At frequency $\nu$, the map is 
+以频率为 $\nu$ 的尘埃 B 模天图为例，如果没有谱指数的空间变化，在每个像素（用方向矢量 $\mathbf{n}$ 来标记）上的 B 值可以写作：
 \begin{equation}
   B(\nu, \mathbf{n}) = W_d(\nu; \nu_{\rm ref}, \beta_d)B(\nu_{\rm ref}, \mathbf{n}),
 \end{equation}
-if there were no spatial variation of $\beta_d$. Here $\mathbf{n}$ is the map pixel vector, and $B(\nu_{\rm ref}, \mathbf{n})$ is the map at reference frequency (reference map). Now consider small spatial variation $\delta\beta_d(\mathbf{n})$ and expand to second order of $\delta\beta_d(\mathbf{n})$
+这里 $B(\nu_{\rm ref}, \mathbf{n})$ 是参照频率上的B模天图 (简称参照天图)。现在考虑谱指数 $\beta_d$ 的微小空间波动 $\delta\beta_d(\mathbf{n})$，并且把上式展开到 $\delta\beta_d(\mathbf{n})$ 的二阶：
 \begin{equation}
   B(\nu, \mathbf{n}) = \left\{W_d(\nu; \nu_{\rm ref}, \beta_d) + \frac{\partial W_d}{\partial \beta_d} \delta\beta_d(\mathbf{n}) + \frac{1}{2}\frac{\partial^2 W_d}{\partial \beta_d^2} \left[\delta\beta_d(\mathbf{n})\right]^2\right\}B(\nu_{\rm ref}, \mathbf{n}).  \label{eq:ME_eq1}
 \end{equation}
-Since $W_d\propto \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_d}$, Eq.~\eqref{eq:ME_eq1} can be explicitly written as
+因为 $W_d\propto \left(\frac{\nu}{\nu_{\rm ref}}\right)^{\beta_d}$， \eqref{eq:ME_eq1}式可以更加明确地写作
 \begin{equation}
-  B(\nu, \mathbf{n}) = W_d(\nu; \nu_{\rm ref}, \beta_d) \left\{1 +  \delta\beta_d(\mathbf{n})\ln\frac{\nu}{\nu_{\rm ref}} + \frac{1}{2} \left[\delta\beta_d(\mathbf{n}) \ln\frac{\nu}{\nu_{\rm ref}}\right]^2\right\}B(\nu_{\rm ref}, \mathbf{n}).
+  B(\nu, \mathbf{n}) = W_d(\nu; \nu_{\rm ref}, \beta_d) \left\{1 +  \delta\beta_d(\mathbf{n})\ln\frac{\nu}{\nu_{\rm ref}} + \frac{1}{2} \left[\delta\beta_d(\mathbf{n}) \ln\frac{\nu}{\nu_{\rm ref}}\right]^2\right\}B(\nu_{\rm ref}, \mathbf{n}). \label{eq:B_exp_n}
 \end{equation}
 
 
-We first consider the full-sky case and do spherical harmonic transform. Assuming $\delta \beta_d(\mathbf{n}) = \sum \beta_{\ell m}Y_{\ell m}(\mathbf{n})$ and $B(\nu, \mathbf{n}) = \sum a_{\ell m}(\nu) Y_{\ell m}(\mathbf{n})$.
-
+我们首先考虑不存在观测掩膜的情况，也就是对全天天图的处理。 假设 $\delta \beta_d(\mathbf{n}) = \sum \beta_{\ell m}Y_{\ell m}(\mathbf{n})$ 以及 $B(\nu, \mathbf{n}) = \sum a_{\ell m}(\nu) Y_{\ell m}(\mathbf{n})$，把 \eqref{eq:B_exp_n}进行球谐展开，系数为：
 \begin{eqnarray}
   a_{\ell m}(\nu) &=& W_d(\nu; \nu_{\rm ref}, \beta_d) \int Y_{\ell m}^*(\mathbf{n})   \left\{1 +  \delta\beta_d(\mathbf{n})\ln\frac{\nu}{\nu_{\rm ref}} + \frac{1}{2} \left[\delta\beta_d(\mathbf{n}) \ln\frac{\nu}{\nu_{\rm ref}}\right]^2\right\}B(\nu_{\rm ref}, \mathbf{n}) \dsymb^2\mathbf{n} \nonumber \\
   &=& W_d(\nu; \nu_{\rm ref}, \beta_d) \left[a_{\ell m}^{\rm ref} +  \ln\frac{\nu}{\nu_{\rm ref}} g_{\ell m}^{\rm ref} +  \left(\ln\frac{\nu}{\nu_{\rm ref}}\right)^2 h_{\ell m}^{\rm ref}\right]
 \end{eqnarray}
-where
+这里
 \begin{equation}
   a_{\ell m}^{\rm ref} = a_{\ell m}(\nu_{\rm ref}),
 \end{equation}
 \begin{equation}
   g_{\ell m}^{\rm ref} = (-1)^m \sqrt{\frac{2\ell+1}{4\pi}}\sum_{\ell_1, m_1, \ell_2, m_2}a_{\ell_1, m_1}^{\rm ref}\beta_{\ell_2, m_2}\sqrt{(2\ell_1+1)(2\ell_2+1)}\begin{pmatrix} \ell_1 & \ell_2 & \ell \\ 0 & 0 & 0 \end{pmatrix}\begin{pmatrix} \ell_1 & \ell_2 & \ell \\ m_1 & m_2 & -m \end{pmatrix},
 \end{equation}
-and
+以及
 \begin{small}
 \begin{eqnarray}
   h_{\ell m}^{\rm ref} &=&  (-1)^{m}\frac{\sqrt{2\ell+1}}{8\pi}\sum_{\ell_1, m_1, \ell_2,m_2, \ell_3 m_3}a_{\ell_1, m_1}^{\rm ref}\beta_{\ell_2, m_2}\beta_{\ell_3, m_3}\sqrt{(2\ell_1+1)(2\ell_2+1)(2\ell_3+1)} \nonumber \\
@@ -593,37 +611,36 @@ and
 \end{eqnarray}
 \end{small}
 
-Assuming $\delta \beta_d(\mathbf{n})$ is a random Gaussian field that is uncorrelated with the reference map $B(\nu_{\rm ref}, \mathbf{n})$ and keeping only up to second order of $\delta \beta_d$, we have
+假设 $\delta \beta_d(\mathbf{n})$ 是一个和参照天图无关联的随机高斯场，并且仅保留到 $\delta \beta_d$ 的二阶小量，就有
 \begin{equation}
   \langle (a_{\ell  m}^{\rm ref})^* g_{\ell m}^{\rm ref} \rangle = 0,
 \end{equation}
 \begin{equation}
   \langle (h_{\ell  m}^{\rm ref})^* g_{\ell m}^{\rm ref} \rangle = 0,
 \end{equation}
-and
+以及
 \begin{equation}
  \langle (h_{\ell  m}^{\rm ref})^* h_{\ell m}^{\rm ref} \rangle = 0.
 \end{equation}
-Here $\langle \cdot \rangle$ represents cosmic expectation value.
+这里 $\langle \cdot \rangle$ 代表期待值。
 
-Further approximately treating $B(\nu_{\rm ref}, \mathbf{n})$ a random Gaussian field, we may also use the power spectra $C_\ell^{\rm ref} \equiv \langle (a^{\rm ref}_{\ell m})^*a_{\ell m}^{\rm ref} \rangle$ and $S_\ell \equiv \langle (\beta_{\ell m})^*\beta_{\ell m} \rangle$ to express some non-zero expectation values. Specifically, they are
+如果进一步把参照天图 $B(\nu_{\rm ref}, \mathbf{n})$ 也近似当作随机高斯场，我们可以用参照天图的功率谱 $C_\ell^{\rm ref} \equiv \langle (a^{\rm ref}_{\ell m})^*a_{\ell m}^{\rm ref} \rangle$ 和 $\delta \beta_d$ 的功率谱 $S_\ell \equiv \langle (\beta_{\ell m})^*\beta_{\ell m} \rangle$ 来表达下述非零的期待值：
 \begin{equation}
   \langle (g_{\ell  m}^{\rm ref})^* g_{\ell m}^{\rm ref} \rangle = \frac{1}{4\pi}\sum_{\ell_1, \ell_2} C_{\ell_1}^{\rm ref}S_{\ell_2}(2\ell_1+1)(2\ell_2+1)\begin{pmatrix} \ell_1 & \ell_2 & \ell \\ 0 & 0 & 0 \end{pmatrix}^2, \label{eq:glmglm}
 \end{equation}
-and 
+和
 \begin{equation}
   \langle (a_{\ell  m}^{\rm ref})^* h_{\ell m}^{\rm ref} \rangle = \frac{1}{8\pi}C_\ell^{\rm ref} \sum_{\ell_2}(2\ell_2+1)S_{\ell_2}. \label{eq:almhlm}
 \end{equation}
-To derive Eq.~\eqref{eq:glmglm}, we have used the identity
+在推导\eqref{eq:glmglm}式的过程中，我们使用了 3-j 符号的正交定理：
 \begin{equation}
   \sum_{m_1, m_2}\begin{pmatrix} \ell_1 & \ell_2 & \ell_3 \\ m_1 & m_2 & m_3 \end{pmatrix} \begin{pmatrix} \ell_1 & \ell_2 & \ell_3^\prime \\ m_1 & m_2 & m_3^\prime \end{pmatrix} = \left\{
   \begin{array}{ll}
     \frac{1}{2\ell_3+1}, & \text{if } |\ell_1-\ell_2| \le \ell_3 \le \ell_1+\ell_2 \text{, } \ell_3 = \ell_3^\prime \text{, } m_3 = m_3^\prime \\
     0, & \text{otherwise}
-  \end{array}\right.,
+  \end{array}\right. .
 \end{equation}
-namely the orthogonal property of 3-$j$ symbol.
-To derive Eq.~\eqref{eq:almhlm}, we have used the identity
+在推导\eqref{eq:almhlm}式的过程中，我们使用了 3-j 符号的下述性质：
 \begin{equation}
   \sum_{m} (-1)^{\ell - m}
   \begin{pmatrix}
@@ -638,7 +655,7 @@ To derive Eq.~\eqref{eq:almhlm}, we have used the identity
   \right. .
 \end{equation}
 
-The power spectrum between two frequency maps $B(\nu, \mathbf{n})$ and $B(\nu^\prime, \mathbf{n})$ is then
+根据上面的结果，两张频率天图 $B(\nu, \mathbf{n})$ 和 $B(\nu^\prime, \mathbf{n})$ 之间的功率谱则是
 \begin{eqnarray}
   C_\ell(\nu, \nu^\prime) &=& \langle a_{\ell m}(\nu) a_{\ell m}(\nu^\prime)\rangle \nonumber \\
   &=& W_d(\nu; \nu_{\rm ref}, \beta_d) W_d(\nu^\prime; \nu_{\rm ref}, \beta_d)\nonumber \\
@@ -650,82 +667,85 @@ The power spectrum between two frequency maps $B(\nu, \mathbf{n})$ and $B(\nu^\p
 
 
 
-The above result can be written in a more compact way
+可以把上述结果写成一个更加精简的形式：
 \begin{equation}
   C_\ell(\nu, \nu^\prime) = W_d(\nu) W_d(\nu^\prime) \left\{ C_\ell^{\rm ref}\left[1+  \mu \left(\ln^2\frac{\nu}{\nu_{\rm ref}} + \ln^2\frac{\nu^\prime}{\nu_{\rm ref}} \right) \right] + \varepsilon_{\ell} \ln\frac{\nu}{\nu_{\rm ref}}\, \ln\frac{\nu^\prime}{\nu_{\rm ref}}\right\}, \label{eq:ME}
 \end{equation}
-where
+这里的
 \begin{equation}
   \mu \equiv \frac{1}{8\pi}\sum_{\ell_2}(2\ell_2+1)S_{\ell_2} \label{eq:ME_mu}
 \end{equation}
-is proportional to the variance of $\delta\beta_d$, and
+正比于 $\delta\beta_d$ 图的方差，而
 \begin{equation}
   \varepsilon_\ell \equiv \frac{1}{4\pi} \sum_{\ell_1, \ell_2} C_{\ell_1}^{\rm ref}S_{\ell_2}(2\ell_1+1)(2\ell_2+1)\begin{pmatrix} \ell_1 & \ell_2 & \ell \\ 0 & 0 & 0 \end{pmatrix}^2 \label{eq:ME_eps}
 \end{equation}
-is proportional to the convolution between $\beta_d$ and the reference map.
+正比于 $\beta_d$ 和参照天图的卷积。
 
-The minimal parametrization then involve two unknown spectra  $C_\ell^{\rm ref}$ and $S_\ell$, while $\mu$ is a derived parameter that relies on $S_\ell$.
+上述参数化涉及两个未知的功率谱 $C_\ell^{\rm ref}$ 和 $S_\ell$，而 $\mu$ 和 $\varepsilon_\ell$ 可以从这两个功率谱导出。
 
 
-In general we deal with maps in a masked fractional sky. If the variance of $\delta \beta_d$ is dominated by small-scale fluctuations, we may still use Eqs.~(\ref{eq:ME}) as an approximation and replace $S_{\ell_2}$ with $S_{\ell_2}f_{\rm fsky}$ in Eq.~\eqref{eq:ME_mu} and Eq.~\eqref{eq:ME_eps}, where $f_{\rm sky}$ is the sky fraction. However, this approximation may not work very well, for the following reasons.
-\begin{enumerate}
-\item{Large-scale variation of $\beta_d$ has been observed~\cite{Ade25}, while small-scale variation of $\beta_d$ remains a conjecture. Therefore, it is possible that the variance of $\delta\beta_d$ may be dominated by large-scale modes, whose information is partially missing in a masked sky.}
-\item{Similarly, because for masked sky we are dealing with band powers with limited scale coverage, we cannot accurately evaluate the convolution $\varepsilon_\ell$.}
-\item{The mask and non-Gaussianity of the dust map may induce coupling between different modes. This will lead to extra scale-dependent contribution to $\mu$ and $\varepsilon_\ell$.}
-\end{enumerate}
-The net effect is then the relation between $\mu$, $C_\ell^{\rm ref}$  (in form of band powers)  and $S_\ell$  (also in form of band powers) becomes vague in the masked-sky case, and $\mu$ essentially becomes scale-dependent if mode mixing is not negligible. The final model of band powers used in DroPS is then
+在实际的CMB实验中，尤其是地基实验中，我们需要处理只覆盖部分天区（天空占比 $f_{\rm sky}$）的掩膜的影响。这时，\eqref{eq:ME}式、\eqref{eq:ME_mu}式和\eqref{eq:ME_eps}式中的功率谱都是伪功率谱（天图和掩膜乘积的功率谱），而 DroPS 处理的是带功率，也就是对统计各向同性的全天功率谱的估计。把伪功率谱仍然写作 $\tilde{S}_\ell$ 和 $\tilde{C}_\ell$，它们和全天功率谱之间的关系为~\cite{Master}
+\begin{eqnarray}
+  \tilde{S}_\ell &=& \frac{2\ell^\prime+1}{4\pi}\sum_{\ell^\prime, \ell^{\prime\prime}}(2\ell^{\prime\prime}+1)\begin{pmatrix}\ell & \ell^\prime & \ell^{\prime\prime} \\ 0 & 0 & 0 \end{pmatrix}^2 M_{\ell^{\prime\prime}}S_{\ell^\prime}, \\
+  \tilde{C}_\ell^{\rm BB} &=& \sum_{\ell^\prime}  Q_{\ell \ell^\prime}^{-} C_{\ell^\prime}^{BB} +  Q_{\ell \ell^\prime}^{+} C_{\ell^\prime}^{EE}, \\
+  \tilde{C}_\ell^{\rm EE} &=& \sum_{\ell^\prime}  Q_{\ell \ell^\prime}^{+} C_{\ell^\prime}^{EE} +  Q_{\ell \ell^\prime}^{-} C_{\ell^\prime}^{BB}.   
+\end{eqnarray}
+这里的
+\begin{equation}
+  Q^{\pm}_{\ell\ell^\prime} = \frac{2\ell^\prime+1}{4\pi}\sum_{\ell^{\prime\prime}}(2\ell^{\prime\prime}+1)M_{\ell^{\prime\prime}}\begin{pmatrix}\ell & \ell^\prime & \ell^{\prime\prime} \\ 2 & -2 & 0 \end{pmatrix}^2 \frac{1\pm (-1)^{\ell+\ell^\prime + \ell^{\prime\prime}}}{2},
+\end{equation}
+这里的 $M_{\ell^{\prime\prime}}$ 是掩膜的功率谱。
+
+可以看到，掩膜让 $\mu$ 和 $\varepsilon_\ell$ 不再简单依赖于 $S_\ell$ 和 $C_\ell^{BB, \rm ref}$，而同时受到  $C_\ell^{\rm EE, \rm ref}$ 以及 $M_\ell$ 的影响。考虑到这些影响，等效的 $\mu$ 不再是一个尺度无关的因子。在DroPS中实际使用的参数化形式为
 \begin{equation}
   D_\ell(\nu, \nu^\prime) = W_d(\nu) W_d(\nu^\prime) \left\{ D_\ell^{\rm ref}\left[1+  \mu_\ell \left(\ln^2\frac{\nu}{\nu_{\rm ref}} + \ln^2\frac{\nu^\prime}{\nu_{\rm ref}} \right) \right] + \varepsilon_{\ell} \ln\frac{\nu}{\nu_{\rm ref}}\, \ln\frac{\nu^\prime}{\nu_{\rm ref}}\right\}, \label{eq:ME_ph}
 \end{equation}
-where $D_{\ell}^{\rm ref}$, $\mu_\ell$ and $\varepsilon_\ell$ (both in form of band powers) are directly taken as independent parameters. To avoid overfitting and consistently keep the $\mu_\ell$ and $\epsilon_\ell$ terms perturbative, we assume an upperbound for $|\mu_\ell|$ and $|\epsilon_\ell|$ (default: $0.05$).
+这里的 $D_{\ell}^{\rm ref}$, $\mu_\ell$ 和 $\varepsilon_\ell$ 都以带功率的形式出现并在默认情况下都被当作自由参数。为了保持原始的物理图像，也就是 $\mu_\ell$ 和 $\epsilon_\ell$ 因子的项都是小修正， DroPS给 $|\mu_\ell|$ 和 $|\epsilon_\ell|$ 设定了一个上限 (默认值为 $0.05$，用户可以通过设置文件修改)。
 
-At the time of writing, there is no observational confirmation or rejection of spatial variation of $\beta_d$ on small scales. Eqs.~(\ref{eq:ME_mu},\ref{eq:ME_eps}) imply that $\varepsilon_\ell$ and $\mu_\ell$ are positive parameters, if the extra contribution from mode mixing is negligible. However, applying this physical prior can bias the $r$ measurement if there is actually no spatial variation of $\beta_d$, and we have no clue whether the mode mixing can be safely neglected. Therefore, by default DroPS does not apply the positiveness prior. If wanted, the positiveness prior which can be turned on by setting ME\_is\_positive = True in the configuration file.
+撰写本文时，尚未有观测证据能够证实或否定$\beta_d$在小尺度上存在空间变化。公式~(\ref{eq:ME_mu},\ref{eq:ME_eps})表明，若模式混合的额外贡献可被忽略，则$\varepsilon_\ell$和$\mu_\ell$应为正参数。然而，若$\beta_d$实际上不存在空间变化，施加此物理先验可能会导致$r$的测量结果产生偏差，且我们目前无法确定模式混合效应是否可被安全忽略。因此，DroPS默认不施加正性先验。如需启用该先验，可在配置文件中设置ME\_is\_positive = True。
 
-The treatment of synchrotron is exactly the same, as the dependence of $W_d$ on $\beta_d$ and $W_s$ on $\beta_s$ is identical ($W_d\propto (\nu/\nu_{\rm ref})^{\beta_d}$ and $W_s\propto (\nu/\nu_{\rm ref})^{\beta_s}$).
+对同步辐射的处理方式完全相同，因为$W_d$对$\beta_d$的依赖关系与$W_s$对$\beta_s$的依赖关系具有相同形式（$W_d\propto (\nu/\nu_{\rm ref})^{\beta_d}$，$W_s\propto (\nu/\nu_{\rm ref})^{\beta_s}$）。
 
-In summary, we have generalized the moment expansion method to masked sky, but still have ignored many complexities that may emerge in reality, such as possible correlation between $\delta \beta_d$, $\delta\beta_s$ and the reference map. Although some of the complexities may be absorbed into the free parameters $\mu_\ell$ and $\varepsilon_\ell$, we do not expect Eq.~\eqref{eq:ME_ph} covers all possible degrees of freedom. Nevertheless, at least for small perturbations around the base (constant-SED) model, moment expansion method is a good tool to account for the foreground complexity.
+总而言之，我们已将矩展开方法推广至掩膜天区，但仍忽略了实际中可能存在的诸多复杂因素，例如$\delta \beta_d$、$\delta\beta_s$与参考天图之间可能存在的关联性。尽管部分复杂性或可被自由参数$\mu_\ell$和$\varepsilon_\ell$吸收，但我们不认为公式~\eqref{eq:ME_ph}能够涵盖所有可能的自由度。尽管如此，至少对于基础（恒定能谱分布）模型的小扰动而言，矩展开方法仍是处理前景复杂性的有效工具。
 
 \subsubsection{前景频率去相关: 泰勒展开方法}
 
-
-
-For the base (constant-SED) model of dust (synchrotron), the band powers satisfy $\left[D_\ell(\nu, \nu^\prime)\right]^2 = D_\ell(\nu, \nu) D_\ell(\nu^\prime, \nu^\prime)$. Complexity of foreground such as spatial variation of SED in general weakens the correlation between different frequency maps, that is,
+对于基础（恒定能谱分布）的尘埃（同步辐射）模型，其带功率满足关系式 $\left[D_\ell(\nu, \nu^\prime)\right]^2 = D_\ell(\nu, \nu) D_\ell(\nu^\prime, \nu^\prime)$。前景的复杂性（例如能谱分布的空间变化）通常会减弱不同频率天图间的相关性，即满足：
 \begin{equation}
-  \left[D_\ell(\nu, \nu^\prime)\right]^2 \le D_\ell(\nu, \nu) D_\ell(\nu^\prime, \nu^\prime), \label{eq:decorr_ineq}
+\left[D_\ell(\nu, \nu^\prime)\right]^2 \le D_\ell(\nu, \nu) D_\ell(\nu^\prime, \nu^\prime), \label{eq:decorr_ineq}
 \end{equation}
-with equality if and only if $\nu=\nu^\prime$.
+当且仅当 $\nu=\nu^\prime$ 时取等号。
 
-Note that, however, the moment expansion formula Eq.~\eqref{eq:ME_ph} (or the full-sky version Eq.~\eqref{eq:ME}) does not explicitly follow this physically motivated inequality. Motivated by the inequality~\eqref{eq:decorr_ineq}, DroPS provides a phenomenological model, which can be turned on by setting fg\_decorr\_model = ``Taylor'' in the configuration file. The idea of this model is to Taylor expand the spectral index $\beta_d$ in the $\nu,\ell$ space. Specifically, the band powers of dust in is parameterized as
+但需注意的是，矩展开公式~\eqref{eq:ME_ph}（及其全天区版本~\eqref{eq:ME}）并未显式遵循这一具有物理意义的不等式。受不等式~\eqref{eq:decorr_ineq} 的启发，DroPS 提供了一个唯象模型，可通过在配置文件中设置 fg\_decorr\_model = "Taylor" 启用。该模型的核心思想是对谱指数 $\beta_d$ 在 $\nu,\ell$ 空间进行泰勒展开。具体而言，尘埃的带功率被参数化为：
 \begin{equation}
-  D_\ell(\nu, \nu^\prime) = W_d(\nu; \nu_{\rm ref}, \beta_d + \delta\beta_{d, \ell} + \gamma_d \frac{\nu}{\nu_{\rm ref}})W_d(\nu^\prime; \nu_{\rm ref},\beta_d + \delta\beta_{d, \ell} + \gamma_d\frac{\nu^\prime}{\nu_{\rm ref}})\exp{\left[-\frac{\ln^2\frac{\nu}{\nu^\prime}}{Q_\ell}\right]} D_\ell^{\rm ref},
+D_\ell(\nu, \nu^\prime) = W_d(\nu; \nu_{\rm ref}, \beta_d + \delta\beta_{d, \ell} + \gamma_d \frac{\nu}{\nu_{\rm ref}})W_d(\nu^\prime; \nu_{\rm ref},\beta_d + \delta\beta_{d, \ell} + \gamma_d\frac{\nu^\prime}{\nu_{\rm ref}})\exp{\left[-\frac{\ln^2\frac{\nu}{\nu^\prime}}{Q_\ell}\right]} D_\ell^{\rm ref},
 \end{equation}
-where $\beta_d$ and $\gamma_d$ are the average SED and the frequency running of SED; $D_\ell^{\rm ref}$ is the reference band power;  $\delta\beta_{d, \ell}$ describes the variation of $\beta_d$ in $\ell$ space;  $Q_\ell>0$ describes the logarithm spacing of frequency decorrelation. (Frequency decorrelation is significant if $\ln\frac{\nu}{\nu^\prime} \gtrsim Q_\ell$.)
-
-
+其中 $\beta_d$ 和 $\gamma_d$ 分别表示平均能谱分布及其随频率的跑动；$D_\ell^{\rm ref}$ 为参考带功率；$\delta\beta_{d, \ell}$ 描述 $\beta_d$ 在 $\ell$ 空间的变化；$Q_\ell>0$ 描述频率退相关的对数间距（当 $\ln\frac{\nu}{\nu^\prime} \gtrsim Q_\ell$ 时，频率退相关效应显著）。
 
 \begin{figure}
   \includegraphics[width=\textwidth]{method_compare.png}
-  \caption{Comparison between base model (None), moment expansion method (ME) and Taylor expansion method(Taylor). Simulations are obtained with SO/SO\_sim\_config.txt. \label{fig:compare_methods}}
+  \caption{基础模型(None), 矩展开方法(ME) 和泰勒展开方法(Taylor)的比较. 模拟数据基于DroPS的演示实验SO 。 \label{fig:compare_methods}}
 \end{figure}
 
-The moment expansion and Taylor expansion methods typically induce shifts of $r$ on the order of a few $\times 10^{−4}$. We use the more precise demo-experiment SO to highlight the impact of foreground modeling. Figure~\ref{fig:compare_methods} compares the reconstructed $r$ using the base model (constant SED), the moment expansion, and the Taylor expansion methods. Each data point and error bar represent the mean and standard deviation, respectively, averaged over 250 random realizations of the "observed sky." Our analysis shows that the moment expansion method remains nearly unbiased across all tested scenarios, albeit at the cost of a modest increase in uncertainty. The Taylor expansion method also performs robustly in the presence of foreground frequency decorrelation. However, in the absence of such decorrelation, it tends to systematically underestimate the value of $r$.
+矩展开与泰勒展开方法通常会引起$r$值产生数量级为若干$\times 10^{-4}$的偏移。我们采用更精确的演示实验SO来突显前景建模的影响。图~\ref{fig:compare_methods} 对比了使用基础模型（恒定能谱分布）、矩展开方法及泰勒展开方法重构的$r$值。每个数据点及误差棒分别代表对250次"观测天图"随机实现结果进行平均后得到的均值与标准差。我们的分析表明：矩展开方法在所有测试场景中均保持近乎无偏的特性，但其代价是不确定性略有增加。泰勒展开方法在前景存在频率退相关时同样表现稳健，然而若未出现此类退相关效应时，该方法则会系统性地低估$r$值。
 
 \subsection{带功率的相关矩阵 \label{sec:cov}}
 
-While the covariance matrix of the band powers could, in principle, be estimated directly from simulations, this approach faces a practical challenge: the covariance matrix typically contains over a thousand free elements, which cannot be robustly constrained by the few hundred simulations typically available. To overcome this, DroPS implements a two-step stabilization procedure: it applies ``noise cleaning'' by neglecting noise correlations across different channels or observation seasons, and enforces ``scale separation'' by ignoring correlations between widely separated multipole bins.
+虽然带功率的协方差矩阵原则上可以直接通过参照数据组估计，但这种方法面临一个实际挑战：受算力限制，通常参照数据组的样本数目在几百到几千之间，无法对包含大量自由度的协方差矩阵进行可靠估计。为解决此问题，DroPS从物理先验的角度对协方差矩阵的计算实施两种优化方案：通过忽略不同频段或观测季节间的噪声关联来实现"噪声清理"，并通过忽略相距较远的多极矩区间之间的关联来实施"尺度分离"。
 
-DroPS decomposes the covariance matrix into three components: the noise covariance, the signal covariance, and the signal$\times$noise covariance. The advantage of doing so is that noise covariance can be ``cleaned'' with the prior knowledge that noise in different frequency channels (or observation seasons) are uncorrelated. DroPS also assumes that the noise $T$, $E$, $B$ are mutually uncorrelated\footnote{In the default settings where $BB$ band powers are used, this assumption is not used.}. Consequently, the noise covariance between $D^{XY}_\ell(\nu_1,\nu_2)$ and $D^{X^\prime Y^\prime}_{\ell^\prime}(\nu_1^\prime,\nu_2^\prime)$ is nonzero only if $XY=X^\prime Y^\prime$ and $(\nu_1, \nu_2) = (\nu_1^\prime, \nu_2^\prime)$. This substantially reduces the degrees of freedom and improves the accuracy of noise covariance estimation.
+DroPS将协方差矩阵分解为三个组成部分：噪声协方差、信号协方差以及信噪交叉协方差。这样处理的优势在于，可以基于不同频率通道（或观测季节）的噪声互不关联这一先验知识对噪声协方差进行“清理”。DroPS同时假设噪声的$T$、$E$、$B$分量互不关联\footnote{在使用$BB$带功率的默认设置中，不需要此假设}。因此，$D^{XY}\ell(\nu_1,\nu_2)$ 与 $D^{X^\prime Y^\prime}{\ell^\prime}(\nu_1^\prime,\nu_2^\prime)$ 之间的噪声协方差仅当 $XY=X^\prime Y^\prime$ 且 $(\nu_1, \nu_2) = (\nu_1^\prime, \nu_2^\prime)$ 时才非零。这一机制显著降低了自由度数量，并提升了噪声协方差估计的准确性。
 
-
-By default, DroPS assumes no correlation between different multipole bins (ell\_cross\_range = 0 in the configuration file). Optionally, it can model correlations between adjacent (ell\_cross\_range = 1) or next-to-adjacent bins (ell\_cross\_range = 2). However, simply truncating the covariance matrix to these limited off-diagonal blocks can violate its positive-definite property, introducing unphysical "ghost modes" with negative eigenvalues that lead to catastrophic overfitting. To balance information retention with numerical stability, DroPS applies suppression factors to the off-diagonal $\ell$ blocks. The optimal factors, listed in Table~\ref{tab:sup_mat}, are derived analytically for a small number of bins or numerically for a larger set. Specifically:
+默认情况下，DroPS假设不同多极矩区间之间不存在相关性（配置文件中设置ell\_cross\_range = 0）。用户可选择建模相邻区间（ell\_cross\_range = 1）或次相邻区间（ell\_cross\_range = 2）的关联。然而，简单地将协方差矩阵截断至这些有限的非对角区块可能会破坏其正定性，从而引入具有负特征值的非物理``鬼模''，最终导致灾难性的过拟合现象。为平衡信息保留与数值稳定性，DroPS对 $\ell$ 非对角区块施加抑制因子来保证协方差矩阵的正定性。通过解析或者数值计算，我们计算了这些抑制因子的理论最优值，并列于表~\ref{tab:sup_mat}中。具体来说，它们的使用方式是：
 \begin{itemize}
-  \item{For ell\_cross\_range = 1, the first off-diagonal blocks are multiplied by a factor $f_1$.}
-  \item{For ell\_cross\_range = 2, the first and second off-diagonal blocks are multiplied by factors $f_1$​ and $f_2$​, respectively.}
+  \item{对 ell\_cross\_range = 0，同一 $\ell$-区间关联不动，其余元素清零。}  
+  \item{对 ell\_cross\_range = 1，同一 $\ell$-区间关联不动，相邻 $\ell$-区间的关联乘以 $f_1$，其余元素清零。}
+  \item{对 ell\_cross\_range = 2，同一 $\ell$-区间关联不动，相邻 $\ell$-区间的关联乘以 $f_1$，次相邻 $\ell$-区间关联乘以 $f_2$，其余元素清零。}
 \end{itemize}
+
         
 \begin{table}
   \centering
-  \caption{suppression factors ($f_1$ for adjacent and $f_2$ for next-to-adjacent bins) \label{tab:sup_mat}}
+  \caption{保证协方差矩阵正定性的抑制因子 ($f_1$用于相邻 $\ell$ 区间； $f_2$ 用于次相邻 $\ell$ 区间) \label{tab:sup_mat}}
   \begin{tabular}{lll}
     \hline
     \hline
@@ -758,7 +778,7 @@ By default, DroPS assumes no correlation between different multipole bins (ell\_
   \end{tabular}
 \end{table}
 
-Empirical tests show that the correlations between adjacent $\ell$ bins and next-to-adjacent $\ell$ bins usually do not have a significant impact on the constraint on $r$ and foreground parameters. Figure~\ref{fig:ell_cross_range} shows an example. The simulation is done with AliCPT/AliCPT\_sim\_config.txt with fiducial $r=0.01$ and random seed 5; the analyses are done with AliCPT/AliCPT\_ana\_config.txt (with ell\_cross\_range = 0, 1, 2 respectively). The input fiducial $r=0.01$ and $\beta_d=1.54$ are marked with lightgray dotted lines in the figure. The contours are plotted with the script utils/plot\_cont.py that comes with DroPS.
+通过对DroPS的演示实验的测试，我们发现相邻 $\ell$ 区间或者次相邻 $\ell$ 区间的关联对 $r$ 的测量影响很弱。图~\ref{fig:ell_cross_range} 以 AliCPT演示实验为例展示了 ell\_cross\_range = 0, 1, 2 时 $r$ 和 $\beta_d$ 的测量结果。图中用虚线标记了模拟采用的 $r=0.01$ 和 $\beta_d=1.54$。这个图是用DroPS自带的画图脚本 utils/plot\_cont.py 生成的。
 
 \begin{figure}
   \centering
@@ -767,48 +787,48 @@ Empirical tests show that the correlations between adjacent $\ell$ bins and next
 \end{figure}
 
 
-The signal and signal$\times$noise covariance matrices are cosmology-dependent. DroPS pre-computes them at the two fiducial points, $r=0$ and $r=r_1$​, from the base simulations. Within the interval $0<r<r_1$, the covariances are interpolated according to their known scaling with $r$: the signal covariance scales with $r^2$ and is thus interpolated linearly in $r^2$, while the signal$\times$noise covariance scales with $r$ and is interpolated linearly in $r$. For values $|r|>r_1$​, DroPS uses the covariance evaluated at $r=r_1$​, deliberately avoiding any extrapolation to prevent the introduction of unphysical modes and catastrophic overfitting.
-
+信号协方差以及信噪交叉协方差都依赖于宇宙学，特别是 $r$ 的值（DroPS默认假设其他宇宙学参数的变化范围很小，对B模式功率谱的影响不起主要作用）。通过 $r=0$ and $r=r_1$​ 的两组参照数据，DroPS 计算出这两种情况下的信号协方差以及信噪交叉协方差\footnote{注意参照数据组里的前景成分是固定的，因此协方差矩阵不包含前景的随机性。DroPS通过把参照频率的前景带功率都取为自由参数并进行边缘化的方式来处理前景的随机性，并且通过矩展开或者泰勒展开的方式来估算频率去相关带来的额外误差}。因为信号（带功率）和 $r$ 近似有线性依赖关系，所以在 $0<r<r_1$ 的范围内，DroPS把信号协方差按照 $r^2$ 权重进行插值，把信噪交叉协方差按照 $r$ 权重进行插值。对 $r>r_1$， DroPS 就简单使用 $r=r_1$​ 的协方差矩阵。DroPS不对协方差矩阵进行外插值的原因是：对两个协方差矩阵进行外插值无法保证其正定性，容易因产生负本征值而导致灾难性的过拟合。
 
 \subsection{天图成分分离的似然函数 \label{sec:sgld_like}}
 
-For map-level component separation, the likelihood  $\mathcal{L}\propto e^{-\chi^2/2}$ is constructed under a Gaussian noise model, where
+天图成分分离涉及的噪声似然函数  $\mathcal{L}\propto e^{-\chi^2/2}$ 以高斯近似的形式给出：
 \begin{equation}
   \chi^2 = v_{\rm noise}^TN^{-1}v_{\rm noise},
 \end{equation}
-Here, $v_{\rm noise}$ represents the noise frequency maps, and $N$ is their covariance matrix. In pixel space, the dimension of $v_{\rm noise}$​ is $n_{\rm pix} n_\nu$, which for experiments like AliCPT or SO-SAT with $\gtrsim 10\%$ sky coverage typically exceeds $10^4$. This makes the covariance matrix $N$, with $10^8$ elements, prohibitively large to estimate robustly from simulations and to invert efficiently.
+这里的矢量 $v_{\rm noise}$ 代表所有频段上的噪声天图，$N$ 代表噪声的协方差矩阵。在像素空间 $v_{\rm noise}$​ 的维度为像素数目和频段数目的乘积 $n_{\rm pix} n_\nu$，对类似于 AliCPT 或者 SO-SAT 等覆盖天区 $\gtrsim 10\%$ 的实验而言，通常要超过 $10^4$。这使得协方差矩阵 $N$ 难以用数值方法估算，并且它的求逆也需要消耗大量计算资源。
 
-To overcome this, the BICEP/Keck analysis~\cite{BKmap} adopts a diagonal approximation of $N$ in pixel space, considering only pixel auto-correlations. DroPS employs a more accurate approximation by assuming $N$ is diagonal in harmonic space. This approach better captures the correlations inherent in the data while remaining computationally tractable.
+为了避开这一困难， BICEP/Keck 实验的B模天图分离丢弃了所有 $N$ 的非对角元素~，也就忽略了所有像素之间的噪声关联~\cite{BKmap}。显然地，忽略噪声的大角尺度关联会直接影响从分离出来的天图中评估出来的原初引力波的大小，因此这种做法存在一定的缺陷。DroPS 则采用不同的逻辑，以尽可能保证分离出来的CMB天图中的B模在 $\ell\lesssim 200$ 范围内的准确度为目标。因此DroPS在谐波空间进行天图的分离。 为了便于在个人电脑上测试，DroPS默认采用 $\ell_{\max}=160$ 的截断来保证有限计算资源下的可执行性。
 
-We label a pixel with index $j$ ($j=1, 2, \ldots, n_{\rm pix}$), and frequency channels with index $k$ ($k = 1, 2, \ldots, n_\nu$). The CMB maps are identical in all frequency channels, and are modeled as
+用下标 $j$ ($j=1, 2, \ldots, n_{\rm pix}$) 和 $k$ ($k = 1, 2, \ldots, n_\nu$) 分别来标记像素和频段。CMB天图在所有频段的极化天图是一样的：
 \begin{equation}
   (Q\pm \mathrm{i}U)_{\rm CMB, j, k} = -\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (c_{\ell m}^E\pm \mathrm{i} c_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j), \label{eq:CMB_comp}
 \end{equation}
-where $\mathbf{n}_j$ is the directional vector of the $j$-th pixel. The expansion bases $_{\pm 2}Y_{\ell m}$ are spin-weighted spherical harmonics. Note that here $c_{\ell m}^E$ and $c_{\ell m}^B$ are harmonic coefficients of the full-sky CMB map. Degeneracy between these parameters are expected for partial sky observations. 
+这里 $\mathbf{n}_j$ 是 $j$号像素对应的方向矢量。展开基 $_{\pm 2}Y_{\ell m}$ 是自旋加权球谐函数。注意这里 $c_{\ell m}^E$ 和 $c_{\ell m}^B$ 是全天 CMB 图的球谐展开系数。当对掩膜覆盖天区的天图进行成分分离时，这些球谐系数之间存在简并。理论上讲，在掩膜覆盖区选取正交完备基才是计算效率最高的做法。但是这样的代码会变得异常复杂，需要对每一个掩膜进行求解，也缺乏现成的特殊函数库支持，因此DroPS放弃了这种理想上可行但实际操作由困难的方案。 
 
-Due to limited frequency resolution, BICEP/Keck analysis models the foreground maps ($v_{\rm FG}$) as a single component (thermal dust). DroPS takes a more accurate two-component model with emission from Galactic synchrotron and thermal dust. The dust maps are modeled as
+由于频段数有限，BICEP/Keck 在做天图成分分离时仅考虑了尘埃热辐射前景。为了能更好地应用到下一代CMB实验中，DroPS采用了更为精确的双成分模型（尘埃热辐射和同步辐射）。忽略频率去相关，尘埃热辐射极化天图可以写作：
 \begin{equation}
   (Q\pm \mathrm{i}U)_{\rm dust, j, k} =  -\int W_d(\nu) f_k(\nu) \dsymb\nu \,\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (d_{\ell m}^E\pm \mathrm{i}  d_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j),  \label{eq:dust_comp}
 \end{equation}
-where the frequency dependence function $W_d$ is defined in Eq.~\eqref{eq:dust_w} and $f_k(\nu)$ is the frequency distribution of the $k$-th frequency channel.
-Synchrotron maps are modeled similarly,
+这里的 $W_d$ 由 \eqref{eq:dust_w} 式给出，$f_k(\nu)$ 是第 $k$ 个频段的（归一化的）频率分布函数。
+类似地，同步辐射天图可以写作：
 \begin{equation}
   (Q\pm \mathrm{i}U)_{\rm sync, j, k} =  -\int W_s(\nu) f_k(\nu) \dsymb\nu \,\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (s_{\ell m}^E\pm \mathrm{i}  s_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j),  \label{eq:sync_comp}
 \end{equation}
-where $W_s$ is given in Eq.~\eqref{eq:sync_w}.
+这里 $W_s$ 由 \eqref{eq:sync_w} 式给出。
 
-The sky model $(Q+iU)_{\rm sky}$ is the sum of Eqs.~(\ref{eq:CMB_comp}, \ref{eq:dust_comp}, \ref{eq:sync_comp}). Passing the sky model through the TOD filtering and map making process, we obtain the filtered sky maps. Subtracting the filtered sky maps from the observed (filtered) maps, we obtain filtered noise maps in pixel space. To compute the likelihood, we decompose the noise maps into harmonic space,
+天图模型 $(Q\pm \mathrm{i}U)_{\rm sky}$ 是公式~(\ref{eq:CMB_comp}, \ref{eq:dust_comp}, \ref{eq:sync_comp}) 的叠加。使天图模型通过时序数据滤波及天图制作流程后，我们得到滤波后的天图。将滤波后的天图从观测到的（同样经过滤波后的）天图中扣除，便得到像素空间的滤波图。为计算似然函数，我们将噪声图分解至谐波空间：
 \begin{equation}
-   M_j(Q\pm \mathrm{i}U)_{\rm noise, filtered, j, k} = -\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (\tilde{n}_{\ell m}^E\pm \mathrm{i} \tilde{n}_{\ell m}^B)\;_{\pm 2}Y_{\ell m}(\mathbf{n}_j).
+M_j(Q\pm \mathrm{i}U)_{\rm noise, filtered, j, k} = -\sum_{\ell = 0}^{\ell_{\max}}\sum_{m=-\ell}^\ell (\tilde{n}{\ell m}^E\pm \mathrm{i} \tilde{n}{\ell m}^B);{\pm 2}Y{\ell m}(\mathbf{n}_j).
 \end{equation}
-Here $M_j$ is pixel value of a smoothed mask, whose edges are apodized using a C2-type kernel  with an apodization scale of 2 degrees~\cite{Grain09}.  The purpose of introducing such a smoothed mask is to suppress unphysical modes due to sharp-edge and to reduce $E$-to-$B$ leakage.
+此处 $M_j$ 为平滑掩膜的像素值，其边缘采用C2型核函数并以2度为尺度进行平滑处理~\cite{Grain09}。引入此类平滑掩膜的目的是抑制由锐利边缘导致的非物理模式，并减少$E$-$B$泄漏。
 
-On the other hand, we can calculate $\tilde{n}_{\ell m}^E$ and $\tilde{n}_{\ell m}^B$ from the filtered noise maps in the base simulations, and compute their diagonal covariance $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle $ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^B|^2\rangle $. For most mask shapes, the $m$-dependencies of $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle$ and $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle$ are very weak, and mostly reflect the statistic fluctuations due to finite sampling. Therefore, DroPS uses the $m$-averaged pseudo power spectra $\tilde{N}_\ell^E$ and $\tilde{N}_\ell^B$ to construct the likelihood in harmonic space. The likelihood $\propto e^{-\chi^2/2}$ is given by
+另一方面，我们可以从参照数据组中的噪声图计算 $\tilde{n}_{\ell m}^E$ 和 $\tilde{n}_{\ell m}^B$，并计算其对角协方差 $\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle $ 与 $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^B|^2\rangle $。对于大多数掩膜形状而言，$\tilde{N}^E_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle$ 和 $\tilde{N}^B_{\ell m} \equiv \langle |\tilde{n}_{\ell m}^E|^2\rangle$ 对 $m$ 的依赖性主要反映的是有限采样导致的统计涨落而非物理内容。因此，DroPS 采用对 $m$ 平均后的伪功率谱 $\tilde{N}_\ell^E$ 和 $\tilde{N}_\ell^B$ 来更稳健地构建谐波空间中的似然函数。该似然函数 $\propto e^{-\chi^2/2}$ 由下式给出：
 \begin{equation}
-  \chi^2 = f_{\rm sky}\sum_{\ell = 0}^{\ell_{\max}} \sum_{m=-\ell}^\ell \frac{|\tilde{n}_{\ell m}|^2}{N_{\ell}}.
+\chi^2 = f_{\rm sky}\sum_{\ell = 0}^{\ell_{\max}} \sum_{m=-\ell}^\ell \frac{|\tilde{n}_{\ell m}|^2}{N_{\ell}}.
 \end{equation}
+由于$\tilde{n}_{\ell m}$对$c_{\ell m}$、$d_{\ell m}$和$s_{\ell m}$的依赖关系均为线性，因此针对给定的掩膜和天图制作管线，可以预先计算梯度模板。
 
-
+在真实实验的数据分析中，计算梯度模板的任务涉及从时序数据到天图的制作（而非采用DroPS提供的天图制作模拟器），对计算资源的需求会非常高。不过，由于该任务对每组$\ell, m$模式而言是相互独立的，因此具有高度可并行性，能够高效地在计算集群上执行。
 
 \bibliographystyle{unsrt}
 \bibliography{refs} 
